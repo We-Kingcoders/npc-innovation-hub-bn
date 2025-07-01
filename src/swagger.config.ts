@@ -10,7 +10,7 @@ const swaggerDefinition = {
   },
   servers: [
     {
-      url: 'http://localhost:5000', // Use config.app.port if needed
+      url: 'http://localhost:5000/api-docs', // Use config.app.port if needed
       description: 'Development server',
     },
   ],

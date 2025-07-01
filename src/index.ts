@@ -13,6 +13,7 @@ server.listen(PORT, () => {
   console.log(`
   🚀 Server running on port ${PORT}
   🔗 Health check: http://localhost:${PORT}/health
+  📚 API Documentation: http://localhost:${PORT}/api-docs
   `);
 });
 
