@@ -4,7 +4,7 @@ import swaggerJSDoc from 'swagger-jsdoc';
 const swaggerDefinition = {
   openapi: '3.0.0',
   info: {
-    title: 'Express TypeScript API',
+    title: 'NpcInnovationHub API',
     version: '1.0.0',
     description: 'API documentation',
   },
