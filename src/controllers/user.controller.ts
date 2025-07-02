@@ -1,15 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
 import cloudinary from "../utils/cloudinary.utils";
-
-type MulterFile = Express.Multer.File;
-
-declare global {
-  namespace Express {
-    interface Request {
-      file?: MulterFile;
-    }
-  }
-}
 import { UserSignupAttributes } from '../types/user.type'
 import { UserService } from '../services/user.services';
 import { generateToken, decodeToken } from '../utils/tokenGenerator.utils'
@@ -20,15 +10,55 @@ import { AccountStatusMessages } from '../utils/variable.utils'
 import { sendReasonEmail } from '../utils/sendReson.util'
 import { addToBlacklist } from '../utils/tokenBlacklist'
 import { passwordEventEmitter } from '../events/password.event'
-
 import '../utils/cloudinary.utils'
 import User from '../models/user.model'
-import { sendNotification } from '../validations/socket';
 import { Notification, NotificationType } from '../models/notification.modal';
 
+// Define MulterFile type for file uploads
+type MulterFile = Express.Multer.File;
+
+declare global {
+  namespace Express {
+    interface Request {
+      file?: MulterFile;
+    }
+  }
+}
+
+/**
+ * Helper function to create a notification
+ */
+const createNotification = async (
+  userId: string,
+  message: string,
+  type: NotificationType,
+  createdBy: string
+): Promise<void> => {
+  try {
+    await Notification.create({
+      userId,
+      message,
+      type,
+      isRead: false,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+    console.log(`Notification created for user ${userId}: ${message}`);
+  } catch (error) {
+    console.error('Error creating notification:', error);
+  }
+};
+
+/**
+ * Register a new user
+ */
 export const userSignup = async (req: Request, res: Response) => {
   try {
+    console.log(`Signup attempt at: ${new Date().toISOString()} by ${req.ip}`);
+    
     const hashedpassword: any = await hashPassword(req.body.password)
+    console.log('Password hashing requested');
+    
     const user: UserSignupAttributes = {
       firstName: req.body.firstName,
       lastName: req.body.lastName,
@@ -42,6 +72,7 @@ export const userSignup = async (req: Request, res: Response) => {
     }
 
     const createdUser = await UserService.register(user)
+    console.log(`Generating access token for user: ${user.email}`);
     const token = await generateToken(createdUser, '1d')
 
     const verificationLink = `${process.env.BACKEND_URL}/api/users/verify-email?token=${token}`
@@ -77,6 +108,7 @@ Innovation Hub Team
     `
 
     if (user.email) {
+      console.log(`Sending email to: ${user.email}`);
       await sendEmail(user.email, subject, text, html)
     } else {
       throw new Error('User email is undefined');
@@ -91,7 +123,7 @@ Innovation Hub Team
       token: token,
     })
   } catch (error) {
-    console.log(error, 'Error in creating account')
+    console.error(error, 'Error in creating account')
     res.status(500).json({
       status: 'error',
       message: 'Error in creating account',
@@ -99,6 +131,9 @@ Innovation Hub Team
   }
 }
 
+/**
+ * Update user role (Admin only)
+ */
 export const updateRole = async (
   req: Request,
   res: Response,
@@ -106,6 +141,16 @@ export const updateRole = async (
   try {
     const id = req.params.id
     const { role } = req.body
+    const currentUser = req.user as { id: string; role: string }
+
+    // Check if user is admin
+    if (currentUser.role !== 'Admin') {
+      res.status(403).json({
+        status: 'fail',
+        message: 'Access denied. Admin privileges required.',
+      })
+      return
+    }
 
     if (role !== 'Admin' && role !== 'Member') {
       res.status(400).json({
@@ -131,7 +176,7 @@ export const updateRole = async (
     delete userWithoutPassword.password
     
     const notificationMessage = `Your role has been updated to ${role}`;
-    sendNotification(id, NotificationType.NEW_REMINDER, notificationMessage, user.id);
+    await createNotification(id, notificationMessage, NotificationType.NEW_REMINDER, currentUser.id);
     
     const subject = 'Innovation Hub - Role Update'
     const text = `
@@ -157,6 +202,8 @@ Innovation Hub Team
 
     await sendEmail(user.email, subject, text, html)
     
+    console.log(`User role updated: ${user.email} from ${user.role} to ${role} by ${currentUser.id} at ${new Date().toISOString()}`);
+    
     res.status(200).json({
       status: 'success',
       message: 'User role updated successfully',
@@ -173,8 +220,12 @@ Innovation Hub Team
   }
 }
 
+/**
+ * User login
+ */
 export const userLogin = async (req: Request, res: Response): Promise<void> => {
   try {
+    console.log(`Login attempt at: ${new Date().toISOString()} by ${req.ip}`);
     const { email, password } = req.body
 
     const user = await UserService.getUserByEmail(email)
@@ -268,6 +319,9 @@ Innovation Hub Team
   }
 }
 
+/**
+ * User logout
+ */
 export const userLogout = async (
   req: Request,
   res: Response,
@@ -277,6 +331,7 @@ export const userLogout = async (
     const token = req.headers.authorization?.split(' ')[1]
     if (token) {
       await addToBlacklist(token)
+      console.log(`User logged out: ${(req.user as any)?.email} at ${new Date().toISOString()}`);
     }
 
     res.status(200).json({
@@ -288,6 +343,9 @@ export const userLogout = async (
   }
 }
 
+/**
+ * Change account status (activate/deactivate) - Admin only
+ */
 export const changeAccountStatus = async (
   req: Request,
   res: Response,
@@ -295,6 +353,16 @@ export const changeAccountStatus = async (
 ): Promise<void> => {
   try {
     const { id } = req.params
+    const currentUser = req.user as { id: string; role: string };
+    
+    // Check if user is admin
+    if (currentUser.role !== 'Admin') {
+      res.status(403).json({
+        status: 'fail',
+        message: 'Access denied. Admin privileges required.',
+      })
+      return
+    }
 
     const user = await UserService.getUserByid(id)
     if (!user) {
@@ -325,6 +393,15 @@ export const changeAccountStatus = async (
 
     user.isActive = !user.isActive
     await user.save()
+    
+    // Create notification for user about account status change
+    const notificationMessage = user.isActive
+      ? 'Your account has been activated. Welcome back!'
+      : 'Your account has been deactivated.';
+    
+    await createNotification(id, notificationMessage, NotificationType.SECURITY, currentUser.id);
+    
+    console.log(`Account ${user.isActive ? 'activated' : 'deactivated'}: ${user.email} by ${currentUser.id} at ${new Date().toISOString()}`);
 
     res.status(201).json({
       message: 'Account status updated successfully',
@@ -335,6 +412,9 @@ export const changeAccountStatus = async (
   }
 }
 
+/**
+ * Update user password
+ */
 export const updatePassword = async (
   req: Request,
   res: Response,
@@ -342,6 +422,16 @@ export const updatePassword = async (
   try {
     const { oldPassword, newPassword } = req.body
     const id = req.params.id
+    const currentUser = req.user as { id: string; role: string };
+    
+    // Check if user is updating their own password or is an admin
+    if (currentUser.id !== id && currentUser.role !== 'Admin') {
+      res.status(403).json({
+        status: 'fail',
+        message: 'Access denied. You can only update your own password.',
+      })
+      return
+    }
 
     const user = await UserService.getUserByid(id)
     if (!user) {
@@ -367,8 +457,9 @@ export const updatePassword = async (
 
     passwordEventEmitter.emit('passwordUpdated', user.id)
 
-    const notificationMessage = 'Your password has been updated successfully';
-    sendNotification(user.id, NotificationType.SECURITY, notificationMessage, user.id);
+    await createNotification(user.id, 'Your password has been updated successfully', NotificationType.SECURITY, currentUser.id);
+    
+    console.log(`Password updated: ${user.email} at ${new Date().toISOString()}`);
 
     res.status(200).json({
       status: 'success',
@@ -383,18 +474,26 @@ export const updatePassword = async (
   }
 }
 
+/**
+ * Login via Google OAuth
+ */
 export const LoginViaGoogle = async (req: Request, res: Response) => {
   const user = req.user as UserSignupAttributes;
   try {
+    console.log(`Google login: ${user.email} at ${new Date().toISOString()}`);
     // Ensure role is always "Admin" or "Member"
     const safeUser = { ...user, role: user.role ?? "Member" } as UserSignupAttributes & { role: "Admin" | "Member" };
     const token = await generateToken(safeUser);
     res.redirect(`${process.env.FRONTEND_URL}/auth/google/callback?token=${token}`);
   } catch (error) {
+    console.error('Error in Google login:', error);
     res.status(500).json({ message: 'Error generating token' });
   }
 };
 
+/**
+ * Google OAuth redirect
+ */
 export const googleRedirect = function () {
   return passport.authenticate('google', {
     successRedirect: '/auth/google/token',
@@ -402,14 +501,23 @@ export const googleRedirect = function () {
   })
 }
 
+/**
+ * Google OAuth authentication
+ */
 export const googleAuthenticate = function () {
   return passport.authenticate('google', { scope: ['email', 'profile'] })
 }
 
+/**
+ * Handle Google OAuth failure
+ */
 export const googleAuthFailed = function (_req: Request, res: Response) {
   res.status(400).json({ message: 'Authentication failed' })
 }
 
+/**
+ * Request password reset
+ */
 export const requestPasswordReset = async (
   req: Request,
   res: Response,
@@ -463,6 +571,8 @@ Innovation Hub Team
     `
 
     await sendEmail(email, subject, text, html)
+    
+    console.log(`Password reset requested: ${email} at ${new Date().toISOString()}`);
 
     res.status(200).json({
       status: 'success',
@@ -478,6 +588,9 @@ Innovation Hub Team
   }
 }
 
+/**
+ * Reset password
+ */
 export const resetPassword = async (
   req: Request,
   res: Response,
@@ -501,8 +614,14 @@ export const resetPassword = async (
     user.password = hashedPassword
     await user.save()
 
-    const notificationMessage = 'Your password has been reset successfully';
-    sendNotification(user.id, NotificationType.SECURITY, notificationMessage, user.id);
+    await createNotification(
+      user.id, 
+      'Your password has been reset successfully', 
+      NotificationType.SECURITY, 
+      user.id
+    );
+    
+    console.log(`Password reset completed: ${user.email} at ${new Date().toISOString()}`);
 
     res.status(200).json({
       status: 'success',
@@ -517,6 +636,9 @@ export const resetPassword = async (
   }
 }
 
+/**
+ * Get all users (Admin only)
+ */
 export const getAllUsers = async (
   req: Request,
   res: Response,
@@ -537,9 +659,12 @@ export const getAllUsers = async (
       delete userWithoutPassword.password
       return userWithoutPassword
     })
+    
+    console.log(`User list accessed by: ${currentUser.id} at ${new Date().toISOString()}`);
 
     res.status(200).json({
       status: 'success',
+      results: users.length,
       data: {
         users: usersWithoutPasswords,
       },
@@ -553,6 +678,9 @@ export const getAllUsers = async (
   }
 }
 
+/**
+ * Get user by ID
+ */
 export const getUserById = async (
   req: Request,
   res: Response,
@@ -585,14 +713,17 @@ export const getUserById = async (
       },
     })
   } catch (error) {
-    console.error('Error fetching users:', error)
+    console.error('Error fetching user:', error)
     res.status(500).json({
       status: 'error',
-      message: 'An error occurred while fetching users',
+      message: 'An error occurred while fetching user',
     })
   }
 }
 
+/**
+ * Get current user's profile
+ */
 export const getProfile = async (
   req: Request,
   res: Response,
@@ -636,6 +767,9 @@ export const getProfile = async (
   }
 }
 
+/**
+ * Update user profile
+ */
 export const updateProfile = async (
   req: Request,
   res: Response,
@@ -672,8 +806,12 @@ export const updateProfile = async (
       image: imageUrl,
     });
 
-    const notificationMessage = `Your profile has been updated successfully`;
-    sendNotification(user.id, NotificationType.INFO, notificationMessage, user.id);
+    await createNotification(
+      user.id, 
+      'Your profile has been updated successfully', 
+      NotificationType.INFO, 
+      user.id
+    );
     
     console.log(`Profile updated by: ${user.email} (${user.firstName} ${user.lastName}) at ${new Date().toISOString()}`)
     
@@ -699,6 +837,9 @@ export const updateProfile = async (
   }
 };
 
+/**
+ * Delete user account
+ */
 export const deleteUserById = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.params.id;
@@ -738,6 +879,9 @@ export const deleteUserById = async (req: Request, res: Response): Promise<void>
   }
 };
 
+/**
+ * Verify email
+ */
 export const verifyEmail = async (req: Request, res: Response): Promise<void> => {
   try {
     const token = req.query.token as string;
@@ -778,8 +922,15 @@ export const verifyEmail = async (req: Request, res: Response): Promise<void> =>
     user.verified = true;
     await user.save();
 
-    const notificationMessage = `Welcome to Innovation Hub! Your email has been verified.`;
-    sendNotification(user.id, NotificationType.NEW_REMINDER, notificationMessage, user.id);
+    // Create notification directly using the Notification model
+    await createNotification(
+      user.id,
+      `Welcome to Innovation Hub! Your email has been verified.`,
+      NotificationType.NEW_REMINDER,
+      user.id
+    );
+    
+    console.log(`Email verified: ${user.email} at ${new Date().toISOString()}`);
 
     res.redirect(`${process.env.FRONTEND_URL}/login?verified=true`);
   } catch (error) {
@@ -787,6 +938,66 @@ export const verifyEmail = async (req: Request, res: Response): Promise<void> =>
     res.status(500).json({
       status: 'error',
       message: 'An error occurred while verifying email',
+    });
+  }
+};
+
+/**
+ * Get user dashboard statistics (Admin only)
+ */
+export const getDashboardStats = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const currentUser = req.user as { id: string; role: string };
+    if (currentUser.role !== 'Admin') {
+      res.status(403).json({
+        status: 'fail',
+        message: 'Access denied. Admin privileges required.',
+      });
+      return;
+    }
+    
+    // Count total users
+    const totalUsers = await User.count();
+    
+    // Count active users
+    const activeUsers = await User.count({
+      where: { isActive: true }
+    });
+    
+    // Count verified users
+    const verifiedUsers = await User.count({
+      where: { verified: true }
+    });
+    
+    // Count admins
+    const adminUsers = await User.count({
+      where: { role: 'Admin' }
+    });
+    
+    // Get recent users (last 5)
+    const recentUsers = await User.findAll({
+      attributes: ['id', 'firstName', 'lastName', 'email', 'createdAt'],
+      order: [['createdAt', 'DESC']],
+      limit: 5
+    });
+    
+    console.log(`Dashboard stats accessed by: ${currentUser.id} at ${new Date().toISOString()}`);
+    
+    res.status(200).json({
+      status: 'success',
+      data: {
+        totalUsers,
+        activeUsers,
+        verifiedUsers,
+        adminUsers,
+        recentUsers
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'An error occurred while fetching dashboard statistics',
     });
   }
 };
