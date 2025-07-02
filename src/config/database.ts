@@ -3,57 +3,40 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-let sequelize: Sequelize;
-
-if (process.env.DB_URL) {
-  // ✅ Use full DB URL (commonly used in production or cloud)
-  sequelize = new Sequelize(process.env.DB_URL, {
+const sequelize = new Sequelize(
+  process.env.DB_NAME as string,
+  process.env.DB_USERNAME as string,
+  process.env.DB_PASSWORD as string,
+  {
+    host: process.env.DB_HOST,
+    port: parseInt(process.env.DB_PORT || '5432'),
     dialect: 'postgres',
     dialectOptions: {
       ssl: {
         require: true,
-        rejectUnauthorized: false, // Change to true if using trusted certificates
+        rejectUnauthorized: false,
       },
     },
-    logging: false,
-  });
-} else {
-  // ✅ Fallback to individual env vars (commonly used in local/dev environments)
-  const {
-    DB_HOST = 'localhost',
-    DB_PORT = '5432',
-    DB_NAME = 'express_ts_app',
-    DB_USER = 'postgres',
-    DB_PASSWORD = 'postgres',
-    NODE_ENV = 'development',
-  } = process.env;
+    schema: 'public',
+    logging: false
+  }
+);
 
-  sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
-    host: DB_HOST,
-    port: parseInt(DB_PORT, 10),
-    dialect: 'postgres',
-    logging: NODE_ENV === 'development' ? console.log : false,
-    define: {
-      timestamps: true,
-      underscored: true,
-    },
-    pool: {
-      max: 5,
-      min: 0,
-      acquire: 30000,
-      idle: 10000,
-    },
-  });
-}
-
-// ✅ Optional: Connection test function
-export const testConnection = async (): Promise<void> => {
+// Export a function to initialize database
+export const initDatabase = async () => {
   try {
+    // Test connection
     await sequelize.authenticate();
-    console.log('✅ Database connection has been established successfully.');
+    console.log('Database connection established successfully.');
+    
+    // Sync all models
+    await sequelize.sync({ force: true });
+    console.log('All database tables created successfully.');
+    
+    return true;
   } catch (error) {
-    console.error('❌ Unable to connect to the database:', error);
-    throw error;
+    console.error('Database initialization failed:', error);
+    return false;
   }
 };
 
