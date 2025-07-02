@@ -51,6 +51,10 @@ const options = {
       {
         name: 'System',
         description: 'System health and monitoring endpoints'
+      },// Add this to your existing tags array
+{
+        name: 'Blogs',
+        description: 'Blog management endpoints'
       }
     ],
     components: {
@@ -119,7 +123,62 @@ const options = {
               type: 'string',
               format: 'date-time',
               description: 'User last update timestamp'
-            }
+            },// Add this to your existing schemas in components.schemas
+              Blog: {
+                type: 'object',
+                properties: {
+                  id: {
+                    type: 'string',
+                    format: 'uuid',
+                    description: 'Blog unique identifier'
+                  },
+                  title: {
+                    type: 'string',
+                    description: 'Blog title'
+                  },
+                  content: {
+                    type: 'string',
+                    description: 'Blog content (HTML/markdown formatted)'
+                  },
+                  summary: {
+                    type: 'string',
+                    description: 'Blog summary/excerpt'
+                  },
+                  image: {
+                    type: 'string',
+                    format: 'uri',
+                    description: 'URL to blog featured image'
+                  },
+                  category: {
+                    type: 'string',
+                    enum: ['Cyber security', 'Front-end', 'Back-end'],
+                    description: 'Blog category'
+                  },
+                  authorId: {
+                    type: 'string',
+                    format: 'uuid',
+                    description: 'ID of the blog author'
+                  },
+                  isPublished: {
+                    type: 'boolean',
+                    description: 'Publication status of the blog'
+                  },
+                  viewCount: {
+                    type: 'integer',
+                    description: 'Number of times the blog has been viewed'
+                  },
+                  createdAt: {
+                    type: 'string',
+                    format: 'date-time',
+                    description: 'Blog creation timestamp'
+                  },
+                  updatedAt: {
+                    type: 'string',
+                    format: 'date-time',
+                    description: 'Blog last update timestamp'
+                  }
+                }
+              }
           }
         },
         Error: {
@@ -1311,7 +1370,673 @@ const options = {
             }
           }
         }
+      },
+      // Add these path definitions to your paths object
+'/api/blogs': {
+  get: {
+    summary: 'Get all published blogs',
+    description: 'Retrieves a list of all published blog posts',
+    tags: ['Blogs'],
+    security: [],
+    responses: {
+      200: {
+        description: 'List of published blogs',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                results: {
+                  type: 'number',
+                  example: 10
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    blogs: {
+                      type: 'array',
+                      items: {
+                        $ref: '#/components/schemas/Blog'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      500: {
+        description: 'Server error',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
       }
+    }
+  },
+  post: {
+    summary: 'Create a new blog post',
+    description: 'Admin only - Creates a new blog post',
+    tags: ['Blogs'],
+    security: [
+      {
+        bearerAuth: []
+      }
+    ],
+    requestBody: {
+      required: true,
+      content: {
+        'multipart/form-data': {
+          schema: {
+            type: 'object',
+            required: ['title', 'content', 'summary', 'category'],
+            properties: {
+              title: {
+                type: 'string',
+                description: 'Blog title',
+                example: 'Introduction to Cyber Security'
+              },
+              content: {
+                type: 'string',
+                description: 'Blog content (HTML/markdown formatted)',
+                example: 'This is a comprehensive guide to cyber security basics...'
+              },
+              summary: {
+                type: 'string',
+                description: 'Brief summary of the blog content',
+                example: 'Learn the fundamentals of cyber security in this guide.'
+              },
+              category: {
+                type: 'string',
+                enum: ['Cyber security', 'Front-end', 'Back-end'],
+                description: 'Blog category',
+                example: 'Cyber security'
+              },
+              image: {
+                type: 'string',
+                format: 'binary',
+                description: 'Blog featured image'
+              }
+            }
+          }
+        }
+      }
+    },
+    responses: {
+      201: {
+        description: 'Blog created successfully',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Blog created successfully'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    blog: {
+                      $ref: '#/components/schemas/Blog'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      401: {
+        description: 'Unauthorized, token is missing or invalid',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      },
+      403: {
+        description: 'Forbidden, admin access required',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      }
+    }
+  }
+},
+'/api/blogs/blog/{id}': {
+  get: {
+    summary: 'Get blog by ID',
+    description: 'Retrieves a specific blog post by its ID',
+    tags: ['Blogs'],
+    security: [],
+    parameters: [
+      {
+        in: 'path',
+        name: 'id',
+        required: true,
+        schema: {
+          type: 'string',
+          format: 'uuid'
+        },
+        description: 'Blog ID'
+      }
+    ],
+    responses: {
+      200: {
+        description: 'Blog retrieved successfully',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    blog: {
+                      $ref: '#/components/schemas/Blog'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      404: {
+        description: 'Blog not found',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      }
+    }
+  }
+},
+'/api/blogs/category/{category}': {
+  get: {
+    summary: 'Get blogs by category',
+    description: 'Retrieves all published blogs in a specific category',
+    tags: ['Blogs'],
+    security: [],
+    parameters: [
+      {
+        in: 'path',
+        name: 'category',
+        required: true,
+        schema: {
+          type: 'string',
+          enum: ['Cyber security', 'Front-end', 'Back-end']
+        },
+        description: 'Blog category'
+      }
+    ],
+    responses: {
+      200: {
+        description: 'Blogs retrieved successfully',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                results: {
+                  type: 'number',
+                  example: 5
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    blogs: {
+                      type: 'array',
+                      items: {
+                        $ref: '#/components/schemas/Blog'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      400: {
+        description: 'Invalid category',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      }
+    }
+  }
+},
+'/api/blogs/featured': {
+  get: {
+    summary: 'Get featured blogs',
+    description: 'Retrieves most viewed blogs',
+    tags: ['Blogs'],
+    security: [],
+    parameters: [
+      {
+        in: 'query',
+        name: 'limit',
+        schema: {
+          type: 'integer',
+          default: 3
+        },
+        description: 'Maximum number of blogs to return'
+      }
+    ],
+    responses: {
+      200: {
+        description: 'Featured blogs retrieved successfully',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                results: {
+                  type: 'number',
+                  example: 3
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    blogs: {
+                      type: 'array',
+                      items: {
+                        $ref: '#/components/schemas/Blog'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+},
+'/api/blogs/admin/all': {
+  get: {
+    summary: 'Get all blogs (including unpublished)',
+    description: 'Admin only - Retrieves all blog posts including drafts/unpublished',
+    tags: ['Blogs', 'Admin'],
+    security: [
+      {
+        bearerAuth: []
+      }
+    ],
+    responses: {
+      200: {
+        description: 'All blogs retrieved successfully',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                results: {
+                  type: 'number',
+                  example: 15
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    blogs: {
+                      type: 'array',
+                      items: {
+                        $ref: '#/components/schemas/Blog'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      401: {
+        description: 'Unauthorized, token is missing or invalid',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      },
+      403: {
+        description: 'Forbidden, admin access required',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      }
+    }
+  }
+},
+'/api/blogs/{id}': {
+  put: {
+    summary: 'Update blog',
+    description: 'Admin only - Updates an existing blog post',
+    tags: ['Blogs', 'Admin'],
+    security: [
+      {
+        bearerAuth: []
+      }
+    ],
+    parameters: [
+      {
+        in: 'path',
+        name: 'id',
+        required: true,
+        schema: {
+          type: 'string',
+          format: 'uuid'
+        },
+        description: 'Blog ID'
+      }
+    ],
+    requestBody: {
+      content: {
+        'multipart/form-data': {
+          schema: {
+            type: 'object',
+            properties: {
+              title: {
+                type: 'string',
+                description: 'Blog title'
+              },
+              content: {
+                type: 'string',
+                description: 'Blog content (HTML/markdown formatted)'
+              },
+              summary: {
+                type: 'string',
+                description: 'Brief summary of the blog content'
+              },
+              category: {
+                type: 'string',
+                enum: ['Cyber security', 'Front-end', 'Back-end'],
+                description: 'Blog category'
+              },
+              image: {
+                type: 'string',
+                format: 'binary',
+                description: 'Blog featured image'
+              },
+              isPublished: {
+                type: 'boolean',
+                description: 'Publication status of the blog'
+              }
+            }
+          }
+        }
+      }
+    },
+    responses: {
+      200: {
+        description: 'Blog updated successfully',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Blog updated successfully'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    blog: {
+                      $ref: '#/components/schemas/Blog'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      401: {
+        description: 'Unauthorized, token is missing or invalid',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      },
+      403: {
+        description: 'Forbidden, admin access required',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      },
+      404: {
+        description: 'Blog not found',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      }
+    }
+  },
+  delete: {
+    summary: 'Delete blog',
+    description: 'Admin only - Deletes a blog post',
+    tags: ['Blogs', 'Admin'],
+    security: [
+      {
+        bearerAuth: []
+      }
+    ],
+    parameters: [
+      {
+        in: 'path',
+        name: 'id',
+        required: true,
+        schema: {
+          type: 'string',
+          format: 'uuid'
+        },
+        description: 'Blog ID'
+      }
+    ],
+    responses: {
+      200: {
+        description: 'Blog deleted successfully',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Blog deleted successfully'
+                }
+              }
+            }
+          }
+        }
+      },
+      401: {
+        description: 'Unauthorized, token is missing or invalid',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      },
+      403: {
+        description: 'Forbidden, admin access required',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      },
+      404: {
+        description: 'Blog not found',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      }
+    }
+  }
+},
+'/api/blogs/{id}/toggle-publish': {
+  patch: {
+    summary: 'Toggle blog publication status',
+    description: 'Admin only - Toggles the published/unpublished status of a blog',
+    tags: ['Blogs', 'Admin'],
+    security: [
+      {
+        bearerAuth: []
+      }
+    ],
+    parameters: [
+      {
+        in: 'path',
+        name: 'id',
+        required: true,
+        schema: {
+          type: 'string',
+          format: 'uuid'
+        },
+        description: 'Blog ID'
+      }
+    ],
+    responses: {
+      200: {
+        description: 'Blog publication status toggled successfully',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Blog published successfully'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    blog: {
+                      $ref: '#/components/schemas/Blog'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      401: {
+        description: 'Unauthorized, token is missing or invalid',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      },
+      403: {
+        description: 'Forbidden, admin access required',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      },
+      404: {
+        description: 'Blog not found',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      }
+    }
+  }
+}
     }
   },
   apis: [],

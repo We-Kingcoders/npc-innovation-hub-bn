@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from 'express'
 import Blog from '../models/blog.model'
 import User from '../models/user.model'
 import cloudinary from "../utils/cloudinary.utils"
-import { BlogAttributes } from '../types/blog.type'
 import { Notification, NotificationType } from '../models/notification.modal'
 
 // Helper function to create notifications for all members

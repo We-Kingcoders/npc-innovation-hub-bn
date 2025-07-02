@@ -6,7 +6,7 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './swagger.config';
 import { Sequelize } from 'sequelize'; // Add this import
 import * as dotenv from 'dotenv';
-
+import blogRoutes from './routes/blog.routes'
 // Load environment variables
 dotenv.config();
 
@@ -50,7 +50,9 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Mount API routes
 app.use('/api/users', userRoutes);
-// Mount other routes here
+// Routes
+app.use('/api/blogs', blogRoutes)
+
 
 // Add Swagger UI middleware
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
