@@ -82,7 +82,7 @@ if (require.main === module) {
   const PORT = process.env.PORT || 5000;
 
   // Force sync database tables
-  sequelize.sync({ force: true })
+  sequelize.sync({ force: false })
     .then(() => {
       console.log('Database tables created successfully!');
       app.listen(PORT, () => {

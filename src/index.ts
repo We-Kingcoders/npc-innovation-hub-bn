@@ -24,7 +24,7 @@ const startServer = async () => {
     console.log('Database connection established successfully.');
     
     // Sync all models
-    await sequelize.sync({ force: true });
+    await sequelize.sync({ force: false });
     console.log('All database tables created successfully.');
     
     // Start server after database is ready
