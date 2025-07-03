@@ -1,49 +1,61 @@
 import { DataTypes, Model, Optional } from 'sequelize';
 import sequelize from '../config/database';
-import { MemberAttributes , MemberSignupAttributes } from '../types/member.type';
 import User from './user.model';
 
-// Extend attributes to include innovation metrics
-interface MemberAttrs extends MemberAttributes {
-  contributionScore?: number;
-  innovationPoints?: number;
-  projectsCompleted?: number;
+// Define education interface
+interface Education {
+  degree: string;
+  institution: string;
+  description: string;
+  imageUrl: string;
 }
 
-type MemberCreation = Optional<MemberAttrs, 'id' | 'contributionScore' | 'innovationPoints' | 'projectsCompleted'>;
+// Define contacts interface
+interface Contacts {
+  linkedin: string;
+  github: string;
+  twitter?: string;
+  telegram?: string;
+}
 
-class Member
-  extends Model<MemberAttrs, MemberCreation>
-  implements MemberAttrs
-{
+// Define skill interface
+interface Skill {
+  name: string;
+  technologies: string[];
+  percent: number;
+}
+
+// Define member attributes
+interface MemberAttributes {
+  id: string;
+  userId: string;
+  name: string;
+  role: string;
+  imageUrl: string;
+  bio: string;
+  education?: Education;
+  contacts?: Contacts;
+  skillDetails?: Skill[];
+  skills: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+type MemberCreationAttributes = Optional<MemberAttributes, 'id' | 'education' | 'contacts' | 'skillDetails' | 'bio'>;
+
+class Member extends Model<MemberAttributes, MemberCreationAttributes> implements MemberAttributes {
   declare id: string;
   declare userId: string;
-  declare membershipLevel: string;
-  declare company: string;
-  declare position: string;
-  declare industry: string;
+  declare name: string;
+  declare role: string;
+  declare imageUrl: string;
   declare bio: string;
+  declare education: Education;
+  declare contacts: Contacts;
+  declare skillDetails: Skill[];
   declare skills: string[];
-  declare website: string;
-  declare linkedIn: string;
-  declare github: string;
-  declare memberSince: Date;
-  declare membershipExpiry: Date;
-  declare lastActive: Date;
-  declare contributionScore: number;
-  declare innovationPoints: number;
-  declare projectsCompleted: number;
-  declare eventsAttended: number;
-  declare mentorId: string;
-  declare isMentor: boolean;
-  declare specializations: string[];
-  declare availabilityHours: number;
   declare createdAt: Date;
   declare updatedAt: Date;
-
-  static associate() {
-    this.belongsTo(User, { foreignKey: 'userId' });
-  }
 }
 
 Member.init(
@@ -59,97 +71,40 @@ Member.init(
       type: DataTypes.UUID,
       allowNull: false,
     },
-    membershipLevel: {
-      type: DataTypes.ENUM('Basic', 'Premium', 'Enterprise'),
+    name: {
+      type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: 'Basic',
     },
-    company: {
+    role: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    imageUrl: {
       type: DataTypes.STRING,
       allowNull: true,
-    },
-    position: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    industry: {
-      type: DataTypes.STRING,
-      allowNull: true,
+      defaultValue: '/members-images/member-demo.jpg',
     },
     bio: {
       type: DataTypes.TEXT,
+      allowNull: true,
+      defaultValue: '',
+    },
+    education: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+    },
+    contacts: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+    },
+    skillDetails: {
+      type: DataTypes.JSONB,
       allowNull: true,
     },
     skills: {
       type: DataTypes.ARRAY(DataTypes.STRING),
       allowNull: true,
-    },
-    website: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    linkedIn: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    github: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    memberSince: {
-      type: DataTypes.DATEONLY,
-      allowNull: false,
-      defaultValue: DataTypes.NOW,
-    },
-    membershipExpiry: {
-      type: DataTypes.DATEONLY,
-      allowNull: true,
-    },
-    lastActive: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    contributionScore: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
-      defaultValue: 0,
-      comment: 'Overall contribution score in the hub',
-    },
-    innovationPoints: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      defaultValue: 0,
-      comment: 'Points earned through innovation activities',
-    },
-    projectsCompleted: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      defaultValue: 0,
-    },
-    eventsAttended: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      defaultValue: 0,
-    },
-    mentorId: {
-      type: DataTypes.UUID,
-      allowNull: true,
-      comment: 'ID of assigned mentor if applicable',
-    },
-    isMentor: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-      defaultValue: false,
-    },
-    specializations: {
-      type: DataTypes.ARRAY(DataTypes.STRING),
-      allowNull: true,
-      comment: 'Areas of expertise for mentoring',
-    },
-    availabilityHours: {
-      type: DataTypes.FLOAT,
-      allowNull: true,
-      comment: 'Hours available per week for hub activities',
+      defaultValue: [],
     },
     createdAt: {
       allowNull: false,
@@ -167,5 +122,9 @@ Member.init(
     timestamps: true,
   }
 );
+
+// Define the association directly after initialization
+Member.belongsTo(User, { foreignKey: 'userId' });
+User.hasOne(Member, { foreignKey: 'userId' });
 
 export default Member;

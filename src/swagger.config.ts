@@ -55,7 +55,20 @@ const options = {
 {
         name: 'Blogs',
         description: 'Blog management endpoints'
-      }
+      },
+      // Add this to your existing tags array
+      {
+        name: 'Members',
+        description: 'Member information management endpoints'
+      },
+      {
+        name: 'Projects',
+        description: 'Projects information management endpoints'
+      },
+      {
+        name: 'Resources',
+        description: 'Resources information management endpoints'
+      },
     ],
     components: {
       securitySchemes: {
@@ -178,7 +191,156 @@ const options = {
                     description: 'Blog last update timestamp'
                   }
                 }
+              },
+          // Add this to your existing schemas in components.schemas
+          Member: {
+            type: 'object',
+            properties: {
+              id: {
+                type: 'string',
+                format: 'uuid',
+                description: 'Member unique identifier'
+              },
+              userId: {
+                type: 'string',
+                format: 'uuid',
+                description: 'Associated user ID'
+              },
+              name: {
+                type: 'string',
+                description: 'Member full name'
+              },
+              role: {
+                type: 'string',
+                description: 'Professional role/title'
+              },
+              imageUrl: {
+                type: 'string',
+                format: 'uri',
+                description: 'URL to member profile image'
+              },
+              bio: {
+                type: 'string',
+                description: 'Member bio/description'
+              },
+              education: {
+                type: 'object',
+                properties: {
+                  degree: {
+                    type: 'string',
+                    description: 'Educational degree'
+                  },
+                  institution: {
+                    type: 'string',
+                    description: 'Educational institution'
+                  },
+                  description: {
+                    type: 'string',
+                    description: 'Description of education'
+                  },
+                  imageUrl: {
+                    type: 'string',
+                    format: 'uri',
+                    description: 'URL to institution image'
+                  }
+                }
+              },
+          // Add the MemberCard schema here
+                  MemberCard: {
+                    type: 'object',
+                    properties: {
+                      id: {
+                        type: 'string',
+                        format: 'uuid',
+                        description: 'Member unique identifier'
+                      },
+                      name: {
+                        type: 'string',
+                        description: 'Member full name'
+                      },
+                      role: {
+                        type: 'string',
+                        description: 'Professional role/title'
+                      },
+                      imageUrl: {
+                        type: 'string',
+                        format: 'uri',
+                        description: 'URL to member profile image'
+                      }
+                    }
+                  },
+    
+              contacts: {
+                type: 'object',
+                properties: {
+                  linkedin: {
+                    type: 'string',
+                    format: 'uri',
+                    description: 'LinkedIn profile URL'
+                  },
+                  github: {
+                    type: 'string',
+                    format: 'uri',
+                    description: 'GitHub profile URL'
+                  },
+                  twitter: {
+                    type: 'string',
+                    format: 'uri',
+                    description: 'Twitter profile URL'
+                  },
+                  telegram: {
+                    type: 'string',
+                    format: 'uri',
+                    description: 'Telegram contact URL'
+                  }
+                }
+              },
+              skills: {
+                type: 'array',
+                items: {
+                  type: 'string'
+                },
+                description: 'List of skills'
+              },
+              skillDetails: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    name: {
+                      type: 'string',
+                      description: 'Skill category name'
+                    },
+                    technologies: {
+                      type: 'array',
+                      items: {
+                        type: 'string'
+                      },
+                      description: 'List of specific technologies'
+                    },
+                    percent: {
+                      type: 'integer',
+                      minimum: 0,
+                      maximum: 100,
+                      description: 'Proficiency percentage'
+                    }
+                  }
+                },
+                description: 'Detailed skills information'
+              },
+              createdAt: {
+                type: 'string',
+                format: 'date-time',
+                description: 'Record creation timestamp'
+              },
+              updatedAt: {
+                type: 'string',
+                format: 'date-time',
+                description: 'Record last update timestamp'
               }
+            }
+          },
+
           }
         },
         Error: {
@@ -192,7 +354,259 @@ const options = {
               type: 'string'
             }
           }
+        },
+        Project: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              format: 'uuid',
+              description: 'Project unique identifier'
+            },
+            userId: {
+              type: 'string',
+              format: 'uuid',
+              description: 'ID of the user who created the project'
+            },
+            title: {
+              type: 'string',
+              description: 'Project title'
+            },
+            description: {
+              type: 'string',
+              description: 'Detailed project description'
+            },
+            owner: {
+              type: 'string',
+              description: 'Name of the project owner'
+            },
+            ownerRole: {
+              type: 'string',
+              description: 'Role of the project owner'
+            },
+            ownerAvatar: {
+              type: 'string',
+              format: 'uri',
+              description: 'URL to the project owner\'s avatar image'
+            },
+            image: {
+              type: 'string',
+              format: 'uri',
+              description: 'URL to the project image'
+            },
+            link: {
+              type: 'string',
+              format: 'uri',
+              description: 'Link to the project website or repository'
+            },
+            demo: {
+              type: 'string',
+              format: 'uri',
+              description: 'Link to a live demo of the project'
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Project creation timestamp'
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Project last update timestamp'
+            }
+          }
+        },
+   Resource: {
+    type: 'object',
+    properties: {
+      id: {
+        type: 'string',
+        format: 'uuid',
+        description: 'Resource unique identifier'
+      },
+      userId: {
+        type: 'string',
+        format: 'uuid',
+        description: 'Resource creator user ID'
+      },
+      title: {
+        type: 'string',
+        description: 'Resource title'
+      },
+      description: {
+        type: 'string',
+        description: 'Resource description'
+      },
+      category: {
+        type: 'string',
+        enum: ['Backend', 'Frontend', 'Cybersecurity'],
+        description: 'Resource category'
+      },
+      type: {
+        type: 'string',
+        enum: ['Video', 'Documentation', 'Book', 'Other'],
+        description: 'Resource type'
+      },
+      difficulty: {
+        type: 'string',
+        enum: ['Beginner', 'Intermediate', 'Advanced'],
+        description: 'Resource difficulty level'
+      },
+      url: {
+        type: 'string',
+        format: 'uri',
+        description: 'URL to external resource (if not hosted)'
+      },
+      imageUrl: {
+        type: 'string',
+        format: 'uri',
+        description: 'URL to resource image'
+      },
+      videoUrl: {
+        type: 'string',
+        format: 'uri',
+        description: 'URL to hosted video (if uploaded)'
+      },
+      author: {
+        type: 'string',
+        description: 'Resource author'
+      },
+      isPaid: {
+        type: 'boolean',
+        description: 'Whether the resource is paid'
+      },
+      price: {
+        type: 'number',
+        format: 'float',
+        description: 'Resource price (if paid)'
+      },
+      purchaseDate: {
+        type: 'string',
+        format: 'date-time',
+        description: 'Date when the resource was purchased'
+      },
+      platform: {
+        type: 'string',
+        description: 'Platform where the resource was purchased'
+      },
+      tags: {
+        type: 'array',
+        items: {
+          type: 'string'
+        },
+        description: 'Resource tags'
+      },
+      isFeatured: {
+        type: 'boolean',
+        description: 'Whether the resource is featured'
+      },
+      isHosted: {
+        type: 'boolean',
+        description: 'Whether the video is hosted on our platform'
+      },
+      duration: {
+        type: 'integer',
+        description: 'Duration in seconds for videos, estimated reading time for other resources'
+      },
+      upvotes: {
+        type: 'integer',
+        description: 'Number of upvotes'
+      },
+      createdAt: {
+        type: 'string',
+        format: 'date-time',
+        description: 'Record creation timestamp'
+      },
+      updatedAt: {
+        type: 'string',
+        format: 'date-time',
+        description: 'Record last update timestamp'
+      }
+    }
+  },
+  ResourceResponse: {
+    type: 'object',
+    properties: {
+      status: {
+        type: 'string',
+        example: 'success'
+      },
+      data: {
+        type: 'object',
+        properties: {
+          resource: {
+            $ref: '#/components/schemas/Resource'
+          },
+          userInteraction: {
+            type: 'object',
+            properties: {
+              hasUpvoted: {
+                type: 'boolean'
+              },
+              hasSaved: {
+                type: 'boolean'
+              }
+            }
+          }
         }
+      }
+    }
+  },
+  ResourcesListResponse: {
+    type: 'object',
+    properties: {
+      status: {
+        type: 'string',
+        example: 'success'
+      },
+      results: {
+        type: 'number',
+        description: 'Number of results in current page',
+        example: 12
+      },
+      totalItems: {
+        type: 'number',
+        description: 'Total number of matching resources',
+        example: 42
+      },
+      totalPages: {
+        type: 'number',
+        description: 'Total number of pages',
+        example: 4
+      },
+      currentPage: {
+        type: 'number',
+        description: 'Current page number',
+        example: 1
+      },
+      data: {
+        type: 'object',
+        properties: {
+          resources: {
+            type: 'array',
+            items: {
+              $ref: '#/components/schemas/Resource'
+            }
+          }
+        }
+      }
+    }
+  },
+  ErrorResponse: {
+    type: 'object',
+    properties: {
+      status: {
+        type: 'string',
+        example: 'fail'
+      },
+      message: {
+        type: 'string',
+        example: 'Error message details'
+      }
+    }
+  },
+  
+
       }
     },
     paths: {
@@ -2036,7 +2450,3292 @@ const options = {
       }
     }
   }
-}
+},
+// Add these path definitions to your paths object
+'/api/members': {
+  get: {
+    summary: 'Get all members',
+    description: 'Public endpoint - Retrieves all member information in card format',
+    tags: ['Members'],
+    security: [],
+    parameters: [
+      {
+        in: 'query',
+        name: 'page',
+        schema: {
+          type: 'integer',
+          default: 1
+        },
+        description: 'Page number'
+      },
+      {
+        in: 'query',
+        name: 'limit',
+        schema: {
+          type: 'integer',
+          default: 12
+        },
+        description: 'Number of members per page'
+      }
+    ],
+    responses: {
+      200: {
+        description: 'List of member cards',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                results: {
+                  type: 'number',
+                  example: 12
+                },
+                totalItems: {
+                  type: 'number',
+                  example: 50
+                },
+                totalPages: {
+                  type: 'number',
+                  example: 5
+                },
+                currentPage: {
+                  type: 'number',
+                  example: 1
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    members: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          id: {
+                            type: 'string',
+                            format: 'uuid',
+                            description: 'Member unique identifier'
+                          },
+                          name: {
+                            type: 'string',
+                            description: 'Member full name'
+                          },
+                          role: {
+                            type: 'string',
+                            description: 'Professional role/title'
+                          },
+                          imageUrl: {
+                            type: 'string',
+                            format: 'uri',
+                            description: 'URL to member profile image'
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      500: {
+        description: 'Server error',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'error'
+                },
+                message: {
+                  type: 'string',
+                  example: 'An error occurred while fetching members'
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  post: {
+    summary: 'Create member information',
+    description: 'Creates basic information for the authenticated member',
+    tags: ['Members'],
+    security: [
+      {
+        bearerAuth: []
+      }
+    ],
+    requestBody: {
+      content: {
+        'multipart/form-data': {
+          schema: {
+            type: 'object',
+            required: ['name', 'role'],
+            properties: {
+              name: {
+                type: 'string',
+                description: 'Full name'
+              },
+              role: {
+                type: 'string',
+                description: 'Professional role/title'
+              },
+              bio: {
+                type: 'string',
+                description: 'Professional bio'
+              },
+              image: {
+                type: 'string',
+                format: 'binary',
+                description: 'Profile image file'
+              }
+            }
+          }
+        }
+      }
+    },
+    responses: {
+      201: {
+        description: 'Member information created successfully',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Member information created successfully'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    member: {
+                      type: 'object',
+                      properties: {
+                        id: {
+                          type: 'string',
+                          format: 'uuid',
+                          description: 'Member unique identifier'
+                        },
+                        userId: {
+                          type: 'string',
+                          format: 'uuid',
+                          description: 'Associated user ID'
+                        },
+                        name: {
+                          type: 'string',
+                          description: 'Member full name'
+                        },
+                        role: {
+                          type: 'string',
+                          description: 'Professional role/title'
+                        },
+                        imageUrl: {
+                          type: 'string',
+                          format: 'uri',
+                          description: 'URL to member profile image'
+                        },
+                        bio: {
+                          type: 'string',
+                          description: 'Member bio/description'
+                        },
+                        skills: {
+                          type: 'array',
+                          items: {
+                            type: 'string'
+                          },
+                          description: 'List of skills'
+                        },
+                        createdAt: {
+                          type: 'string',
+                          format: 'date-time',
+                          description: 'Record creation timestamp'
+                        },
+                        updatedAt: {
+                          type: 'string',
+                          format: 'date-time',
+                          description: 'Record last update timestamp'
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      400: {
+        description: 'Bad request - Missing required fields',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'fail'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Please provide name and role'
+                }
+              }
+            }
+          }
+        }
+      },
+      401: {
+        description: 'Unauthorized',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'fail'
+                },
+                message: {
+                  type: 'string',
+                  example: 'You are not logged in. Please log in to get access.'
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  put: {
+    summary: 'Update member information',
+    description: 'Updates basic information for the authenticated member',
+    tags: ['Members'],
+    security: [
+      {
+        bearerAuth: []
+      }
+    ],
+    requestBody: {
+      content: {
+        'multipart/form-data': {
+          schema: {
+            type: 'object',
+            properties: {
+              name: {
+                type: 'string',
+                description: 'Full name'
+              },
+              role: {
+                type: 'string',
+                description: 'Professional role/title'
+              },
+              bio: {
+                type: 'string',
+                description: 'Professional bio'
+              },
+              image: {
+                type: 'string',
+                format: 'binary',
+                description: 'Profile image file'
+              }
+            }
+          }
+        }
+      }
+    },
+    responses: {
+      200: {
+        description: 'Member information updated successfully',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Member information updated successfully'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    member: {
+                      type: 'object',
+                      properties: {
+                        id: {
+                          type: 'string',
+                          format: 'uuid',
+                          description: 'Member unique identifier'
+                        },
+                        userId: {
+                          type: 'string',
+                          format: 'uuid',
+                          description: 'Associated user ID'
+                        },
+                        name: {
+                          type: 'string',
+                          description: 'Member full name'
+                        },
+                        role: {
+                          type: 'string',
+                          description: 'Professional role/title'
+                        },
+                        imageUrl: {
+                          type: 'string',
+                          format: 'uri',
+                          description: 'URL to member profile image'
+                        },
+                        bio: {
+                          type: 'string',
+                          description: 'Member bio/description'
+                        },
+                        skills: {
+                          type: 'array',
+                          items: {
+                            type: 'string'
+                          },
+                          description: 'List of skills'
+                        },
+                        createdAt: {
+                          type: 'string',
+                          format: 'date-time',
+                          description: 'Record creation timestamp'
+                        },
+                        updatedAt: {
+                          type: 'string',
+                          format: 'date-time',
+                          description: 'Record last update timestamp'
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      401: {
+        description: 'Unauthorized',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'fail'
+                },
+                message: {
+                  type: 'string',
+                  example: 'You are not logged in. Please log in to get access.'
+                }
+              }
+            }
+          }
+        }
+      },
+      404: {
+        description: 'Member not found',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'fail'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Member not found'
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  delete: {
+    summary: 'Delete member information',
+    description: 'Deletes the authenticated member\'s information',
+    tags: ['Members'],
+    security: [
+      {
+        bearerAuth: []
+      }
+    ],
+    responses: {
+      200: {
+        description: 'Member information deleted successfully',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Member information deleted successfully'
+                }
+              }
+            }
+          }
+        }
+      },
+      401: {
+        description: 'Unauthorized',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'fail'
+                },
+                message: {
+                  type: 'string',
+                  example: 'You are not logged in. Please log in to get access.'
+                }
+              }
+            }
+          }
+        }
+      },
+      404: {
+        description: 'Member not found',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'fail'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Member not found'
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+},
+
+'/api/members/member/{id}': {
+  get: {
+    summary: 'Get member by ID',
+    description: 'Public endpoint - Retrieves member information by ID',
+    tags: ['Members'],
+    security: [],
+    parameters: [
+      {
+        in: 'path',
+        name: 'id',
+        required: true,
+        schema: {
+          type: 'string',
+          format: 'uuid'
+        },
+        description: 'Member ID'
+      }
+    ],
+    responses: {
+      200: {
+        description: 'Member information retrieved successfully',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    member: {
+                      $ref: '#/components/schemas/Member'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      404: {
+        description: 'Member not found',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      }
+    }
+  }
+},
+
+'/api/members/me': {
+  get: {
+    summary: 'Get own member information',
+    description: 'Retrieves the authenticated member\'s information',
+    tags: ['Members'],
+    security: [
+      {
+        bearerAuth: []
+      }
+    ],
+    responses: {
+      200: {
+        description: 'Member information retrieved successfully',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    member: {
+                      $ref: '#/components/schemas/Member'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      401: {
+        description: 'Unauthorized',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      },
+      404: {
+        description: 'Member information not found',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      }
+    }
+  }
+},
+
+'/api/members/contacts': {
+  post: {
+    summary: 'Create or update contact information',
+    description: 'Creates or updates social media and contact links',
+    tags: ['Members'],
+    security: [
+      {
+        bearerAuth: []
+      }
+    ],
+    requestBody: {
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              linkedin: {
+                type: 'string',
+                format: 'uri',
+                description: 'LinkedIn profile URL'
+              },
+              github: {
+                type: 'string',
+                format: 'uri',
+                description: 'GitHub profile URL'
+              },
+              twitter: {
+                type: 'string',
+                format: 'uri',
+                description: 'Twitter profile URL'
+              },
+              telegram: {
+                type: 'string',
+                format: 'uri',
+                description: 'Telegram contact URL'
+              }
+            }
+          }
+        }
+      }
+    },
+    responses: {
+      201: {
+        description: 'Member profile with contacts created',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Member profile with contacts created'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    contacts: {
+                      type: 'object',
+                      properties: {
+                        linkedin: { type: 'string' },
+                        github: { type: 'string' },
+                        twitter: { type: 'string' },
+                        telegram: { type: 'string' }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      200: {
+        description: 'Contact information updated successfully',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Contact information updated successfully'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    contacts: {
+                      type: 'object',
+                      properties: {
+                        linkedin: { type: 'string' },
+                        github: { type: 'string' },
+                        twitter: { type: 'string' },
+                        telegram: { type: 'string' }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      401: {
+        description: 'Unauthorized',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      }
+    }
+  },
+  put: {
+    summary: 'Create or update contact information',
+    description: 'Creates or updates social media and contact links',
+    tags: ['Members'],
+    security: [
+      {
+        bearerAuth: []
+      }
+    ],
+    requestBody: {
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              linkedin: {
+                type: 'string',
+                format: 'uri',
+                description: 'LinkedIn profile URL'
+              },
+              github: {
+                type: 'string',
+                format: 'uri',
+                description: 'GitHub profile URL'
+              },
+              twitter: {
+                type: 'string',
+                format: 'uri',
+                description: 'Twitter profile URL'
+              },
+              telegram: {
+                type: 'string',
+                format: 'uri',
+                description: 'Telegram contact URL'
+              }
+            }
+          }
+        }
+      }
+    },
+    responses: {
+      201: {
+        description: 'Member profile with contacts created',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Member profile with contacts created'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    contacts: {
+                      type: 'object',
+                      properties: {
+                        linkedin: { type: 'string' },
+                        github: { type: 'string' },
+                        twitter: { type: 'string' },
+                        telegram: { type: 'string' }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      200: {
+        description: 'Contact information updated successfully',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Contact information updated successfully'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    contacts: {
+                      type: 'object',
+                      properties: {
+                        linkedin: { type: 'string' },
+                        github: { type: 'string' },
+                        twitter: { type: 'string' },
+                        telegram: { type: 'string' }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      401: {
+        description: 'Unauthorized',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      }
+    }
+  }
+},
+
+'/api/members/education': {
+  post: {
+    summary: 'Create or update education information',
+    description: 'Creates or updates education details',
+    tags: ['Members'],
+    security: [
+      {
+        bearerAuth: []
+      }
+    ],
+    requestBody: {
+      content: {
+        'multipart/form-data': {
+          schema: {
+            type: 'object',
+            properties: {
+              degree: {
+                type: 'string',
+                description: 'Educational degree'
+              },
+              institution: {
+                type: 'string',
+                description: 'Educational institution'
+              },
+              description: {
+                type: 'string',
+                description: 'Description of education'
+              },
+              educationImage: {
+                type: 'string',
+                format: 'binary',
+                description: 'Institution image file'
+              }
+            }
+          }
+        }
+      }
+    },
+    responses: {
+      201: {
+        description: 'Member profile with education created',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Member profile with education created'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    education: {
+                      type: 'object',
+                      properties: {
+                        degree: { type: 'string' },
+                        institution: { type: 'string' },
+                        description: { type: 'string' },
+                        imageUrl: { type: 'string' }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      200: {
+        description: 'Education details updated successfully',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Education information updated successfully'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    education: {
+                      type: 'object',
+                      properties: {
+                        degree: { type: 'string' },
+                        institution: { type: 'string' },
+                        description: { type: 'string' },
+                        imageUrl: { type: 'string' }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      401: {
+        description: 'Unauthorized',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      }
+    }
+  },
+  put: {
+    summary: 'Create or update education information',
+    description: 'Creates or updates education details',
+    tags: ['Members'],
+    security: [
+      {
+        bearerAuth: []
+      }
+    ],
+    requestBody: {
+      content: {
+        'multipart/form-data': {
+          schema: {
+            type: 'object',
+            properties: {
+              degree: {
+                type: 'string',
+                description: 'Educational degree'
+              },
+              institution: {
+                type: 'string',
+                description: 'Educational institution'
+              },
+              description: {
+                type: 'string',
+                description: 'Description of education'
+              },
+              educationImage: {
+                type: 'string',
+                format: 'binary',
+                description: 'Institution image file'
+              }
+            }
+          }
+        }
+      }
+    },
+    responses: {
+      201: {
+        description: 'Member profile with education created',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Member profile with education created'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    education: {
+                      type: 'object',
+                      properties: {
+                        degree: { type: 'string' },
+                        institution: { type: 'string' },
+                        description: { type: 'string' },
+                        imageUrl: { type: 'string' }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      200: {
+        description: 'Education details updated successfully',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Education information updated successfully'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    education: {
+                      type: 'object',
+                      properties: {
+                        degree: { type: 'string' },
+                        institution: { type: 'string' },
+                        description: { type: 'string' },
+                        imageUrl: { type: 'string' }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      401: {
+        description: 'Unauthorized',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      }
+    }
+  }
+},
+
+'/api/members/skills': {
+  post: {
+    summary: 'Create or update skills information',
+    description: 'Creates or updates detailed skills and proficiency information',
+    tags: ['Members'],
+    security: [
+      {
+        bearerAuth: []
+      }
+    ],
+    requestBody: {
+      required: true,
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            required: ['skillDetails'],
+            properties: {
+              skillDetails: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  required: ['name', 'technologies', 'percent'],
+                  properties: {
+                    name: {
+                      type: 'string',
+                      description: 'Skill category name'
+                    },
+                    technologies: {
+                      type: 'array',
+                      items: {
+                        type: 'string'
+                      },
+                      description: 'List of specific technologies'
+                    },
+                    percent: {
+                      type: 'integer',
+                      minimum: 0,
+                      maximum: 100,
+                      description: 'Proficiency percentage'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    responses: {
+      201: {
+        description: 'Member profile with skills created',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Member profile with skills created'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    skillDetails: {
+                      type: 'array',
+                      items: {
+                        type: 'object'
+                      }
+                    },
+                    skills: {
+                      type: 'array',
+                      items: {
+                        type: 'string'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      200: {
+        description: 'Skills updated successfully',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Skills updated successfully'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    skillDetails: {
+                      type: 'array',
+                      items: {
+                        type: 'object'
+                      }
+                    },
+                    skills: {
+                      type: 'array',
+                      items: {
+                        type: 'string'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      400: {
+        description: 'Invalid skills data format',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      },
+      401: {
+        description: 'Unauthorized',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      }
+    }
+  },
+  put: {
+    summary: 'Create or update skills information',
+    description: 'Creates or updates detailed skills and proficiency information',
+    tags: ['Members'],
+    security: [
+      {
+        bearerAuth: []
+      }
+    ],
+    requestBody: {
+      required: true,
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            required: ['skillDetails'],
+            properties: {
+              skillDetails: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  required: ['name', 'technologies', 'percent'],
+                  properties: {
+                    name: {
+                      type: 'string',
+                      description: 'Skill category name'
+                    },
+                    technologies: {
+                      type: 'array',
+                      items: {
+                        type: 'string'
+                      },
+                      description: 'List of specific technologies'
+                    },
+                    percent: {
+                      type: 'integer',
+                      minimum: 0,
+                      maximum: 100,
+                      description: 'Proficiency percentage'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    responses: {
+      201: {
+        description: 'Member profile with skills created',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Member profile with skills created'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    skillDetails: {
+                      type: 'array',
+                      items: {
+                        type: 'object'
+                      }
+                    },
+                    skills: {
+                      type: 'array',
+                      items: {
+                        type: 'string'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      200: {
+        description: 'Skills updated successfully',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Skills updated successfully'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    skillDetails: {
+                      type: 'array',
+                      items: {
+                        type: 'object'
+                      }
+                    },
+                    skills: {
+                      type: 'array',
+                      items: {
+                        type: 'string'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      400: {
+        description: 'Invalid skills data format',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      },
+      401: {
+        description: 'Unauthorized',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      }
+    }
+  }
+},
+
+'/api/members/import': {
+  post: {
+    summary: 'Import members from mock data',
+    description: 'Admin only - Imports member information from mock data',
+    tags: ['Members', 'Admin'],
+    security: [
+      {
+        bearerAuth: []
+      }
+    ],
+    requestBody: {
+      required: true,
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            required: ['members'],
+            properties: {
+              members: {
+                type: 'array',
+                items: {
+                  type: 'object'
+                },
+                description: 'Array of member data objects'
+              }
+            }
+          }
+        }
+      }
+    },
+    responses: {
+      200: {
+        description: 'Members imported successfully',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Imported 5 members successfully with 0 failures'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    success: {
+                      type: 'integer'
+                    },
+                    failed: {
+                      type: 'integer'
+                    },
+                    errors: {
+                      type: 'array',
+                      items: {
+                        type: 'string'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      401: {
+        description: 'Unauthorized',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      },
+      403: {
+        description: 'Forbidden - Admin only',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      }
+    }
+  }
+},
+'/api/projects': {
+    get: {
+      summary: 'Get all projects',
+      description: 'Public endpoint - Retrieves all projects with pagination',
+      tags: ['Projects'],
+      security: [],
+      parameters: [
+        {
+          in: 'query',
+          name: 'page',
+          schema: {
+            type: 'integer',
+            default: 1
+          },
+          description: 'Page number'
+        },
+        {
+          in: 'query',
+          name: 'limit',
+          schema: {
+            type: 'integer',
+            default: 12
+          },
+          description: 'Number of projects per page'
+        }
+      ],
+      responses: {
+        200: {
+          description: 'List of projects',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ProjectsListResponse'
+              }
+            }
+          }
+        },
+        500: {
+          description: 'Server error',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/Error'
+              }
+            }
+          }
+        }
+      }
+    },
+    post: {
+      summary: 'Create a new project',
+      description: 'Creates a new project for the authenticated user',
+      tags: ['Projects'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      requestBody: {
+        content: {
+          'multipart/form-data': {
+            schema: {
+              type: 'object',
+              required: ['title', 'description'],
+              properties: {
+                title: {
+                  type: 'string',
+                  description: 'Project title'
+                },
+                description: {
+                  type: 'string',
+                  description: 'Project description'
+                },
+                link: {
+                  type: 'string',
+                  description: 'Project link'
+                },
+                demo: {
+                  type: 'string',
+                  description: 'Project demo link'
+                },
+                image: {
+                  type: 'string',
+                  format: 'binary',
+                  description: 'Project image file'
+                }
+              }
+            }
+          }
+        }
+      },
+      responses: {
+        201: {
+          description: 'Project created successfully',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success'
+                  },
+                  message: {
+                    type: 'string',
+                    example: 'Project created successfully'
+                  },
+                  data: {
+                    type: 'object',
+                    properties: {
+                      project: {
+                        $ref: '#/components/schemas/Project'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        400: {
+          description: 'Bad request - Missing required fields',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/Error'
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/Error'
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/api/projects/project/{id}': {
+    get: {
+      summary: 'Get project by ID',
+      description: 'Public endpoint - Retrieves project information by ID',
+      tags: ['Projects'],
+      security: [],
+      parameters: [
+        {
+          in: 'path',
+          name: 'id',
+          required: true,
+          schema: {
+            type: 'string',
+            format: 'uuid'
+          },
+          description: 'Project ID'
+        }
+      ],
+      responses: {
+        200: {
+          description: 'Project information retrieved successfully',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ProjectResponse'
+              }
+            }
+          }
+        },
+        404: {
+          description: 'Project not found',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/Error'
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/api/projects/{id}': {
+    put: {
+      summary: 'Update a project',
+      description: 'Updates a project. Any authenticated user can update any project.',
+      tags: ['Projects'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      parameters: [
+        {
+          in: 'path',
+          name: 'id',
+          required: true,
+          schema: {
+            type: 'string',
+            format: 'uuid'
+          },
+          description: 'Project ID'
+        }
+      ],
+      requestBody: {
+        content: {
+          'multipart/form-data': {
+            schema: {
+              type: 'object',
+              properties: {
+                title: {
+                  type: 'string',
+                  description: 'Project title'
+                },
+                description: {
+                  type: 'string',
+                  description: 'Project description'
+                },
+                link: {
+                  type: 'string',
+                  description: 'Project link'
+                },
+                demo: {
+                  type: 'string',
+                  description: 'Project demo link'
+                },
+                image: {
+                  type: 'string',
+                  format: 'binary',
+                  description: 'Project image file'
+                }
+              }
+            }
+          }
+        }
+      },
+      responses: {
+        200: {
+          description: 'Project updated successfully',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success'
+                  },
+                  message: {
+                    type: 'string',
+                    example: 'Project updated successfully'
+                  },
+                  data: {
+                    type: 'object',
+                    properties: {
+                      project: {
+                        $ref: '#/components/schemas/Project'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/Error'
+              }
+            }
+          }
+        },
+        404: {
+          description: 'Project not found',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/Error'
+              }
+            }
+          }
+        }
+      }
+    },
+    delete: {
+      summary: 'Delete a project',
+      description: 'Deletes a project. Any authenticated user can delete any project.',
+      tags: ['Projects'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      parameters: [
+        {
+          in: 'path',
+          name: 'id',
+          required: true,
+          schema: {
+            type: 'string',
+            format: 'uuid'
+          },
+          description: 'Project ID'
+        }
+      ],
+      responses: {
+        200: {
+          description: 'Project deleted successfully',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success'
+                  },
+                  message: {
+                    type: 'string',
+                    example: 'Project deleted successfully'
+                  }
+                }
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/Error'
+              }
+            }
+          }
+        },
+        404: {
+          description: 'Project not found',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/Error'
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/api/projects/me': {
+    get: {
+      summary: 'Get my projects',
+      description: 'Retrieves all projects created by the authenticated user',
+      tags: ['Projects'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      parameters: [
+        {
+          in: 'query',
+          name: 'page',
+          schema: {
+            type: 'integer',
+            default: 1
+          },
+          description: 'Page number'
+        },
+        {
+          in: 'query',
+          name: 'limit',
+          schema: {
+            type: 'integer',
+            default: 12
+          },
+          description: 'Number of projects per page'
+        }
+      ],
+      responses: {
+        200: {
+          description: 'List of user\'s projects',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ProjectsListResponse'
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/Error'
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  
+  '/api/projects/search': {
+    get: {
+      summary: 'Search projects',
+      description: 'Public endpoint - Search projects by title, description or owner name',
+      tags: ['Projects'],
+      security: [],
+      parameters: [
+        {
+          in: 'query',
+          name: 'q',
+          required: true,
+          schema: {
+            type: 'string'
+          },
+          description: 'Search term'
+        },
+        {
+          in: 'query',
+          name: 'page',
+          schema: {
+            type: 'integer',
+            default: 1
+          },
+          description: 'Page number'
+        },
+        {
+          in: 'query',
+          name: 'limit',
+          schema: {
+            type: 'integer',
+            default: 12
+          },
+          description: 'Number of projects per page'
+        }
+      ],
+      responses: {
+        200: {
+          description: 'Search results',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ProjectsListResponse'
+              }
+            }
+          }
+        },
+        400: {
+          description: 'Bad request - Missing search term',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/Error'
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+ '/api/resources': {
+    get: {
+      summary: 'Get all resources',
+      description: 'Retrieves all resources with pagination and filtering. Requires authentication.',
+      tags: ['Resources'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      parameters: [
+        {
+          in: 'query',
+          name: 'page',
+          schema: {
+            type: 'integer',
+            default: 1
+          },
+          description: 'Page number'
+        },
+        {
+          in: 'query',
+          name: 'limit',
+          schema: {
+            type: 'integer',
+            default: 12
+          },
+          description: 'Number of resources per page'
+        },
+        {
+          in: 'query',
+          name: 'category',
+          schema: {
+            type: 'string',
+            enum: ['Backend', 'Frontend', 'Cybersecurity']
+          },
+          description: 'Filter by category'
+        },
+        {
+          in: 'query',
+          name: 'type',
+          schema: {
+            type: 'string',
+            enum: ['Video', 'Documentation', 'Book', 'Other']
+          },
+          description: 'Filter by resource type'
+        },
+        {
+          in: 'query',
+          name: 'difficulty',
+          schema: {
+            type: 'string',
+            enum: ['Beginner', 'Intermediate', 'Advanced']
+          },
+          description: 'Filter by difficulty level'
+        }
+      ],
+      responses: {
+        200: {
+          description: 'List of resources',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ResourcesListResponse'
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        500: {
+          description: 'Server error',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    },
+    post: {
+      summary: 'Create a new resource (Admin only)',
+      description: 'Creates a new resource. Requires admin role. Supports video uploads.',
+      tags: ['Resources', 'Admin'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      requestBody: {
+        content: {
+          'multipart/form-data': {
+            schema: {
+              type: 'object',
+              required: ['title', 'description', 'category', 'type', 'author'],
+              properties: {
+                title: {
+                  type: 'string',
+                  description: 'Resource title'
+                },
+                description: {
+                  type: 'string',
+                  description: 'Resource description'
+                },
+                category: {
+                  type: 'string',
+                  enum: ['Backend', 'Frontend', 'Cybersecurity'],
+                  description: 'Resource category'
+                },
+                type: {
+                  type: 'string',
+                  enum: ['Video', 'Documentation', 'Book', 'Other'],
+                  description: 'Resource type'
+                },
+                difficulty: {
+                  type: 'string',
+                  enum: ['Beginner', 'Intermediate', 'Advanced'],
+                  description: 'Resource difficulty level'
+                },
+                url: {
+                  type: 'string',
+                  description: 'URL to external resource (if not uploading a video)'
+                },
+                author: {
+                  type: 'string',
+                  description: 'Resource author'
+                },
+                isPaid: {
+                  type: 'boolean',
+                  description: 'Whether the resource is paid'
+                },
+                price: {
+                  type: 'number',
+                  description: 'Resource price (if paid)'
+                },
+                purchaseDate: {
+                  type: 'string',
+                  format: 'date-time',
+                  description: 'Date when the resource was purchased'
+                },
+                platform: {
+                  type: 'string',
+                  description: 'Platform where the resource was purchased'
+                },
+                duration: {
+                  type: 'integer',
+                  description: 'Duration in seconds for videos, estimated reading time for other resources'
+                },
+                tags: {
+                  type: 'string',
+                  description: 'Comma-separated resource tags'
+                },
+                image: {
+                  type: 'string',
+                  format: 'binary',
+                  description: 'Resource image file'
+                },
+                video: {
+                  type: 'string',
+                  format: 'binary',
+                  description: 'Video file (if uploading a video)'
+                }
+              }
+            }
+          }
+        }
+      },
+      responses: {
+        201: {
+          description: 'Resource created successfully',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success'
+                  },
+                  message: {
+                    type: 'string',
+                    example: 'Resource created successfully'
+                  },
+                  data: {
+                    type: 'object',
+                    properties: {
+                      resource: {
+                        $ref: '#/components/schemas/Resource'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        400: {
+          description: 'Bad request - Missing required fields',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        403: {
+          description: 'Forbidden - Admin only',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/api/resources/resource/{id}': {
+    get: {
+      summary: 'Get resource by ID',
+      description: 'Retrieves resource information by ID. Requires authentication.',
+      tags: ['Resources'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      parameters: [
+        {
+          in: 'path',
+          name: 'id',
+          required: true,
+          schema: {
+            type: 'string',
+            format: 'uuid'
+          },
+          description: 'Resource ID'
+        }
+      ],
+      responses: {
+        200: {
+          description: 'Resource information retrieved successfully',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ResourceResponse'
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        404: {
+          description: 'Resource not found',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/api/resources/{id}': {
+    put: {
+      summary: 'Fully update a resource (Admin only)',
+      description: 'Completely updates a resource with all fields. Requires admin role.',
+      tags: ['Resources', 'Admin'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      parameters: [
+        {
+          in: 'path',
+          name: 'id',
+          required: true,
+          schema: {
+            type: 'string',
+            format: 'uuid'
+          },
+          description: 'Resource ID'
+        }
+      ],
+      requestBody: {
+        content: {
+          'multipart/form-data': {
+            schema: {
+              type: 'object',
+              properties: {
+                title: {
+                  type: 'string',
+                  description: 'Resource title'
+                },
+                description: {
+                  type: 'string',
+                  description: 'Resource description'
+                },
+                category: {
+                  type: 'string',
+                  enum: ['Backend', 'Frontend', 'Cybersecurity'],
+                  description: 'Resource category'
+                },
+                type: {
+                  type: 'string',
+                  enum: ['Video', 'Documentation', 'Book', 'Other'],
+                  description: 'Resource type'
+                },
+                difficulty: {
+                  type: 'string',
+                  enum: ['Beginner', 'Intermediate', 'Advanced'],
+                  description: 'Resource difficulty level'
+                },
+                url: {
+                  type: 'string',
+                  description: 'URL to external resource (if not uploading a video)'
+                },
+                author: {
+                  type: 'string',
+                  description: 'Resource author'
+                },
+                isPaid: {
+                  type: 'boolean',
+                  description: 'Whether the resource is paid'
+                },
+                price: {
+                  type: 'number',
+                  description: 'Resource price (if paid)'
+                },
+                purchaseDate: {
+                  type: 'string',
+                  format: 'date-time',
+                  description: 'Date when the resource was purchased'
+                },
+                platform: {
+                  type: 'string',
+                  description: 'Platform where the resource was purchased'
+                },
+                tags: {
+                  type: 'string',
+                  description: 'Comma-separated resource tags'
+                },
+                isFeatured: {
+                  type: 'boolean',
+                  description: 'Whether the resource is featured'
+                },
+                duration: {
+                  type: 'integer',
+                  description: 'Duration in seconds for videos, estimated reading time for other resources'
+                },
+                image: {
+                  type: 'string',
+                  format: 'binary',
+                  description: 'Resource image file'
+                },
+                video: {
+                  type: 'string',
+                  format: 'binary',
+                  description: 'Video file (if uploading a video)'
+                }
+              }
+            }
+          }
+        }
+      },
+      responses: {
+        200: {
+          description: 'Resource updated successfully',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success'
+                  },
+                  message: {
+                    type: 'string',
+                    example: 'Resource updated successfully'
+                  },
+                  data: {
+                    type: 'object',
+                    properties: {
+                      resource: {
+                        $ref: '#/components/schemas/Resource'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        403: {
+          description: 'Forbidden - Admin only',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        404: {
+          description: 'Resource not found',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    },
+    patch: {
+      summary: 'Partially update a resource (Admin only)',
+      description: 'Updates specific fields of a resource. Requires admin role. Only updates the fields that are provided.',
+      tags: ['Resources', 'Admin'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      parameters: [
+        {
+          in: 'path',
+          name: 'id',
+          required: true,
+          schema: {
+            type: 'string',
+            format: 'uuid'
+          },
+          description: 'Resource ID'
+        }
+      ],
+      requestBody: {
+        content: {
+          'multipart/form-data': {
+            schema: {
+              type: 'object',
+              properties: {
+                title: {
+                  type: 'string',
+                  description: 'Resource title'
+                },
+                description: {
+                  type: 'string',
+                  description: 'Resource description'
+                },
+                category: {
+                  type: 'string',
+                  enum: ['Backend', 'Frontend', 'Cybersecurity'],
+                  description: 'Resource category'
+                },
+                type: {
+                  type: 'string',
+                  enum: ['Video', 'Documentation', 'Book', 'Other'],
+                  description: 'Resource type'
+                },
+                difficulty: {
+                  type: 'string',
+                  enum: ['Beginner', 'Intermediate', 'Advanced'],
+                  description: 'Resource difficulty level'
+                },
+                url: {
+                  type: 'string',
+                  description: 'URL to external resource (if not uploading a video)'
+                },
+                author: {
+                  type: 'string',
+                  description: 'Resource author'
+                },
+                isPaid: {
+                  type: 'boolean',
+                  description: 'Whether the resource is paid'
+                },
+                price: {
+                  type: 'number',
+                  description: 'Resource price (if paid)'
+                },
+                purchaseDate: {
+                  type: 'string',
+                  format: 'date-time',
+                  description: 'Date when the resource was purchased'
+                },
+                platform: {
+                  type: 'string',
+                  description: 'Platform where the resource was purchased'
+                },
+                tags: {
+                  type: 'string',
+                  description: 'Comma-separated resource tags'
+                },
+                isFeatured: {
+                  type: 'boolean',
+                  description: 'Whether the resource is featured'
+                },
+                duration: {
+                  type: 'integer',
+                  description: 'Duration in seconds for videos, estimated reading time for other resources'
+                },
+                image: {
+                  type: 'string',
+                  format: 'binary',
+                  description: 'Resource image file'
+                },
+                video: {
+                  type: 'string',
+                  format: 'binary',
+                  description: 'Video file (if uploading a video)'
+                }
+              }
+            }
+          }
+        }
+      },
+      responses: {
+        200: {
+          description: 'Resource partially updated successfully',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success'
+                  },
+                  message: {
+                    type: 'string',
+                    example: 'Resource updated successfully'
+                  },
+                  data: {
+                    type: 'object',
+                    properties: {
+                      resource: {
+                        $ref: '#/components/schemas/Resource'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        400: {
+          description: 'Bad request - No fields to update provided',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'fail'
+                  },
+                  message: {
+                    type: 'string',
+                    example: 'No fields to update were provided'
+                  }
+                }
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        403: {
+          description: 'Forbidden - Admin only',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        404: {
+          description: 'Resource not found',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    },
+    delete: {
+      summary: 'Delete a resource (Admin only)',
+      description: 'Deletes a resource. Requires admin role.',
+      tags: ['Resources', 'Admin'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      parameters: [
+        {
+          in: 'path',
+          name: 'id',
+          required: true,
+          schema: {
+            type: 'string',
+            format: 'uuid'
+          },
+          description: 'Resource ID'
+        }
+      ],
+      responses: {
+        200: {
+          description: 'Resource deleted successfully',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success'
+                  },
+                  message: {
+                    type: 'string',
+                    example: 'Resource deleted successfully'
+                  }
+                }
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        403: {
+          description: 'Forbidden - Admin only',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        404: {
+          description: 'Resource not found',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/api/resources/featured': {
+    get: {
+      summary: 'Get featured resources',
+      description: 'Retrieves featured resources. Requires authentication.',
+      tags: ['Resources'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      responses: {
+        200: {
+          description: 'List of featured resources',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success'
+                  },
+                  results: {
+                    type: 'number',
+                    example: 6
+                  },
+                  data: {
+                    type: 'object',
+                    properties: {
+                      resources: {
+                        type: 'array',
+                        items: {
+                          $ref: '#/components/schemas/Resource'
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/api/resources/saved': {
+    get: {
+      summary: 'Get user\'s saved resources',
+      description: 'Retrieves resources saved by the authenticated user.',
+      tags: ['Resources'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      parameters: [
+        {
+          in: 'query',
+          name: 'page',
+          schema: {
+            type: 'integer',
+            default: 1
+          },
+          description: 'Page number'
+        },
+        {
+          in: 'query',
+          name: 'limit',
+          schema: {
+            type: 'integer',
+            default: 12
+          },
+          description: 'Number of resources per page'
+        }
+      ],
+      responses: {
+        200: {
+          description: 'List of saved resources',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ResourcesListResponse'
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/api/resources/search': {
+    get: {
+      summary: 'Search resources',
+      description: 'Search resources by title, description, author or tags. Requires authentication.',
+      tags: ['Resources'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      parameters: [
+        {
+          in: 'query',
+          name: 'q',
+          required: true,
+          schema: {
+            type: 'string'
+          },
+          description: 'Search term or keyword'
+        },
+        {
+          in: 'query',
+          name: 'page',
+          schema: {
+            type: 'integer',
+            default: 1
+          },
+          description: 'Page number for pagination'
+        },
+        {
+          in: 'query',
+          name: 'limit',
+          schema: {
+            type: 'integer',
+            default: 12
+          },
+          description: 'Number of resources per page'
+        },
+        {
+          in: 'query',
+          name: 'category',
+          schema: {
+            type: 'string',
+            enum: ['Backend', 'Frontend', 'Cybersecurity']
+          },
+          description: 'Filter search results by category'
+        },
+        {
+          in: 'query',
+          name: 'type',
+          schema: {
+            type: 'string',
+            enum: ['Video', 'Documentation', 'Book', 'Other']
+          },
+          description: 'Filter search results by resource type'
+        },
+        {
+          in: 'query',
+          name: 'difficulty',
+          schema: {
+            type: 'string',
+            enum: ['Beginner', 'Intermediate', 'Advanced']
+          },
+          description: 'Filter search results by difficulty level'
+        },
+        {
+          in: 'query',
+          name: 'isPaid',
+          schema: {
+            type: 'boolean'
+          },
+          description: 'Filter by whether resources are paid or free'
+        },
+        {
+          in: 'query',
+          name: 'sort',
+          schema: {
+            type: 'string',
+            enum: ['recent', 'popular', 'title']
+          },
+          description: 'Sort search results by: recent (default), popular (most upvotes), or title (alphabetical)'
+        }
+      ],
+      responses: {
+        200: {
+          description: 'Search results',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success'
+                  },
+                  results: {
+                    type: 'number',
+                    description: 'Number of results in current page',
+                    example: 12
+                  },
+                  totalItems: {
+                    type: 'number',
+                    description: 'Total number of matching resources',
+                    example: 42
+                  },
+                  totalPages: {
+                    type: 'number',
+                    description: 'Total number of pages',
+                    example: 4
+                  },
+                  currentPage: {
+                    type: 'number',
+                    description: 'Current page number',
+                    example: 1
+                  },
+                  data: {
+                    type: 'object',
+                    properties: {
+                      resources: {
+                        type: 'array',
+                        items: {
+                          $ref: '#/components/schemas/Resource'
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        400: {
+          description: 'Bad request - Missing search term',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'fail'
+                  },
+                  message: {
+                    type: 'string',
+                    example: 'Please provide a search term'
+                  }
+                }
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized - User not logged in',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/api/resources/category/{category}': {
+    get: {
+      summary: 'Get resources by category',
+      description: 'Retrieves resources filtered by category. Requires authentication.',
+      tags: ['Resources'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      parameters: [
+        {
+          in: 'path',
+          name: 'category',
+          required: true,
+          schema: {
+            type: 'string',
+            enum: ['Backend', 'Frontend', 'Cybersecurity']
+          },
+          description: 'Resource category'
+        },
+        {
+          in: 'query',
+          name: 'page',
+          schema: {
+            type: 'integer',
+            default: 1
+          },
+          description: 'Page number'
+        },
+        {
+          in: 'query',
+          name: 'limit',
+          schema: {
+            type: 'integer',
+            default: 12
+          },
+          description: 'Number of resources per page'
+        }
+      ],
+      responses: {
+        200: {
+          description: 'List of resources in the category',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ResourcesListResponse'
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/api/resources/type/{type}': {
+    get: {
+      summary: 'Get resources by type',
+      description: 'Retrieves resources filtered by type. Requires authentication.',
+      tags: ['Resources'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      parameters: [
+        {
+          in: 'path',
+          name: 'type',
+          required: true,
+          schema: {
+            type: 'string',
+            enum: ['Video', 'Documentation', 'Book', 'Other']
+          },
+          description: 'Resource type'
+        },
+        {
+          in: 'query',
+          name: 'page',
+          schema: {
+            type: 'integer',
+            default: 1
+          },
+          description: 'Page number'
+        },
+        {
+          in: 'query',
+          name: 'limit',
+          schema: {
+            type: 'integer',
+            default: 12
+          },
+          description: 'Number of resources per page'
+        }
+      ],
+      responses: {
+        200: {
+          description: 'List of resources of the specified type',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ResourcesListResponse'
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/api/resources/videos': {
+    get: {
+      summary: 'Get video resources',
+      description: 'Retrieves all video resources. Requires authentication.',
+      tags: ['Resources'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      parameters: [
+        {
+          in: 'query',
+          name: 'page',
+          schema: {
+            type: 'integer',
+            default: 1
+          },
+          description: 'Page number'
+        },
+        {
+          in: 'query',
+          name: 'limit',
+          schema: {
+            type: 'integer',
+            default: 12
+          },
+          description: 'Number of resources per page'
+        }
+      ],
+      responses: {
+        200: {
+          description: 'List of video resources',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ResourcesListResponse'
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/api/resources/resource/{id}/upvote': {
+    post: {
+      summary: 'Upvote a resource',
+      description: 'Upvotes a resource or removes an existing upvote. Requires authentication.',
+      tags: ['Resources'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      parameters: [
+        {
+          in: 'path',
+          name: 'id',
+          required: true,
+          schema: {
+            type: 'string',
+            format: 'uuid'
+          },
+          description: 'Resource ID'
+        }
+      ],
+      responses: {
+        200: {
+          description: 'Resource upvoted or upvote removed successfully',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success'
+                  },
+                  message: {
+                    type: 'string',
+                    example: 'Resource upvoted successfully'
+                  },
+                  data: {
+                    type: 'object',
+                    properties: {
+                      hasUpvoted: {
+                        type: 'boolean'
+                      },
+                      upvotes: {
+                        type: 'integer'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        404: {
+          description: 'Resource not found',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/api/resources/resource/{id}/save': {
+    post: {
+      summary: 'Save a resource',
+      description: 'Saves a resource to user\'s collection or removes it. Requires authentication.',
+      tags: ['Resources'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      parameters: [
+        {
+          in: 'path',
+          name: 'id',
+          required: true,
+          schema: {
+            type: 'string',
+            format: 'uuid'
+          },
+          description: 'Resource ID'
+        }
+      ],
+      responses: {
+        200: {
+          description: 'Resource saved or removed from saved successfully',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success'
+                  },
+                  message: {
+                    type: 'string',
+                    example: 'Resource saved successfully'
+                  },
+                  data: {
+                    type: 'object',
+                    properties: {
+                      hasSaved: {
+                        type: 'boolean'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        404: {
+          description: 'Resource not found',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    }
+  }
     }
   },
   apis: [],

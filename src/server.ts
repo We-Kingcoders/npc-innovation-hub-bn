@@ -7,6 +7,10 @@ import swaggerSpec from './swagger.config';
 import { Sequelize } from 'sequelize'; // Add this import
 import * as dotenv from 'dotenv';
 import blogRoutes from './routes/blog.routes'
+import memberRoutes from './routes/member.route'; // Import member routes
+import projectRoutes from './routes/project.routes'; // Import project routes
+import resourceRoutes from './routes/resource.routes';
+
 // Load environment variables
 dotenv.config();
 
@@ -51,8 +55,10 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 // Mount API routes
 app.use('/api/users', userRoutes);
 // Routes
-app.use('/api/blogs', blogRoutes)
-
+app.use('/api/blogs', blogRoutes);
+app.use('/api/members', memberRoutes); // Mount member routes
+app.use('/api/projects', projectRoutes); // Mount project routes
+app.use('/api/resources', resourceRoutes); // Mount resource routes
 
 // Add Swagger UI middleware
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
