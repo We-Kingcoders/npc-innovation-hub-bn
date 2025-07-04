@@ -5740,7 +5740,1050 @@ const options = {
         }
       }
     }
+  },
+'/api/events': {
+  get: {
+    summary: 'Get all events',
+    description: 'Public endpoint - Retrieves all events with pagination and filtering options',
+    tags: ['Events'],
+    security: [],
+    parameters: [
+      {
+        in: 'query',
+        name: 'page',
+        schema: {
+          type: 'integer',
+          default: 1
+        },
+        description: 'Page number'
+      },
+      {
+        in: 'query',
+        name: 'limit',
+        schema: {
+          type: 'integer',
+          default: 10
+        },
+        description: 'Number of events per page'
+      },
+      {
+        in: 'query',
+        name: 'filter',
+        schema: {
+          type: 'string',
+          enum: ['all', 'upcoming', 'past'],
+          default: 'all'
+        },
+        description: 'Filter events by time'
+      },
+      {
+        in: 'query',
+        name: 'sortBy',
+        schema: {
+          type: 'string',
+          enum: ['startTime', 'title', 'createdAt'],
+          default: 'startTime'
+        },
+        description: 'Field to sort by'
+      },
+      {
+        in: 'query',
+        name: 'sortOrder',
+        schema: {
+          type: 'string',
+          enum: ['ASC', 'DESC'],
+          default: 'ASC'
+        },
+        description: 'Sort order'
+      }
+    ],
+    responses: {
+      200: {
+        description: 'List of events',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                results: {
+                  type: 'number',
+                  example: 10
+                },
+                totalItems: {
+                  type: 'number',
+                  example: 45
+                },
+                totalPages: {
+                  type: 'number',
+                  example: 5
+                },
+                currentPage: {
+                  type: 'number',
+                  example: 1
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    events: {
+                      type: 'array',
+                      items: {
+                        $ref: '#/components/schemas/Event'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      500: {
+        description: 'Server error',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      }
+    }
+  },
+  post: {
+    summary: 'Create a new event',
+    description: 'Admin only - Creates a new event',
+    tags: ['Events', 'Admin'],
+    security: [
+      {
+        bearerAuth: []
+      }
+    ],
+    requestBody: {
+      required: true,
+      content: {
+        'multipart/form-data': {
+          schema: {
+            type: 'object',
+            required: ['title', 'location', 'startTime', 'endTime', 'description'],
+            properties: {
+              title: {
+                type: 'string',
+                description: 'Event title'
+              },
+              location: {
+                type: 'string',
+                description: 'Event location'
+              },
+              startTime: {
+                type: 'string',
+                format: 'date-time',
+                description: 'Event start time'
+              },
+              endTime: {
+                type: 'string',
+                format: 'date-time',
+                description: 'Event end time'
+              },
+              description: {
+                type: 'string',
+                description: 'Event description'
+              },
+              image: {
+                type: 'string',
+                format: 'binary',
+                description: 'Event image'
+              }
+            }
+          }
+        }
+      }
+    },
+    responses: {
+      201: {
+        description: 'Event created successfully',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Event created successfully'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    event: {
+                      $ref: '#/components/schemas/Event'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      400: {
+        description: 'Bad request - Missing required fields or invalid data',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      },
+      401: {
+        description: 'Unauthorized',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      },
+      403: {
+        description: 'Forbidden - Admin only',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      }
+    }
   }
+},
+'/api/events/{id}': {
+  get: {
+    summary: 'Get event by ID',
+    description: 'Public endpoint - Retrieves a specific event by ID',
+    tags: ['Events'],
+    security: [],
+    parameters: [
+      {
+        in: 'path',
+        name: 'id',
+        required: true,
+        schema: {
+          type: 'string',
+          format: 'uuid'
+        },
+        description: 'Event ID'
+      }
+    ],
+    responses: {
+      200: {
+        description: 'Event details',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    event: {
+                      $ref: '#/components/schemas/Event'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      404: {
+        description: 'Event not found',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      }
+    }
+  },
+  patch: {
+    summary: 'Update event',
+    description: 'Admin only - Updates an existing event. Only provided fields will be updated.',
+    tags: ['Events', 'Admin'],
+    security: [
+      {
+        bearerAuth: []
+      }
+    ],
+    parameters: [
+      {
+        in: 'path',
+        name: 'id',
+        required: true,
+        schema: {
+          type: 'string',
+          format: 'uuid'
+        },
+        description: 'Event ID'
+      }
+    ],
+    requestBody: {
+      content: {
+        'multipart/form-data': {
+          schema: {
+            type: 'object',
+            properties: {
+              title: {
+                type: 'string',
+                description: 'Event title'
+              },
+              location: {
+                type: 'string',
+                description: 'Event location'
+              },
+              startTime: {
+                type: 'string',
+                format: 'date-time',
+                description: 'Event start time'
+              },
+              endTime: {
+                type: 'string',
+                format: 'date-time',
+                description: 'Event end time'
+              },
+              description: {
+                type: 'string',
+                description: 'Event description'
+              },
+              image: {
+                type: 'string',
+                format: 'binary',
+                description: 'Event image'
+              }
+            }
+          }
+        }
+      }
+    },
+    responses: {
+      200: {
+        description: 'Event updated successfully',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Event updated successfully'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    event: {
+                      $ref: '#/components/schemas/Event'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      400: {
+        description: 'Bad request - Invalid data',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      },
+      401: {
+        description: 'Unauthorized',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      },
+      403: {
+        description: 'Forbidden - Admin only',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      },
+      404: {
+        description: 'Event not found',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      }
+    }
+  },
+  delete: {
+    summary: 'Delete event',
+    description: 'Admin only - Deletes an event and its associated data',
+    tags: ['Events', 'Admin'],
+    security: [
+      {
+        bearerAuth: []
+      }
+    ],
+    parameters: [
+      {
+        in: 'path',
+        name: 'id',
+        required: true,
+        schema: {
+          type: 'string',
+          format: 'uuid'
+        },
+        description: 'Event ID'
+      }
+    ],
+    responses: {
+      200: {
+        description: 'Event deleted successfully',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Event deleted successfully'
+                }
+              }
+            }
+          }
+        }
+      },
+      401: {
+        description: 'Unauthorized',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      },
+      403: {
+        description: 'Forbidden - Admin only',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      },
+      404: {
+        description: 'Event not found',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      }
+    }
+  }
+},
+'/api/events/{id}/attendees': {
+  get: {
+    summary: 'Get event attendees',
+    description: 'Admin only - Retrieves a list of users who have RSVPed to or attended an event',
+    tags: ['Events', 'Admin'],
+    security: [
+      {
+        bearerAuth: []
+      }
+    ],
+    parameters: [
+      {
+        in: 'path',
+        name: 'id',
+        required: true,
+        schema: {
+          type: 'string',
+          format: 'uuid'
+        },
+        description: 'Event ID'
+      },
+      {
+        in: 'query',
+        name: 'page',
+        schema: {
+          type: 'integer',
+          default: 1
+        },
+        description: 'Page number'
+      },
+      {
+        in: 'query',
+        name: 'limit',
+        schema: {
+          type: 'integer',
+          default: 10
+        },
+        description: 'Number of attendees per page'
+      },
+      {
+        in: 'query',
+        name: 'status',
+        schema: {
+          type: 'string',
+          enum: ['going', 'attended', 'cancelled']
+        },
+        description: 'Filter by attendance status'
+      }
+    ],
+    responses: {
+      200: {
+        description: 'List of attendees',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                results: {
+                  type: 'number',
+                  example: 10
+                },
+                totalItems: {
+                  type: 'number',
+                  example: 25
+                },
+                totalPages: {
+                  type: 'number',
+                  example: 3
+                },
+                currentPage: {
+                  type: 'number',
+                  example: 1
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    attendances: {
+                      type: 'array',
+                      items: {
+                        $ref: '#/components/schemas/AttendanceWithUser'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      401: {
+        description: 'Unauthorized',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      },
+      403: {
+        description: 'Forbidden - Admin only',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      },
+      404: {
+        description: 'Event not found',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      }
+    }
+  }
+},
+'/api/events/{eventId}/rsvp': {
+  post: {
+    summary: 'RSVP to an event',
+    description: 'Allows a user to RSVP to attend an upcoming event',
+    tags: ['Events'],
+    security: [
+      {
+        bearerAuth: []
+      }
+    ],
+    parameters: [
+      {
+        in: 'path',
+        name: 'eventId',
+        required: true,
+        schema: {
+          type: 'string',
+          format: 'uuid'
+        },
+        description: 'Event ID'
+      }
+    ],
+    responses: {
+      201: {
+        description: 'RSVP successful',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'RSVP successful'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    attendance: {
+                      $ref: '#/components/schemas/Attendance'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      400: {
+        description: 'Bad request - Already RSVPed or past event',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      },
+      401: {
+        description: 'Unauthorized',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      },
+      404: {
+        description: 'Event not found',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      }
+    }
+  }
+},
+'/api/events/{eventId}/cancel-rsvp': {
+  patch: {
+    summary: 'Cancel RSVP',
+    description: 'Allows a user to cancel their RSVP to an event',
+    tags: ['Events'],
+    security: [
+      {
+        bearerAuth: []
+      }
+    ],
+    parameters: [
+      {
+        in: 'path',
+        name: 'eventId',
+        required: true,
+        schema: {
+          type: 'string',
+          format: 'uuid'
+        },
+        description: 'Event ID'
+      }
+    ],
+    responses: {
+      200: {
+        description: 'RSVP cancelled successfully',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'RSVP cancelled successfully'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    attendance: {
+                      $ref: '#/components/schemas/Attendance'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      401: {
+        description: 'Unauthorized',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      },
+      404: {
+        description: 'Event not found or no RSVP found',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      }
+    }
+  }
+},
+'/api/events/{eventId}/rsvp-status': {
+  get: {
+    summary: 'Check RSVP status',
+    description: 'Checks if the current user has RSVPed to an event',
+    tags: ['Events'],
+    security: [
+      {
+        bearerAuth: []
+      }
+    ],
+    parameters: [
+      {
+        in: 'path',
+        name: 'eventId',
+        required: true,
+        schema: {
+          type: 'string',
+          format: 'uuid'
+        },
+        description: 'Event ID'
+      }
+    ],
+    responses: {
+      200: {
+        description: 'RSVP status retrieved',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    isRsvped: {
+                      type: 'boolean',
+                      example: true
+                    },
+                    status: {
+                      type: 'string',
+                      enum: ['going', 'attended', 'cancelled', null],
+                      example: 'going'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      401: {
+        description: 'Unauthorized',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      },
+      404: {
+        description: 'Event not found',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      }
+    }
+  }
+},
+'/api/events/{eventId}/mark-attendance/{userId}': {
+  post: {
+    summary: 'Mark attendance',
+    description: 'Admin only - Marks a user as having attended an event',
+    tags: ['Events', 'Admin'],
+    security: [
+      {
+        bearerAuth: []
+      }
+    ],
+    parameters: [
+      {
+        in: 'path',
+        name: 'eventId',
+        required: true,
+        schema: {
+          type: 'string',
+          format: 'uuid'
+        },
+        description: 'Event ID'
+      },
+      {
+        in: 'path',
+        name: 'userId',
+        required: true,
+        schema: {
+          type: 'string',
+          format: 'uuid'
+        },
+        description: 'User ID'
+      }
+    ],
+    responses: {
+      200: {
+        description: 'Attendance marked successfully',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Attendance marked successfully'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    attendance: {
+                      $ref: '#/components/schemas/Attendance'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      401: {
+        description: 'Unauthorized',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      },
+      403: {
+        description: 'Forbidden - Admin only',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      },
+      404: {
+        description: 'Event or user not found',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      }
+    }
+  }
+},
+'/api/events/my-events': {
+  get: {
+    summary: 'Get my events',
+    description: 'Retrieves events that the current user has RSVPed to or attended',
+    tags: ['Events'],
+    security: [
+      {
+        bearerAuth: []
+      }
+    ],
+    parameters: [
+      {
+        in: 'query',
+        name: 'page',
+        schema: {
+          type: 'integer',
+          default: 1
+        },
+        description: 'Page number'
+      },
+      {
+        in: 'query',
+        name: 'limit',
+        schema: {
+          type: 'integer',
+          default: 10
+        },
+        description: 'Number of events per page'
+      },
+      {
+        in: 'query',
+        name: 'status',
+        schema: {
+          type: 'string',
+          enum: ['going', 'attended', 'cancelled']
+        },
+        description: 'Filter by attendance status'
+      },
+      {
+        in: 'query',
+        name: 'filter',
+        schema: {
+          type: 'string',
+          enum: ['all', 'upcoming', 'past'],
+          default: 'all'
+        },
+        description: 'Filter events by time'
+      }
+    ],
+    responses: {
+      200: {
+        description: 'List of user\'s events',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                results: {
+                  type: 'number',
+                  example: 10
+                },
+                totalItems: {
+                  type: 'number',
+                  example: 20
+                },
+                totalPages: {
+                  type: 'number',
+                  example: 2
+                },
+                currentPage: {
+                  type: 'number',
+                  example: 1
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    attendances: {
+                      type: 'array',
+                      items: {
+                        $ref: '#/components/schemas/AttendanceWithEvent'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      401: {
+        description: 'Unauthorized',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      }
+    }
+  }
+},
     }
   },
   apis: [],

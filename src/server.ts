@@ -10,6 +10,7 @@ import blogRoutes from './routes/blog.routes'
 import memberRoutes from './routes/member.route'; // Import member routes
 import projectRoutes from './routes/project.routes'; // Import project routes
 import resourceRoutes from './routes/resource.routes';
+import eventRoutes from './routes/event.routes';
 
 // Load environment variables
 dotenv.config();
@@ -59,6 +60,7 @@ app.use('/api/blogs', blogRoutes);
 app.use('/api/members', memberRoutes); // Mount member routes
 app.use('/api/projects', projectRoutes); // Mount project routes
 app.use('/api/resources', resourceRoutes); // Mount resource routes
+app.use('/api/events', eventRoutes); // Mount event routes
 
 // Add Swagger UI middleware
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
