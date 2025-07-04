@@ -37,6 +37,8 @@ router.get('/member/:id', memberController.getMemberById);
 // Protected routes - require authentication
 router.get('/me', protectRoute, memberController.getMyInfo);
 
+// Member profile routes
+// POST - Create a new profile
 router.post(
   '/', 
   protectRoute, 
@@ -44,6 +46,7 @@ router.post(
   memberController.createOrUpdateMember
 );
 
+// PUT - Replace the entire profile
 router.put(
   '/', 
   protectRoute, 
@@ -51,6 +54,15 @@ router.put(
   memberController.createOrUpdateMember
 );
 
+// PATCH - Update specific fields of the profile
+router.patch(
+  '/', 
+  protectRoute, 
+  upload.single('image'),
+  memberController.createOrUpdateMember
+);
+
+// Contact routes
 router.post(
   '/contacts', 
   protectRoute,
@@ -63,6 +75,13 @@ router.put(
   memberController.createOrUpdateContacts
 );
 
+router.patch(
+  '/contacts', 
+  protectRoute,
+  memberController.createOrUpdateContacts
+);
+
+// Education routes
 router.post(
   '/education', 
   protectRoute,
@@ -77,6 +96,14 @@ router.put(
   memberController.createOrUpdateEducation
 );
 
+router.patch(
+  '/education', 
+  protectRoute,
+  upload.single('educationImage'),
+  memberController.createOrUpdateEducation
+);
+
+// Skills routes
 router.post(
   '/skills', 
   protectRoute,
@@ -89,6 +116,13 @@ router.put(
   memberController.createOrUpdateSkills
 );
 
+router.patch(
+  '/skills', 
+  protectRoute,
+  memberController.createOrUpdateSkills
+);
+
+// Delete profile
 router.delete(
   '/', 
   protectRoute,

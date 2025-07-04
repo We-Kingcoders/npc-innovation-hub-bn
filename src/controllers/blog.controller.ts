@@ -155,8 +155,8 @@ export const getBlogById = async (req: Request, res: Response): Promise<void> =>
   }
 }
 
-// Update a blog (Admin only)
-export const updateBlog = async (req: Request, res: Response): Promise<void> => {
+// Partially update a blog (Admin only) - PATCH functionality
+export const patchBlog = async (req: Request, res: Response): Promise<void> => {
   try {
     const currentUser = req.user as { id: string; role: string }
     
@@ -184,8 +184,20 @@ export const updateBlog = async (req: Request, res: Response): Promise<void> => 
     const originalTitle = blog.title
     const wasPublished = blog.isPublished
     
-    // Make sure we handle image properly with the correct type
-    let imageUrl: string | undefined = blog.image || undefined
+    // Create an update object that only includes fields that were actually provided
+    const updateFields: any = {}
+    
+    // Only add fields to the update object if they're included in the request
+    if (title !== undefined) updateFields.title = title
+    if (content !== undefined) updateFields.content = content
+    if (summary !== undefined) updateFields.summary = summary
+    if (category !== undefined) updateFields.category = category
+    if (isPublished !== undefined) updateFields.isPublished = isPublished
+    
+    // Always update the updatedAt timestamp
+    updateFields.updatedAt = new Date()
+    
+    // Handle image update if provided
     if (req.file) {
       // If there's an existing image, delete it from cloudinary
       if (blog.image) {
@@ -199,20 +211,13 @@ export const updateBlog = async (req: Request, res: Response): Promise<void> => 
         folder: 'innovation-hub/blogs',
         resource_type: 'auto',
       })
-      imageUrl = result.secure_url
+      updateFields.image = result.secure_url
     }
 
-    await blog.update({
-      title: title || blog.title,
-      content: content || blog.content,
-      summary: summary || blog.summary,
-      image: imageUrl,
-      category: category || blog.category,
-      isPublished: isPublished !== undefined ? isPublished : blog.isPublished,
-      updatedAt: new Date(),
-    })
+    // Only update the specified fields
+    await blog.update(updateFields)
 
-    console.log(`Blog updated: "${blog.title}" by ${currentUser.id} at ${new Date().toISOString()}`)
+    console.log(`Blog patched: "${blog.title}" by ${currentUser.id} at ${new Date().toISOString()}`)
 
     // Check if the blog's published status changed
     let notificationMessage = `The blog "${originalTitle}" has been updated.`;
@@ -468,3 +473,6 @@ export const getAllBlogsAdmin = async (req: Request, res: Response): Promise<voi
     })
   }
 }
+
+// For backward compatibility, alias updateBlog to patchBlog
+export const updateBlog = patchBlog;

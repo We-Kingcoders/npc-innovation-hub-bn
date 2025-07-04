@@ -1251,7 +1251,7 @@ const options = {
           }
         }
       },
-      // Add these path definitions to your paths object
+// Add these path definitions to your paths object
 '/api/blogs': {
   get: {
     summary: 'Get all published blogs',
@@ -1639,9 +1639,9 @@ const options = {
   }
 },
 '/api/blogs/{id}': {
-  put: {
-    summary: 'Update blog',
-    description: 'Admin only - Updates an existing blog post',
+  patch: {
+    summary: 'Partially update blog',
+    description: 'Admin only - Partially updates an existing blog post with only the provided fields',
     tags: ['Blogs', 'Admin'],
     security: [
       {
@@ -2186,8 +2186,162 @@ const options = {
     }
   },
   put: {
+    summary: 'Replace member information',
+    description: 'Replaces the entire basic information for the authenticated member',
+    tags: ['Members'],
+    security: [
+      {
+        bearerAuth: []
+      }
+    ],
+    requestBody: {
+      content: {
+        'multipart/form-data': {
+          schema: {
+            type: 'object',
+            properties: {
+              name: {
+                type: 'string',
+                description: 'Full name'
+              },
+              role: {
+                type: 'string',
+                description: 'Professional role/title'
+              },
+              bio: {
+                type: 'string',
+                description: 'Professional bio'
+              },
+              image: {
+                type: 'string',
+                format: 'binary',
+                description: 'Profile image file'
+              }
+            }
+          }
+        }
+      }
+    },
+    responses: {
+      200: {
+        description: 'Member information updated successfully',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Member information updated successfully'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    member: {
+                      type: 'object',
+                      properties: {
+                        id: {
+                          type: 'string',
+                          format: 'uuid',
+                          description: 'Member unique identifier'
+                        },
+                        userId: {
+                          type: 'string',
+                          format: 'uuid',
+                          description: 'Associated user ID'
+                        },
+                        name: {
+                          type: 'string',
+                          description: 'Member full name'
+                        },
+                        role: {
+                          type: 'string',
+                          description: 'Professional role/title'
+                        },
+                        imageUrl: {
+                          type: 'string',
+                          format: 'uri',
+                          description: 'URL to member profile image'
+                        },
+                        bio: {
+                          type: 'string',
+                          description: 'Member bio/description'
+                        },
+                        skills: {
+                          type: 'array',
+                          items: {
+                            type: 'string'
+                          },
+                          description: 'List of skills'
+                        },
+                        createdAt: {
+                          type: 'string',
+                          format: 'date-time',
+                          description: 'Record creation timestamp'
+                        },
+                        updatedAt: {
+                          type: 'string',
+                          format: 'date-time',
+                          description: 'Record last update timestamp'
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      401: {
+        description: 'Unauthorized',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'fail'
+                },
+                message: {
+                  type: 'string',
+                  example: 'You are not logged in. Please log in to get access.'
+                }
+              }
+            }
+          }
+        }
+      },
+      404: {
+        description: 'Member not found',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'fail'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Member not found'
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  patch: {
     summary: 'Update member information',
-    description: 'Updates basic information for the authenticated member',
+    description: 'Partially updates basic information for the authenticated member. Only provided fields will be updated.',
     tags: ['Members'],
     security: [
       {
@@ -2531,8 +2685,8 @@ const options = {
 
 '/api/members/contacts': {
   post: {
-    summary: 'Create or update contact information',
-    description: 'Creates or updates social media and contact links',
+    summary: 'Create contact information',
+    description: 'Creates contact information for a new member profile',
     tags: ['Members'],
     security: [
       {
@@ -2652,8 +2806,129 @@ const options = {
     }
   },
   put: {
-    summary: 'Create or update contact information',
-    description: 'Creates or updates social media and contact links',
+    summary: 'Replace contact information',
+    description: 'Replaces all contact information for the authenticated member',
+    tags: ['Members'],
+    security: [
+      {
+        bearerAuth: []
+      }
+    ],
+    requestBody: {
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              linkedin: {
+                type: 'string',
+                format: 'uri',
+                description: 'LinkedIn profile URL'
+              },
+              github: {
+                type: 'string',
+                format: 'uri',
+                description: 'GitHub profile URL'
+              },
+              twitter: {
+                type: 'string',
+                format: 'uri',
+                description: 'Twitter profile URL'
+              },
+              telegram: {
+                type: 'string',
+                format: 'uri',
+                description: 'Telegram contact URL'
+              }
+            }
+          }
+        }
+      }
+    },
+    responses: {
+      201: {
+        description: 'Member profile with contacts created',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Member profile with contacts created'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    contacts: {
+                      type: 'object',
+                      properties: {
+                        linkedin: { type: 'string' },
+                        github: { type: 'string' },
+                        twitter: { type: 'string' },
+                        telegram: { type: 'string' }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      200: {
+        description: 'Contact information updated successfully',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Contact information updated successfully'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    contacts: {
+                      type: 'object',
+                      properties: {
+                        linkedin: { type: 'string' },
+                        github: { type: 'string' },
+                        twitter: { type: 'string' },
+                        telegram: { type: 'string' }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      401: {
+        description: 'Unauthorized',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      }
+    }
+  },
+  patch: {
+    summary: 'Update contact information',
+    description: 'Partially updates contact information. Only provided fields will be updated.',
     tags: ['Members'],
     security: [
       {
@@ -2776,8 +3051,8 @@ const options = {
 
 '/api/members/education': {
   post: {
-    summary: 'Create or update education information',
-    description: 'Creates or updates education details',
+    summary: 'Create education information',
+    description: 'Creates education details for a new member profile',
     tags: ['Members'],
     security: [
       {
@@ -2894,8 +3169,126 @@ const options = {
     }
   },
   put: {
-    summary: 'Create or update education information',
-    description: 'Creates or updates education details',
+    summary: 'Replace education information',
+    description: 'Replaces all education details for the authenticated member',
+    tags: ['Members'],
+    security: [
+      {
+        bearerAuth: []
+      }
+    ],
+    requestBody: {
+      content: {
+        'multipart/form-data': {
+          schema: {
+            type: 'object',
+            properties: {
+              degree: {
+                type: 'string',
+                description: 'Educational degree'
+              },
+              institution: {
+                type: 'string',
+                description: 'Educational institution'
+              },
+              description: {
+                type: 'string',
+                description: 'Description of education'
+              },
+              educationImage: {
+                type: 'string',
+                format: 'binary',
+                description: 'Institution image file'
+              }
+            }
+          }
+        }
+      }
+    },
+    responses: {
+      201: {
+        description: 'Member profile with education created',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Member profile with education created'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    education: {
+                      type: 'object',
+                      properties: {
+                        degree: { type: 'string' },
+                        institution: { type: 'string' },
+                        description: { type: 'string' },
+                        imageUrl: { type: 'string' }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      200: {
+        description: 'Education details updated successfully',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Education information updated successfully'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    education: {
+                      type: 'object',
+                      properties: {
+                        degree: { type: 'string' },
+                        institution: { type: 'string' },
+                        description: { type: 'string' },
+                        imageUrl: { type: 'string' }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      401: {
+        description: 'Unauthorized',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      }
+    }
+  },
+  patch: {
+    summary: 'Update education information',
+    description: 'Partially updates education details. Only provided fields will be updated.',
     tags: ['Members'],
     security: [
       {
@@ -3015,8 +3408,8 @@ const options = {
 
 '/api/members/skills': {
   post: {
-    summary: 'Create or update skills information',
-    description: 'Creates or updates detailed skills and proficiency information',
+    summary: 'Create skills information',
+    description: 'Creates detailed skills and proficiency information for a new member profile',
     tags: ['Members'],
     security: [
       {
@@ -3160,8 +3553,153 @@ const options = {
     }
   },
   put: {
-    summary: 'Create or update skills information',
-    description: 'Creates or updates detailed skills and proficiency information',
+    summary: 'Replace skills information',
+    description: 'Replaces all skills and proficiency information for the authenticated member',
+    tags: ['Members'],
+    security: [
+      {
+        bearerAuth: []
+      }
+    ],
+    requestBody: {
+      required: true,
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            required: ['skillDetails'],
+            properties: {
+              skillDetails: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  required: ['name', 'technologies', 'percent'],
+                  properties: {
+                    name: {
+                      type: 'string',
+                      description: 'Skill category name'
+                    },
+                    technologies: {
+                      type: 'array',
+                      items: {
+                        type: 'string'
+                      },
+                      description: 'List of specific technologies'
+                    },
+                    percent: {
+                      type: 'integer',
+                      minimum: 0,
+                      maximum: 100,
+                      description: 'Proficiency percentage'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    responses: {
+      201: {
+        description: 'Member profile with skills created',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Member profile with skills created'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    skillDetails: {
+                      type: 'array',
+                      items: {
+                        type: 'object'
+                      }
+                    },
+                    skills: {
+                      type: 'array',
+                      items: {
+                        type: 'string'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      200: {
+        description: 'Skills updated successfully',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Skills updated successfully'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    skillDetails: {
+                      type: 'array',
+                      items: {
+                        type: 'object'
+                      }
+                    },
+                    skills: {
+                      type: 'array',
+                      items: {
+                        type: 'string'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      400: {
+        description: 'Invalid skills data format',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      },
+      401: {
+        description: 'Unauthorized',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      }
+    }
+  },
+  patch: {
+    summary: 'Update skills information',
+    description: 'For skills, patch replaces the entire skills array like PUT, since skills are treated as a collection',
     tags: ['Members'],
     security: [
       {
@@ -3397,6 +3935,7 @@ const options = {
     }
   }
 },
+
 '/api/projects': {
     get: {
       summary: 'Get all projects',
@@ -3585,9 +4124,9 @@ const options = {
   },
 
   '/api/projects/{id}': {
-    put: {
+    patch: {
       summary: 'Update a project',
-      description: 'Updates a project. Any authenticated user can update any project.',
+      description: 'Partially updates a project. Only provided fields will be updated. Any authenticated user can update any project.',
       tags: ['Projects'],
       security: [
         {

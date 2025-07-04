@@ -8,6 +8,8 @@ import sequelize from 'sequelize';
  * Project Controller
  * Created by: Alain275
  * Created on: 2025-07-03 13:23:21 UTC
+ * Updated by: Alain275
+ * Updated on: 2025-07-04 18:14:02 UTC
  */
 
 // Get all projects (public)
@@ -143,13 +145,11 @@ export const createProject = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-// Update project
+// Update project (PATCH - partial update)
 export const updateProject = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const currentUser = req.user as { id: string; firstName: string; lastName: string; role: string };
-    
-    const { title, description, link, demo } = req.body;
     
     // Find the project
     const project = await Project.findByPk(id);
@@ -164,8 +164,21 @@ export const updateProject = async (req: Request, res: Response): Promise<void> 
     
     // Any logged in user can update the project - no permission check needed
     
-    // Handle project image upload
-    let imageUrl = project.image;
+    // Create an object to hold only the fields that need updating
+    const updateData: any = {
+      // Always track who last updated the project
+      owner: `${currentUser.firstName} ${currentUser.lastName}`,
+      ownerRole: currentUser.role || 'Project contributor',
+      updatedAt: new Date()
+    };
+    
+    // Only update fields that are explicitly provided in the request
+    if ('title' in req.body) updateData.title = req.body.title;
+    if ('description' in req.body) updateData.description = req.body.description;
+    if ('link' in req.body) updateData.link = req.body.link;
+    if ('demo' in req.body) updateData.demo = req.body.demo;
+    
+    // Handle project image upload if provided
     if (req.file) {
       // Delete old image if it exists and isn't the default
       if (project.image && !project.image.includes('pexels-photo-3861969')) {
@@ -180,21 +193,11 @@ export const updateProject = async (req: Request, res: Response): Promise<void> 
         folder: 'innovation-hub/projects',
         resource_type: 'auto',
       });
-      imageUrl = result.secure_url;
+      updateData.image = result.secure_url;
     }
     
-    // Update project
-    await project.update({
-      title: title || project.title,
-      description: description || project.description,
-      image: imageUrl,
-      link: link !== undefined ? link : project.link,
-      demo: demo !== undefined ? demo : project.demo,
-      // Track who last updated the project
-      owner: `${currentUser.firstName} ${currentUser.lastName}`,
-      ownerRole: currentUser.role || 'Project contributor',
-      updatedAt: new Date(),
-    });
+    // Update project with only the changed fields
+    await project.update(updateData);
     
     res.status(200).json({
       status: 'success',

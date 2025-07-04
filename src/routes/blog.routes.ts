@@ -58,13 +58,13 @@ router.post(
   blogController.createBlog
 )
 
-// Update a blog (Admin only)
-router.put(
+// Partially update a blog (Admin only) - PATCH functionality
+router.patch(
   '/:id', 
   protectRoute, 
   restrictTo('Admin'), 
   upload.single('image'), 
-  blogController.updateBlog
+  blogController.patchBlog
 )
 
 // Delete a blog (Admin only)

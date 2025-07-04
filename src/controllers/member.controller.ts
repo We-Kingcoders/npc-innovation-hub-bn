@@ -113,7 +113,12 @@ export const getMemberById = async (req: Request, res: Response): Promise<void> 
 export const createOrUpdateMember = async (req: Request, res: Response): Promise<void> => {
   try {
     const currentUser = req.user as { id: string; role: string };
-    const { name, role, bio } = req.body;
+    const updateData: any = {}; // Object to hold only the fields to update
+    
+    // Only add fields that are present in the request
+    if ('name' in req.body) updateData.name = req.body.name;
+    if ('role' in req.body) updateData.role = req.body.role;
+    if ('bio' in req.body) updateData.bio = req.body.bio;
     
     // Check if member already exists for this user
     let member = await Member.findOne({
@@ -121,7 +126,6 @@ export const createOrUpdateMember = async (req: Request, res: Response): Promise
     });
     
     // Handle image upload
-    let imageUrl = member?.imageUrl || '/members-images/member-demo.jpg';
     if (req.file) {
       // Delete old image if it exists and isn't the default
       if (member?.imageUrl && !member.imageUrl.includes('member-demo.jpg')) {
@@ -136,18 +140,13 @@ export const createOrUpdateMember = async (req: Request, res: Response): Promise
         folder: 'innovation-hub/members',
         resource_type: 'auto',
       });
-      imageUrl = result.secure_url;
+      updateData.imageUrl = result.secure_url;
     }
     
     if (member) {
-      // Update existing member
-      await member.update({
-        name: name || member.name,
-        role: role || member.role,
-        bio: bio || member.bio,
-        imageUrl,
-        updatedAt: new Date(),
-      });
+      // Update existing member with only changed fields
+      updateData.updatedAt = new Date();
+      await member.update(updateData);
       
       res.status(200).json({
         status: 'success',
@@ -157,13 +156,22 @@ export const createOrUpdateMember = async (req: Request, res: Response): Promise
         },
       });
     } else {
-      // Create new member
+      // Create new member - for creation we need all required fields
+      const { name, role } = req.body;
+      if (!name) {
+        res.status(400).json({
+          status: 'fail',
+          message: 'Name is required when creating a new member profile',
+        });
+        return;
+      }
+      
       member = await Member.create({
         userId: currentUser.id,
         name,
-        role,
-        bio: bio || '',
-        imageUrl,
+        role: role || 'Member',
+        bio: req.body.bio || '',
+        imageUrl: updateData.imageUrl || '/members-images/member-demo.jpg',
         skills: [],
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -190,25 +198,34 @@ export const createOrUpdateMember = async (req: Request, res: Response): Promise
 export const createOrUpdateContacts = async (req: Request, res: Response): Promise<void> => {
   try {
     const currentUser = req.user as { id: string; role: string };
-    const { linkedin, github, twitter, telegram } = req.body;
     
-    // Find or create member record
+    // Find member record
     let member = await Member.findOne({
       where: { userId: currentUser.id }
     });
     
-    const contacts = {
-      linkedin: linkedin || (member?.contacts?.linkedin || ''),
-      github: github || (member?.contacts?.github || ''),
-      twitter: twitter || (member?.contacts?.twitter || ''),
-      telegram: telegram || (member?.contacts?.telegram || '')
-    };
+    // Prepare contacts object with only fields that need updating
+    const contacts: any = member?.contacts || {};
+    
+    // Only update fields that are explicitly provided
+    if ('linkedin' in req.body) contacts.linkedin = req.body.linkedin;
+    if ('github' in req.body) contacts.github = req.body.github;
+    if ('twitter' in req.body) contacts.twitter = req.body.twitter;
+    if ('telegram' in req.body) contacts.telegram = req.body.telegram;
     
     if (member) {
       // Update existing member
       await member.update({
         contacts,
         updatedAt: new Date(),
+      });
+      
+      res.status(200).json({
+        status: 'success',
+        message: 'Contact information updated successfully',
+        data: {
+          contacts,
+        },
       });
     } else {
       // Create new member with contacts
@@ -223,16 +240,15 @@ export const createOrUpdateContacts = async (req: Request, res: Response): Promi
         createdAt: new Date(),
         updatedAt: new Date(),
       });
+      
+      res.status(201).json({
+        status: 'success',
+        message: 'Member profile with contacts created',
+        data: {
+          contacts,
+        },
+      });
     }
-    
-    const isNew = member.createdAt === member.updatedAt;
-    res.status(isNew ? 201 : 200).json({
-      status: 'success',
-      message: isNew ? 'Member profile with contacts created' : 'Contact information updated successfully',
-      data: {
-        contacts,
-      },
-    });
   } catch (error) {
     console.error('Error updating contact information:', error);
     res.status(500).json({
@@ -246,23 +262,26 @@ export const createOrUpdateContacts = async (req: Request, res: Response): Promi
 export const createOrUpdateEducation = async (req: Request, res: Response): Promise<void> => {
   try {
     const currentUser = req.user as { id: string; role: string };
-    const { degree, institution, description } = req.body;
     
-    // Find or create member record
+    // Find member record
     let member = await Member.findOne({
       where: { userId: currentUser.id }
     });
     
-    // Initialize education object
-    let education = member?.education || {
-      degree: degree || '',
-      institution: institution || '',
-      description: description || '',
-      imageUrl: '/members-images/university.jpg'
-    };
+    // Initialize education object with existing data or empty object
+    let education: any = member?.education || {};
+    
+    // Only update fields that are explicitly provided
+    if ('degree' in req.body) education.degree = req.body.degree;
+    if ('institution' in req.body) education.institution = req.body.institution;
+    if ('description' in req.body) education.description = req.body.description;
+    
+    // Set default image if it doesn't exist
+    if (!education.imageUrl) {
+      education.imageUrl = '/members-images/university.jpg';
+    }
     
     // Handle education institution image
-    let imageUrl = education.imageUrl;
     if (req.file) {
       // Delete old image if it exists and isn't the default
       if (education.imageUrl && !education.imageUrl.includes('university.jpg')) {
@@ -277,22 +296,22 @@ export const createOrUpdateEducation = async (req: Request, res: Response): Prom
         folder: 'innovation-hub/education',
         resource_type: 'auto',
       });
-      imageUrl = result.secure_url;
+      education.imageUrl = result.secure_url;
     }
-    
-    // Update education object
-    education = {
-      degree: degree || education.degree,
-      institution: institution || education.institution,
-      description: description || education.description,
-      imageUrl
-    };
     
     if (member) {
       // Update existing member
       await member.update({
         education,
         updatedAt: new Date(),
+      });
+      
+      res.status(200).json({
+        status: 'success',
+        message: 'Education information updated successfully',
+        data: {
+          education,
+        },
       });
     } else {
       // Create new member with education
@@ -307,16 +326,15 @@ export const createOrUpdateEducation = async (req: Request, res: Response): Prom
         createdAt: new Date(),
         updatedAt: new Date(),
       });
+      
+      res.status(201).json({
+        status: 'success',
+        message: 'Member profile with education created',
+        data: {
+          education,
+        },
+      });
     }
-    
-    const isNew = member.createdAt === member.updatedAt;
-    res.status(isNew ? 201 : 200).json({
-      status: 'success',
-      message: isNew ? 'Member profile with education created' : 'Education information updated successfully',
-      data: {
-        education,
-      },
-    });
   } catch (error) {
     console.error('Error updating education information:', error);
     res.status(500).json({
@@ -340,7 +358,7 @@ export const createOrUpdateSkills = async (req: Request, res: Response): Promise
       return;
     }
     
-    // Find or create member record
+    // Find member record
     let member = await Member.findOne({
       where: { userId: currentUser.id }
     });
@@ -354,11 +372,21 @@ export const createOrUpdateSkills = async (req: Request, res: Response): Promise
     }, []);
     
     if (member) {
-      // Update existing member
+      // For skills, we'll do a complete replacement since it's more of a collection
+      // This is intentionally more PUT-like behavior for the skills array
       await member.update({
         skillDetails,
         skills: [...new Set(simpleSkills)], // Remove duplicates
         updatedAt: new Date(),
+      });
+      
+      res.status(200).json({
+        status: 'success',
+        message: 'Skills updated successfully',
+        data: {
+          skillDetails,
+          skills: [...new Set(simpleSkills)]
+        },
       });
     } else {
       // Create new member with skills
@@ -373,17 +401,16 @@ export const createOrUpdateSkills = async (req: Request, res: Response): Promise
         createdAt: new Date(),
         updatedAt: new Date(),
       });
+      
+      res.status(201).json({
+        status: 'success',
+        message: 'Member profile with skills created',
+        data: {
+          skillDetails,
+          skills: [...new Set(simpleSkills)]
+        },
+      });
     }
-    
-    const isNew = member.createdAt === member.updatedAt;
-    res.status(isNew ? 201 : 200).json({
-      status: 'success',
-      message: isNew ? 'Member profile with skills created' : 'Skills updated successfully',
-      data: {
-        skillDetails,
-        skills: [...new Set(simpleSkills)]
-      },
-    });
   } catch (error) {
     console.error('Error updating skills:', error);
     res.status(500).json({

@@ -7,6 +7,8 @@ import * as projectController from '../controllers/project.controller';
  * Project Routes
  * Created by: Alain275
  * Created on: 2025-07-03 13:23:21 UTC
+ * Updated by: Alain275
+ * Updated on: 2025-07-04 18:15:27 UTC
  */
 
 const router = express.Router();
@@ -51,7 +53,8 @@ router.post(
   projectController.createProject
 );
 
-router.put(
+// Changed from PUT to PATCH for partial updates
+router.patch(
   '/:id', 
   protectRoute, 
   upload.single('image'),
