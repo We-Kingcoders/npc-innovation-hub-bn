@@ -6784,6 +6784,1331 @@ const options = {
     }
   }
 },
+ '/api/chat': {
+    get: {
+      summary: 'Get recent conversations',
+      description: 'Retrieves all recent conversations for the authenticated user',
+      tags: ['Chat'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      responses: {
+        200: {
+          description: 'List of recent conversations',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success'
+                  },
+                  data: {
+                    type: 'object',
+                    properties: {
+                      conversations: {
+                        type: 'array',
+                        items: {
+                          type: 'object',
+                          properties: {
+                            userId: {
+                              type: 'string',
+                              format: 'uuid'
+                            },
+                            firstName: {
+                              type: 'string'
+                            },
+                            lastName: {
+                              type: 'string'
+                            },
+                            image: {
+                              type: 'string'
+                            },
+                            role: {
+                              type: 'string'
+                            },
+                            lastMessage: {
+                              type: 'object',
+                              properties: {
+                                id: {
+                                  type: 'string',
+                                  format: 'uuid'
+                                },
+                                content: {
+                                  type: 'string'
+                                },
+                                createdAt: {
+                                  type: 'string',
+                                  format: 'date-time'
+                                }
+                              }
+                            },
+                            unreadCount: {
+                              type: 'integer'
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        500: {
+          description: 'Server error',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  
+  '/api/chat/{userId}': {
+    get: {
+      summary: 'Get direct messages with a user',
+      description: 'Retrieves direct messages between the authenticated user and another user',
+      tags: ['Chat'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      parameters: [
+        {
+          in: 'path',
+          name: 'userId',
+          required: true,
+          schema: {
+            type: 'string',
+            format: 'uuid'
+          },
+          description: 'ID of the user to get messages with'
+        },
+        {
+          in: 'query',
+          name: 'page',
+          required: false,
+          schema: {
+            type: 'integer',
+            default: 1
+          },
+          description: 'Page number for pagination'
+        },
+        {
+          in: 'query',
+          name: 'limit',
+          required: false,
+          schema: {
+            type: 'integer',
+            default: 50
+          },
+          description: 'Number of messages per page'
+        }
+      ],
+      responses: {
+        200: {
+          description: 'List of direct messages',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success'
+                  },
+                  data: {
+                    type: 'object',
+                    properties: {
+                      messages: {
+                        type: 'array',
+                        items: {
+                          $ref: '#/components/schemas/DirectMessage'
+                        }
+                      },
+                      otherUser: {
+                        $ref: '#/components/schemas/UserBasic'
+                      },
+                      total: {
+                        type: 'integer'
+                      },
+                      currentPage: {
+                        type: 'integer'
+                      },
+                      totalPages: {
+                        type: 'integer'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        404: {
+          description: 'User not found',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        500: {
+          description: 'Server error',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    },
+    
+    post: {
+      summary: 'Send a direct message',
+      description: 'Sends a direct message to another user',
+      tags: ['Chat'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      parameters: [
+        {
+          in: 'path',
+          name: 'userId',
+          required: true,
+          schema: {
+            type: 'string',
+            format: 'uuid'
+          },
+          description: 'ID of the user to send message to'
+        }
+      ],
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              required: ['content'],
+              properties: {
+                content: {
+                  type: 'string',
+                  description: 'Content of the message'
+                }
+              }
+            }
+          }
+        }
+      },
+      responses: {
+        201: {
+          description: 'Message sent successfully',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success'
+                  },
+                  data: {
+                    type: 'object',
+                    properties: {
+                      message: {
+                        $ref: '#/components/schemas/DirectMessage'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        400: {
+          description: 'Bad request - empty content',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        404: {
+          description: 'Receiver not found',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        500: {
+          description: 'Server error',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  
+  '/api/chat/{userId}/{messageId}': {
+    patch: {
+      summary: 'Edit a direct message',
+      description: 'Partially updates the content of an existing direct message. User must be the sender of the message.',
+      tags: ['Chat'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      parameters: [
+        {
+          in: 'path',
+          name: 'userId',
+          required: true,
+          schema: {
+            type: 'string',
+            format: 'uuid'
+          },
+          description: 'ID of the user in conversation'
+        },
+        {
+          in: 'path',
+          name: 'messageId',
+          required: true,
+          schema: {
+            type: 'string',
+            format: 'uuid'
+          },
+          description: 'ID of the message to edit'
+        }
+      ],
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              required: ['content'],
+              properties: {
+                content: {
+                  type: 'string',
+                  description: 'New content of the message'
+                }
+              }
+            }
+          }
+        }
+      },
+      responses: {
+        200: {
+          description: 'Message updated successfully',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success'
+                  },
+                  data: {
+                    type: 'object',
+                    properties: {
+                      message: {
+                        $ref: '#/components/schemas/DirectMessage'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        400: {
+          description: 'Bad request - empty content',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        403: {
+          description: 'Forbidden - no permission to edit this message',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        404: {
+          description: 'Message not found',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        500: {
+          description: 'Server error',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    },
+    
+    delete: {
+      summary: 'Delete a direct message',
+      description: 'Deletes an existing direct message. User must be the sender of the message.',
+      tags: ['Chat'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      parameters: [
+        {
+          in: 'path',
+          name: 'userId',
+          required: true,
+          schema: {
+            type: 'string',
+            format: 'uuid'
+          },
+          description: 'ID of the user in conversation'
+        },
+        {
+          in: 'path',
+          name: 'messageId',
+          required: true,
+          schema: {
+            type: 'string',
+            format: 'uuid'
+          },
+          description: 'ID of the message to delete'
+        }
+      ],
+      responses: {
+        200: {
+          description: 'Message deleted successfully',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success'
+                  },
+                  message: {
+                    type: 'string',
+                    example: 'Message deleted successfully'
+                  }
+                }
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        403: {
+          description: 'Forbidden - no permission to delete this message',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        404: {
+          description: 'Message not found',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        500: {
+          description: 'Server error',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+'/api/hub/messages': {
+    get: {
+      summary: 'Get hub messages',
+      description: 'Retrieves messages from the community hub chat room',
+      tags: ['Hub'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      parameters: [
+        {
+          in: 'query',
+          name: 'page',
+          required: false,
+          schema: {
+            type: 'integer',
+            default: 1
+          },
+          description: 'Page number for pagination'
+        },
+        {
+          in: 'query',
+          name: 'limit',
+          required: false,
+          schema: {
+            type: 'integer',
+            default: 50
+          },
+          description: 'Number of messages per page'
+        }
+      ],
+      responses: {
+        200: {
+          description: 'List of hub messages',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success'
+                  },
+                  data: {
+                    type: 'object',
+                    properties: {
+                      messages: {
+                        type: 'array',
+                        items: {
+                          $ref: '#/components/schemas/HubMessage'
+                        }
+                      },
+                      total: {
+                        type: 'integer'
+                      },
+                      currentPage: {
+                        type: 'integer'
+                      },
+                      totalPages: {
+                        type: 'integer'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        500: {
+          description: 'Server error',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    },
+    
+    post: {
+      summary: 'Send a hub message',
+      description: 'Sends a message to the community hub chat room',
+      tags: ['Hub'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              required: ['content'],
+              properties: {
+                content: {
+                  type: 'string',
+                  description: 'Content of the message'
+                }
+              }
+            }
+          }
+        }
+      },
+      responses: {
+        201: {
+          description: 'Message sent successfully',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success'
+                  },
+                  data: {
+                    type: 'object',
+                    properties: {
+                      message: {
+                        $ref: '#/components/schemas/HubMessage'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        400: {
+          description: 'Bad request - empty content',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        500: {
+          description: 'Server error',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  
+  '/api/hub/messages/{id}': {
+    patch: {
+      summary: 'Edit a hub message',
+      description: 'Partially updates the content of an existing hub message. User must be the sender of the message or an admin.',
+      tags: ['Hub'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      parameters: [
+        {
+          in: 'path',
+          name: 'id',
+          required: true,
+          schema: {
+            type: 'string',
+            format: 'uuid'
+          },
+          description: 'ID of the message to edit'
+        }
+      ],
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              required: ['content'],
+              properties: {
+                content: {
+                  type: 'string',
+                  description: 'New content of the message'
+                }
+              }
+            }
+          }
+        }
+      },
+      responses: {
+        200: {
+          description: 'Message updated successfully',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success'
+                  },
+                  data: {
+                    type: 'object',
+                    properties: {
+                      message: {
+                        $ref: '#/components/schemas/HubMessage'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        400: {
+          description: 'Bad request - empty content',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        403: {
+          description: 'Forbidden - no permission to edit this message',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        404: {
+          description: 'Message not found',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        500: {
+          description: 'Server error',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    },
+    
+    delete: {
+      summary: 'Delete a hub message',
+      description: 'Deletes an existing hub message. User must be the sender of the message or an admin.',
+      tags: ['Hub'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      parameters: [
+        {
+          in: 'path',
+          name: 'id',
+          required: true,
+          schema: {
+            type: 'string',
+            format: 'uuid'
+          },
+          description: 'ID of the message to delete'
+        }
+      ],
+      responses: {
+        200: {
+          description: 'Message deleted successfully',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success'
+                  },
+                  message: {
+                    type: 'string',
+                    example: 'Message deleted successfully'
+                  }
+                }
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        403: {
+          description: 'Forbidden - no permission to delete this message',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        404: {
+          description: 'Message not found',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        500: {
+          description: 'Server error',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  '/api/notifications': {
+    get: {
+      summary: 'Get user notifications',
+      description: 'Retrieves all notifications for the authenticated user with pagination',
+      tags: ['Notifications'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      parameters: [
+        {
+          in: 'query',
+          name: 'page',
+          required: false,
+          schema: {
+            type: 'integer',
+            default: 1
+          },
+          description: 'Page number for pagination'
+        },
+        {
+          in: 'query',
+          name: 'limit',
+          required: false,
+          schema: {
+            type: 'integer',
+            default: 10
+          },
+          description: 'Number of notifications per page'
+        },
+        {
+          in: 'query',
+          name: 'read',
+          required: false,
+          schema: {
+            type: 'boolean'
+          },
+          description: 'Filter by read status (true/false)'
+        }
+      ],
+      responses: {
+        200: {
+          description: 'List of notifications',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success'
+                  },
+                  data: {
+                    type: 'object',
+                    properties: {
+                      notifications: {
+                        type: 'array',
+                        items: {
+                          $ref: '#/components/schemas/Notification'
+                        }
+                      },
+                      total: {
+                        type: 'integer'
+                      },
+                      currentPage: {
+                        type: 'integer'
+                      },
+                      totalPages: {
+                        type: 'integer'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        500: {
+          description: 'Server error',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  
+  '/api/notifications/unread-count': {
+    get: {
+      summary: 'Get unread notification count',
+      description: 'Retrieves the count of unread notifications for the authenticated user',
+      tags: ['Notifications'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      responses: {
+        200: {
+          description: 'Unread notification count',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success'
+                  },
+                  data: {
+                    type: 'object',
+                    properties: {
+                      count: {
+                        type: 'integer'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        500: {
+          description: 'Server error',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  
+  '/api/notifications/{id}/mark-read': {
+    patch: {
+      summary: 'Mark notification as read',
+      description: 'Marks a specific notification as read',
+      tags: ['Notifications'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      parameters: [
+        {
+          in: 'path',
+          name: 'id',
+          required: true,
+          schema: {
+            type: 'string',
+            format: 'uuid'
+          },
+          description: 'ID of the notification to mark as read'
+        }
+      ],
+      responses: {
+        200: {
+          description: 'Notification marked as read',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success'
+                  },
+                  data: {
+                    type: 'object',
+                    properties: {
+                      notification: {
+                        $ref: '#/components/schemas/Notification'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        403: {
+          description: 'Forbidden - not the recipient of this notification',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        404: {
+          description: 'Notification not found',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        500: {
+          description: 'Server error',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  
+  '/api/notifications/mark-all-read': {
+    patch: {
+      summary: 'Mark all notifications as read',
+      description: 'Marks all notifications for the authenticated user as read',
+      tags: ['Notifications'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      responses: {
+        200: {
+          description: 'All notifications marked as read',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success'
+                  },
+                  message: {
+                    type: 'string',
+                    example: 'All notifications marked as read'
+                  },
+                  data: {
+                    type: 'object',
+                    properties: {
+                      count: {
+                        type: 'integer',
+                        description: 'Number of notifications marked as read'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        500: {
+          description: 'Server error',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  
+  '/api/notifications/{id}': {
+    delete: {
+      summary: 'Delete a notification',
+      description: 'Deletes a specific notification for the authenticated user',
+      tags: ['Notifications'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      parameters: [
+        {
+          in: 'path',
+          name: 'id',
+          required: true,
+          schema: {
+            type: 'string',
+            format: 'uuid'
+          },
+          description: 'ID of the notification to delete'
+        }
+      ],
+      responses: {
+        200: {
+          description: 'Notification deleted successfully',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success'
+                  },
+                  message: {
+                    type: 'string',
+                    example: 'Notification deleted successfully'
+                  }
+                }
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        403: {
+          description: 'Forbidden - not the recipient of this notification',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        404: {
+          description: 'Notification not found',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        500: {
+          description: 'Server error',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    }
+  },
     }
   },
   apis: [],

@@ -12,7 +12,7 @@ import { addToBlacklist } from '../utils/tokenBlacklist'
 import { passwordEventEmitter } from '../events/password.event'
 import '../utils/cloudinary.utils'
 import User from '../models/user.model'
-import { Notification, NotificationType } from '../models/notification.modal';
+import { Notification, NotificationType } from '../models/notification.model';
 
 // Define MulterFile type for file uploads
 type MulterFile = Express.Multer.File;

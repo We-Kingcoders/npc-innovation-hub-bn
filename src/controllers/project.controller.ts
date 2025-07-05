@@ -4,14 +4,6 @@ import User from '../models/user.model';
 import cloudinary from "../utils/cloudinary.utils";
 import sequelize from 'sequelize';
 
-/**
- * Project Controller
- * Created by: Alain275
- * Created on: 2025-07-03 13:23:21 UTC
- * Updated by: Alain275
- * Updated on: 2025-07-04 18:14:02 UTC
- */
-
 // Get all projects (public)
 export const getAllProjects = async (req: Request, res: Response): Promise<void> => {
   try {

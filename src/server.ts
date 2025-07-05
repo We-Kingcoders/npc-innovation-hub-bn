@@ -11,6 +11,14 @@ import memberRoutes from './routes/member.route'; // Import member routes
 import projectRoutes from './routes/project.routes'; // Import project routes
 import resourceRoutes from './routes/resource.routes';
 import eventRoutes from './routes/event.routes';
+// import userRoutes from './user.routes';
+// import userRoutes from './routes/user.route';
+// import hubRoutes from './hub.routes';
+import hubRoutes from './routes/hub.routes';
+// import chatRoutes from './chat.routes';
+import chatRoutes from './routes/chat.routes';
+// import notificationRoutes from './notification.routes';
+import notificationRoutes from './routes/notification.routes';
 
 // Load environment variables
 dotenv.config();
@@ -61,7 +69,11 @@ app.use('/api/members', memberRoutes); // Mount member routes
 app.use('/api/projects', projectRoutes); // Mount project routes
 app.use('/api/resources', resourceRoutes); // Mount resource routes
 app.use('/api/events', eventRoutes); // Mount event routes
-
+app.use('/users', userRoutes);
+app.use('/api/hub', hubRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/notifications', notificationRoutes);
+ 
 // Add Swagger UI middleware
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 

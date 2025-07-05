@@ -1,13 +1,3 @@
-/**
- * Resource Controller
- * Admin-only CRUD operations with read access for all authenticated users
- * Includes video upload support and PATCH method for partial updates
- * Fixed URL validation issue
- * 
- * @created_by Alain275
- * @created_at 2025-07-03 19:48:28 UTC
- */
-
 import { Request, Response } from 'express';
 import fs from 'fs';
 import path from 'path';

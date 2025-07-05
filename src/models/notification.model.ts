@@ -1,69 +1,70 @@
 /**
- * Notification Model
- * Manages notification records for the Innovation Hub platform
+ * Notification Model (Updated with chat notifications)
  * 
- * Last updated: 2025-07-01 15:44:12 UTC
- * Updated by: Alain275
+ * @created_by Alain275
+ * @created_at 2025-07-05 15:54:00 UTC
  */
 
 import { Model, DataTypes, Optional } from 'sequelize';
 import sequelize from '../config/database';
+import User from './user.model';
 
 /**
  * Notification types for Innovation Hub activities
  */
 export enum NotificationType {
-  // Project notifications
+  // Existing notification types
   PROJECT_CREATED = 'project_created',
   PROJECT_UPDATED = 'project_updated',
   PROJECT_MILESTONE = 'project_milestone',
   PROJECT_COMPLETED = 'project_completed',
   PROJECT_FEEDBACK = 'project_feedback',
   
-  // Collaboration notifications
   COLLABORATION_REQUEST = 'collaboration_request',
   COLLABORATION_ACCEPTED = 'collaboration_accepted',
   COLLABORATION_DECLINED = 'collaboration_declined',
   TEAM_JOINED = 'team_joined',
   TEAM_LEFT = 'team_left',
   
-  // Idea notifications
   IDEA_SUBMITTED = 'idea_submitted',
   IDEA_APPROVED = 'idea_approved',
   IDEA_FEEDBACK = 'idea_feedback',
   IDEA_FEATURED = 'idea_featured',
   
-  // Event notifications
   EVENT_CREATED = 'event_created',
   EVENT_REMINDER = 'event_reminder',
   EVENT_UPDATED = 'event_updated',
   EVENT_CANCELLED = 'event_cancelled',
   
-  // Resource notifications
   RESOURCE_SHARED = 'resource_shared',
   RESOURCE_UPDATED = 'resource_updated',
   RESOURCE_COMMENT = 'resource_comment',
   
-  // User notifications
   PROFILE_UPDATED = 'profile_updated',
   ROLE_UPDATED = 'role_updated',
   MENTION = 'mention',
   TASK_ASSIGNED = 'task_assigned',
   TASK_DEADLINE = 'task_deadline',
   
-  // Admin notifications
   NEW_USER = 'new_user',
   USER_ROLE_UPDATED = 'user_role_updated',
   PLATFORM_UPDATE = 'platform_update',
   REPORT_GENERATED = 'report_generated',
   
-  // Communication notifications
   NEW_MESSAGE = 'new_message',
   COMMENT_REPLY = 'comment_reply',
   ANNOUNCEMENT = 'announcement',
   NEW_REMINDER = "NEW_REMINDER",
   SECURITY = "SECURITY",
   INFO = "INFO",
+  
+  // New chat-related notification types
+  HUB_MESSAGE = 'hub_message',
+  DIRECT_MESSAGE = 'direct_message',
+  MESSAGE_MENTION = 'message_mention',
+  MESSAGE_REACTION = 'message_reaction',
+  MESSAGE_DELETED = 'message_deleted',
+  MESSAGE_EDITED = 'message_edited',
 }
 
 /**
@@ -91,12 +92,16 @@ export interface NotificationAttributes {
   expiresAt?: Date;
   createdAt?: Date;
   updatedAt?: Date;
+  // New chat-related fields
+  senderId?: string;
+  messageId?: string;
+  roomId?: string;
 }
 
 /**
  * Interface for creating a new notification (optional attributes)
  */
-export interface NotificationCreationAttributes extends Optional<NotificationAttributes, 'id' | 'isRead' | 'priority' | 'expiresAt' | 'createdAt' | 'updatedAt'> {}
+export interface NotificationCreationAttributes extends Optional<NotificationAttributes, 'id' | 'isRead' | 'priority' | 'expiresAt' | 'createdAt' | 'updatedAt' | 'senderId' | 'messageId' | 'roomId'> {}
 
 /**
  * Notification model definition
@@ -111,6 +116,9 @@ export class Notification extends Model<NotificationAttributes, NotificationCrea
   public relatedEntityType?: string;
   public priority!: NotificationPriority;
   public expiresAt?: Date;
+  public senderId?: string;
+  public messageId?: string;
+  public roomId?: string;
 
   // Timestamps
   public readonly createdAt!: Date;
@@ -162,6 +170,22 @@ Notification.init({
     type: DataTypes.DATE,
     allowNull: true,
     comment: 'Date when the notification should expire/be automatically removed'
+  },
+  // New chat-related fields
+  senderId: {
+    type: DataTypes.UUID,
+    allowNull: true,
+    comment: 'ID of the user who sent the message'
+  },
+  messageId: {
+    type: DataTypes.UUID,
+    allowNull: true,
+    comment: 'ID of the related message'
+  },
+  roomId: {
+    type: DataTypes.UUID,
+    allowNull: true,
+    comment: 'ID of the related room (for hub messages)'
   }
 }, {
   sequelize,
@@ -182,10 +206,12 @@ Notification.init({
       name: 'notifications_created_at_idx',
       fields: ['createdAt']
     }
+    // Don't add the messageId index here - it will be added in the migration
   ]
 });
 
-// Comment to identify file update
-console.log(`[2025-07-01 15:44:12] Notification model initialized by Alain275`);
+// Define relationships with User model
+Notification.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+Notification.belongsTo(User, { foreignKey: 'senderId', as: 'sender' });
 
 export default Notification;
