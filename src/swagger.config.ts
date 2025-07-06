@@ -8109,6 +8109,687 @@ const options = {
       }
     }
   },
+
+
+
+ '/api/hire-us': {
+    post: {
+      summary: 'Submit a hire inquiry',
+      description: 'Submit a new inquiry for hiring or collaboration services',
+      tags: ['Hire Inquiries'],
+      security: [], // Empty array indicates no authentication required
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              required: ['email', 'first_name', 'last_name', 'company_name', 'job_title', 'country', 'message', 'consent'],
+              properties: {
+                email: {
+                  type: 'string',
+                  format: 'email',
+                  description: 'Client email address',
+                  example: 'john.doe@example.com'
+                },
+                first_name: {
+                  type: 'string',
+                  description: 'Client first name',
+                  minLength: 2,
+                  maxLength: 50,
+                  example: 'John'
+                },
+                last_name: {
+                  type: 'string',
+                  description: 'Client last name',
+                  minLength: 2,
+                  maxLength: 50,
+                  example: 'Doe'
+                },
+                company_name: {
+                  type: 'string',
+                  description: 'Client company name',
+                  minLength: 2,
+                  maxLength: 100,
+                  example: 'Acme Corporation'
+                },
+                job_title: {
+                  type: 'string',
+                  description: 'Client job title',
+                  minLength: 2,
+                  maxLength: 100,
+                  example: 'Chief Technology Officer'
+                },
+                country: {
+                  type: 'string',
+                  description: 'Client country',
+                  minLength: 2,
+                  maxLength: 100,
+                  example: 'Rwanda'
+                },
+                message: {
+                  type: 'string',
+                  description: 'Inquiry message content',
+                  minLength: 10,
+                  maxLength: 2000,
+                  example: 'We are looking for a technology partner to help us develop our new platform. Our project involves building a mobile application with backend services.'
+                },
+                consent: {
+                  type: 'boolean',
+                  description: 'Client consent to process data and send communications',
+                  example: true
+                }
+              }
+            }
+          }
+        }
+      },
+      responses: {
+        201: {
+          description: 'Inquiry successfully submitted',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success'
+                  },
+                  message: {
+                    type: 'string',
+                    example: 'Your inquiry has been submitted successfully. We will contact you soon.'
+                  },
+                  data: {
+                    type: 'object',
+                    properties: {
+                      inquiry: {
+                        type: 'object',
+                        properties: {
+                          id: {
+                            type: 'string',
+                            format: 'uuid',
+                            example: '123e4567-e89b-12d3-a456-426614174000'
+                          },
+                          email: {
+                            type: 'string',
+                            format: 'email',
+                            example: 'john.doe@example.com'
+                          },
+                          name: {
+                            type: 'string',
+                            example: 'John Doe'
+                          },
+                          created_at: {
+                            type: 'string',
+                            format: 'date-time',
+                            example: '2025-07-06T09:51:07Z'
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        400: {
+          description: 'Bad request - validation error',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'fail'
+                  },
+                  message: {
+                    type: 'string',
+                    example: 'Please provide all required fields'
+                  }
+                }
+              }
+            }
+          }
+        },
+        500: {
+          description: 'Internal server error',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'error'
+                  },
+                  message: {
+                    type: 'string',
+                    example: 'Failed to submit your inquiry. Please try again later.'
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  '/api/admin/hire-inquiries': {
+    get: {
+      summary: 'Get all hire inquiries',
+      description: 'Retrieves a list of all hire inquiries for admin review',
+      tags: ['Admin', 'Hire Inquiries'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      responses: {
+        200: {
+          description: 'List of hire inquiries retrieved successfully',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success'
+                  },
+                  results: {
+                    type: 'number',
+                    example: 10
+                  },
+                  data: {
+                    type: 'array',
+                    items: {
+                      $ref: '#/components/schemas/HireInquiry'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized - Missing or invalid token',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        403: {
+          description: 'Forbidden - Not an admin user',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        500: {
+          description: 'Server error',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  '/api/admin/hire-inquiries/{id}': {
+    get: {
+      summary: 'Get a specific hire inquiry',
+      description: 'Retrieves details of a specific hire inquiry by ID',
+      tags: ['Admin', 'Hire Inquiries'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      parameters: [
+        {
+          in: 'path',
+          name: 'id',
+          required: true,
+          schema: {
+            type: 'string',
+            format: 'uuid'
+          },
+          description: 'ID of the hire inquiry to retrieve'
+        }
+      ],
+      responses: {
+        200: {
+          description: 'Hire inquiry retrieved successfully',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success'
+                  },
+                  data: {
+                    $ref: '#/components/schemas/HireInquiry'
+                  }
+                }
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized - Missing or invalid token',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        403: {
+          description: 'Forbidden - Not an admin user',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        404: {
+          description: 'Hire inquiry not found',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        500: {
+          description: 'Server error',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    },
+    put: {
+      summary: 'Update a hire inquiry',
+      description: 'Updates the status or details of a specific hire inquiry',
+      tags: ['Admin', 'Hire Inquiries'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      parameters: [
+        {
+          in: 'path',
+          name: 'id',
+          required: true,
+          schema: {
+            type: 'string',
+            format: 'uuid'
+          },
+          description: 'ID of the hire inquiry to update'
+        }
+      ],
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  enum: ['pending', 'reviewed', 'completed', 'rejected'],
+                  description: 'Current status of the inquiry'
+                },
+                notes: {
+                  type: 'string',
+                  description: 'Admin notes about the inquiry'
+                }
+              }
+            }
+          }
+        }
+      },
+      responses: {
+        200: {
+          description: 'Hire inquiry updated successfully',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success'
+                  },
+                  data: {
+                    $ref: '#/components/schemas/HireInquiry'
+                  }
+                }
+              }
+            }
+          }
+        },
+        400: {
+          description: 'Bad request - Invalid input data',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized - Missing or invalid token',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        403: {
+          description: 'Forbidden - Not an admin user',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        404: {
+          description: 'Hire inquiry not found',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        500: {
+          description: 'Server error',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    },
+    delete: {
+      summary: 'Delete a hire inquiry',
+      description: 'Permanently removes a hire inquiry from the system',
+      tags: ['Admin', 'Hire Inquiries'],
+      security: [
+        {
+          bearerAuth: []
+        }
+      ],
+      parameters: [
+        {
+          in: 'path',
+          name: 'id',
+          required: true,
+          schema: {
+            type: 'string',
+            format: 'uuid'
+          },
+          description: 'ID of the hire inquiry to delete'
+        }
+      ],
+      responses: {
+        200: {
+          description: 'Hire inquiry deleted successfully',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status: {
+                    type: 'string',
+                    example: 'success'
+                  },
+                  message: {
+                    type: 'string',
+                    example: 'Hire inquiry deleted successfully'
+                  }
+                }
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized - Missing or invalid token',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        403: {
+          description: 'Forbidden - Not an admin user',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        404: {
+          description: 'Hire inquiry not found',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        500: {
+          description: 'Server error',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+'/api/admin/hire-inquiries/{id}/reply': {
+  post: {
+    summary: 'Reply to a hire inquiry',
+    description: 'Sends an email reply to the user who submitted the hire inquiry',
+    tags: ['Admin', 'Hire Inquiries'],
+    security: [
+      {
+        bearerAuth: []
+      }
+    ],
+    parameters: [
+      {
+        in: 'path',
+        name: 'id',
+        required: true,
+        schema: {
+          type: 'string',
+          format: 'uuid'
+        },
+        description: 'ID of the hire inquiry to reply to'
+      }
+    ],
+    requestBody: {
+      required: true,
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            required: ['subject', 'message'],
+            properties: {
+              subject: {
+                type: 'string',
+                description: 'Subject line for the email reply',
+                example: 'Response to your NPC Innovation Hub inquiry'
+              },
+              message: {
+                type: 'string',
+                description: 'Reply message content to send to the inquiry submitter',
+                example: 'Thank you for your interest in our services. We would like to discuss your project in more detail.'
+              }
+            }
+          }
+        }
+      }
+    },
+    responses: {
+      200: {
+        description: 'Reply sent successfully',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'success'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Reply sent successfully'
+                },
+                data: {
+                  type: 'object',
+                  properties: {
+                    inquiry: {
+                      $ref: '#/components/schemas/HireInquiry'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      400: {
+        description: 'Bad request - Missing required fields',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'fail'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Please provide subject and message'
+                }
+              }
+            }
+          }
+        }
+      },
+      401: {
+        description: 'Unauthorized - Missing or invalid token',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/ErrorResponse'
+            }
+          }
+        }
+      },
+      403: {
+        description: 'Forbidden - Not an admin user',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/ErrorResponse'
+            }
+          }
+        }
+      },
+      404: {
+        description: 'Hire inquiry not found',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'fail'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Inquiry not found'
+                }
+              }
+            }
+          }
+        }
+      },
+      500: {
+        description: 'Server error',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: {
+                  type: 'string',
+                  example: 'error'
+                },
+                message: {
+                  type: 'string',
+                  example: 'Failed to send email. Please try again later.'
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+},
+
+    
+
     }
   },
   apis: [],

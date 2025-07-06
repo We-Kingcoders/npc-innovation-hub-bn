@@ -19,6 +19,8 @@ import hubRoutes from './routes/hub.routes';
 import chatRoutes from './routes/chat.routes';
 // import notificationRoutes from './notification.routes';
 import notificationRoutes from './routes/notification.routes';
+import hireRoutes from './routes/hire.route';
+import adminHireRoutes from './routes/admin/hire.routes';
 
 // Load environment variables
 dotenv.config();
@@ -73,6 +75,11 @@ app.use('/users', userRoutes);
 app.use('/api/hub', hubRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/notifications', notificationRoutes);
+// Public route
+app.use('/api/hire-us', hireRoutes);
+
+// Admin routes - already protected by middleware in the router
+app.use('/api/admin/hire-inquiries', adminHireRoutes);
  
 // Add Swagger UI middleware
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
