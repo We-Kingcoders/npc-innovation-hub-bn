@@ -5,58 +5,44 @@ import * as memberController from '../controllers/member.controller';
 
 const router = express.Router();
 
-// Configure multer for file uploads
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/');
-  },
+  destination: function (req, file, cb) { cb(null, 'uploads/'); },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     cb(null, file.fieldname + '-' + uniqueSuffix + '.' + file.originalname.split('.').pop());
   }
 });
-
 const fileFilter = (req: any, file: any, cb: any) => {
-  // Accept images only
   if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
     return cb(new Error('Only image files are allowed!'), false);
   }
   cb(null, true);
 };
-
 const upload = multer({ 
   storage: storage,
   fileFilter: fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 } // 5MB max file size
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB
 });
 
-// Public routes - accessible to everyone
+// Public routes
 router.get('/', memberController.getAllMembers);
 router.get('/member/:id', memberController.getMemberById);
 
-// Protected routes - require authentication
-router.get('/me', protectRoute, memberController.getMyInfo);
-
-// Member profile routes
-// POST - Create a new profile
+// Protected member profile routes (userId as path param)
 router.post(
-  '/', 
+  '/:userId', 
   protectRoute, 
   upload.single('image'),
   memberController.createOrUpdateMember
 );
-
-// PUT - Replace the entire profile
 router.put(
-  '/', 
+  '/:userId', 
   protectRoute, 
   upload.single('image'),
   memberController.createOrUpdateMember
 );
-
-// PATCH - Update specific fields of the profile
 router.patch(
-  '/', 
+  '/:userId', 
   protectRoute, 
   upload.single('image'),
   memberController.createOrUpdateMember
@@ -129,12 +115,6 @@ router.delete(
   memberController.deleteMember
 );
 
-// Admin routes
-router.post(
-  '/import', 
-  protectRoute, 
-  restrictTo('Admin'),
-  memberController.importFromMockData
-);
+
 
 export default router;

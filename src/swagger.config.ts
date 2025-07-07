@@ -1928,19 +1928,13 @@ const options = {
       {
         in: 'query',
         name: 'page',
-        schema: {
-          type: 'integer',
-          default: 1
-        },
+        schema: { type: 'integer', default: 1 },
         description: 'Page number'
       },
       {
         in: 'query',
         name: 'limit',
-        schema: {
-          type: 'integer',
-          default: 12
-        },
+        schema: { type: 'integer', default: 12 },
         description: 'Number of members per page'
       }
     ],
@@ -1952,26 +1946,11 @@ const options = {
             schema: {
               type: 'object',
               properties: {
-                status: {
-                  type: 'string',
-                  example: 'success'
-                },
-                results: {
-                  type: 'number',
-                  example: 12
-                },
-                totalItems: {
-                  type: 'number',
-                  example: 50
-                },
-                totalPages: {
-                  type: 'number',
-                  example: 5
-                },
-                currentPage: {
-                  type: 'number',
-                  example: 1
-                },
+                status: { type: 'string', example: 'success' },
+                results: { type: 'number', example: 12 },
+                totalItems: { type: 'number', example: 50 },
+                totalPages: { type: 'number', example: 5 },
+                currentPage: { type: 'number', example: 1 },
                 data: {
                   type: 'object',
                   properties: {
@@ -1980,24 +1959,11 @@ const options = {
                       items: {
                         type: 'object',
                         properties: {
-                          id: {
-                            type: 'string',
-                            format: 'uuid',
-                            description: 'Member unique identifier'
-                          },
-                          name: {
-                            type: 'string',
-                            description: 'Member full name'
-                          },
-                          role: {
-                            type: 'string',
-                            description: 'Professional role/title'
-                          },
-                          imageUrl: {
-                            type: 'string',
-                            format: 'uri',
-                            description: 'URL to member profile image'
-                          }
+                          id: { type: 'string', format: 'uuid', description: 'Member unique identifier' },
+                          userId: { type: 'string', format: 'uuid', description: 'Associated user ID' },
+                          name: { type: 'string', description: 'Member full name' },
+                          role: { type: 'string', description: 'Professional role/title' },
+                          imageUrl: { type: 'string', format: 'uri', description: 'URL to member profile image' }
                         }
                       }
                     }
@@ -2015,28 +1981,29 @@ const options = {
             schema: {
               type: 'object',
               properties: {
-                status: {
-                  type: 'string',
-                  example: 'error'
-                },
-                message: {
-                  type: 'string',
-                  example: 'An error occurred while fetching members'
-                }
+                status: { type: 'string', example: 'error' },
+                message: { type: 'string', example: 'An error occurred while fetching members' }
               }
             }
           }
         }
       }
     }
-  },
+  }
+},
+'/api/members/{userId}': {
   post: {
     summary: 'Create member information',
     description: 'Creates basic information for the authenticated member',
     tags: ['Members'],
-    security: [
+    security: [ { bearerAuth: [] } ],
+    parameters: [
       {
-        bearerAuth: []
+        in: 'path',
+        name: 'userId',
+        required: true,
+        schema: { type: 'string' },
+        description: 'User ID to create profile for'
       }
     ],
     requestBody: {
@@ -2046,23 +2013,10 @@ const options = {
             type: 'object',
             required: ['name', 'role'],
             properties: {
-              name: {
-                type: 'string',
-                description: 'Full name'
-              },
-              role: {
-                type: 'string',
-                description: 'Professional role/title'
-              },
-              bio: {
-                type: 'string',
-                description: 'Professional bio'
-              },
-              image: {
-                type: 'string',
-                format: 'binary',
-                description: 'Profile image file'
-              }
+              name: { type: 'string', description: 'Full name' },
+              role: { type: 'string', description: 'Professional role/title' },
+              bio: { type: 'string', description: 'Professional bio' },
+              image: { type: 'string', format: 'binary', description: 'Profile image file' }
             }
           }
         }
@@ -2076,64 +2030,23 @@ const options = {
             schema: {
               type: 'object',
               properties: {
-                status: {
-                  type: 'string',
-                  example: 'success'
-                },
-                message: {
-                  type: 'string',
-                  example: 'Member information created successfully'
-                },
+                status: { type: 'string', example: 'success' },
+                message: { type: 'string', example: 'Member information created successfully' },
                 data: {
                   type: 'object',
                   properties: {
                     member: {
                       type: 'object',
                       properties: {
-                        id: {
-                          type: 'string',
-                          format: 'uuid',
-                          description: 'Member unique identifier'
-                        },
-                        userId: {
-                          type: 'string',
-                          format: 'uuid',
-                          description: 'Associated user ID'
-                        },
-                        name: {
-                          type: 'string',
-                          description: 'Member full name'
-                        },
-                        role: {
-                          type: 'string',
-                          description: 'Professional role/title'
-                        },
-                        imageUrl: {
-                          type: 'string',
-                          format: 'uri',
-                          description: 'URL to member profile image'
-                        },
-                        bio: {
-                          type: 'string',
-                          description: 'Member bio/description'
-                        },
-                        skills: {
-                          type: 'array',
-                          items: {
-                            type: 'string'
-                          },
-                          description: 'List of skills'
-                        },
-                        createdAt: {
-                          type: 'string',
-                          format: 'date-time',
-                          description: 'Record creation timestamp'
-                        },
-                        updatedAt: {
-                          type: 'string',
-                          format: 'date-time',
-                          description: 'Record last update timestamp'
-                        }
+                        id: { type: 'string', format: 'uuid', description: 'Member unique identifier' },
+                        userId: { type: 'string', format: 'uuid', description: 'Associated user ID' },
+                        name: { type: 'string', description: 'Member full name' },
+                        role: { type: 'string', description: 'Professional role/title' },
+                        imageUrl: { type: 'string', format: 'uri', description: 'URL to member profile image' },
+                        bio: { type: 'string', description: 'Member bio/description' },
+                        skills: { type: 'array', items: { type: 'string' }, description: 'List of skills' },
+                        createdAt: { type: 'string', format: 'date-time', description: 'Record creation timestamp' },
+                        updatedAt: { type: 'string', format: 'date-time', description: 'Record last update timestamp' }
                       }
                     }
                   }
@@ -2150,14 +2063,8 @@ const options = {
             schema: {
               type: 'object',
               properties: {
-                status: {
-                  type: 'string',
-                  example: 'fail'
-                },
-                message: {
-                  type: 'string',
-                  example: 'Please provide name and role'
-                }
+                status: { type: 'string', example: 'fail' },
+                message: { type: 'string', example: 'Please provide name and role' }
               }
             }
           }
@@ -2170,14 +2077,8 @@ const options = {
             schema: {
               type: 'object',
               properties: {
-                status: {
-                  type: 'string',
-                  example: 'fail'
-                },
-                message: {
-                  type: 'string',
-                  example: 'You are not logged in. Please log in to get access.'
-                }
+                status: { type: 'string', example: 'fail' },
+                message: { type: 'string', example: 'You are not logged in. Please log in to get access.' }
               }
             }
           }
@@ -2187,11 +2088,16 @@ const options = {
   },
   put: {
     summary: 'Replace member information',
-    description: 'Replaces the entire basic information for the authenticated member',
+    description: 'Replaces all basic information for the authenticated member',
     tags: ['Members'],
-    security: [
+    security: [ { bearerAuth: [] } ],
+    parameters: [
       {
-        bearerAuth: []
+        in: 'path',
+        name: 'userId',
+        required: true,
+        schema: { type: 'string' },
+        description: 'User ID to replace profile for'
       }
     ],
     requestBody: {
@@ -2199,24 +2105,12 @@ const options = {
         'multipart/form-data': {
           schema: {
             type: 'object',
+            required: ['name', 'role'],
             properties: {
-              name: {
-                type: 'string',
-                description: 'Full name'
-              },
-              role: {
-                type: 'string',
-                description: 'Professional role/title'
-              },
-              bio: {
-                type: 'string',
-                description: 'Professional bio'
-              },
-              image: {
-                type: 'string',
-                format: 'binary',
-                description: 'Profile image file'
-              }
+              name: { type: 'string', description: 'Full name' },
+              role: { type: 'string', description: 'Professional role/title' },
+              bio: { type: 'string', description: 'Professional bio' },
+              image: { type: 'string', format: 'binary', description: 'Profile image file' }
             }
           }
         }
@@ -2224,74 +2118,47 @@ const options = {
     },
     responses: {
       200: {
-        description: 'Member information updated successfully',
+        description: 'Member information replaced successfully',
         content: {
           'application/json': {
             schema: {
               type: 'object',
               properties: {
-                status: {
-                  type: 'string',
-                  example: 'success'
-                },
-                message: {
-                  type: 'string',
-                  example: 'Member information updated successfully'
-                },
+                status: { type: 'string', example: 'success' },
+                message: { type: 'string', example: 'Member information replaced successfully' },
                 data: {
                   type: 'object',
                   properties: {
                     member: {
                       type: 'object',
                       properties: {
-                        id: {
-                          type: 'string',
-                          format: 'uuid',
-                          description: 'Member unique identifier'
-                        },
-                        userId: {
-                          type: 'string',
-                          format: 'uuid',
-                          description: 'Associated user ID'
-                        },
-                        name: {
-                          type: 'string',
-                          description: 'Member full name'
-                        },
-                        role: {
-                          type: 'string',
-                          description: 'Professional role/title'
-                        },
-                        imageUrl: {
-                          type: 'string',
-                          format: 'uri',
-                          description: 'URL to member profile image'
-                        },
-                        bio: {
-                          type: 'string',
-                          description: 'Member bio/description'
-                        },
-                        skills: {
-                          type: 'array',
-                          items: {
-                            type: 'string'
-                          },
-                          description: 'List of skills'
-                        },
-                        createdAt: {
-                          type: 'string',
-                          format: 'date-time',
-                          description: 'Record creation timestamp'
-                        },
-                        updatedAt: {
-                          type: 'string',
-                          format: 'date-time',
-                          description: 'Record last update timestamp'
-                        }
+                        id: { type: 'string', format: 'uuid', description: 'Member unique identifier' },
+                        userId: { type: 'string', format: 'uuid', description: 'Associated user ID' },
+                        name: { type: 'string', description: 'Member full name' },
+                        role: { type: 'string', description: 'Professional role/title' },
+                        imageUrl: { type: 'string', format: 'uri', description: 'URL to member profile image' },
+                        bio: { type: 'string', description: 'Member bio/description' },
+                        skills: { type: 'array', items: { type: 'string' }, description: 'List of skills' },
+                        createdAt: { type: 'string', format: 'date-time', description: 'Record creation timestamp' },
+                        updatedAt: { type: 'string', format: 'date-time', description: 'Record last update timestamp' }
                       }
                     }
                   }
                 }
+              }
+            }
+          }
+        }
+      },
+      400: {
+        description: 'Bad request - Missing required fields',
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              properties: {
+                status: { type: 'string', example: 'fail' },
+                message: { type: 'string', example: 'Please provide name and role' }
               }
             }
           }
@@ -2304,34 +2171,8 @@ const options = {
             schema: {
               type: 'object',
               properties: {
-                status: {
-                  type: 'string',
-                  example: 'fail'
-                },
-                message: {
-                  type: 'string',
-                  example: 'You are not logged in. Please log in to get access.'
-                }
-              }
-            }
-          }
-        }
-      },
-      404: {
-        description: 'Member not found',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: {
-                  type: 'string',
-                  example: 'fail'
-                },
-                message: {
-                  type: 'string',
-                  example: 'Member not found'
-                }
+                status: { type: 'string', example: 'fail' },
+                message: { type: 'string', example: 'You are not logged in. Please log in to get access.' }
               }
             }
           }
@@ -2343,9 +2184,14 @@ const options = {
     summary: 'Update member information',
     description: 'Partially updates basic information for the authenticated member. Only provided fields will be updated.',
     tags: ['Members'],
-    security: [
+    security: [ { bearerAuth: [] } ],
+    parameters: [
       {
-        bearerAuth: []
+        in: 'path',
+        name: 'userId',
+        required: true,
+        schema: { type: 'string' },
+        description: 'User ID to update profile for'
       }
     ],
     requestBody: {
@@ -2354,23 +2200,10 @@ const options = {
           schema: {
             type: 'object',
             properties: {
-              name: {
-                type: 'string',
-                description: 'Full name'
-              },
-              role: {
-                type: 'string',
-                description: 'Professional role/title'
-              },
-              bio: {
-                type: 'string',
-                description: 'Professional bio'
-              },
-              image: {
-                type: 'string',
-                format: 'binary',
-                description: 'Profile image file'
-              }
+              name: { type: 'string', description: 'Full name' },
+              role: { type: 'string', description: 'Professional role/title' },
+              bio: { type: 'string', description: 'Professional bio' },
+              image: { type: 'string', format: 'binary', description: 'Profile image file' }
             }
           }
         }
@@ -2384,64 +2217,23 @@ const options = {
             schema: {
               type: 'object',
               properties: {
-                status: {
-                  type: 'string',
-                  example: 'success'
-                },
-                message: {
-                  type: 'string',
-                  example: 'Member information updated successfully'
-                },
+                status: { type: 'string', example: 'success' },
+                message: { type: 'string', example: 'Member information updated successfully' },
                 data: {
                   type: 'object',
                   properties: {
                     member: {
                       type: 'object',
                       properties: {
-                        id: {
-                          type: 'string',
-                          format: 'uuid',
-                          description: 'Member unique identifier'
-                        },
-                        userId: {
-                          type: 'string',
-                          format: 'uuid',
-                          description: 'Associated user ID'
-                        },
-                        name: {
-                          type: 'string',
-                          description: 'Member full name'
-                        },
-                        role: {
-                          type: 'string',
-                          description: 'Professional role/title'
-                        },
-                        imageUrl: {
-                          type: 'string',
-                          format: 'uri',
-                          description: 'URL to member profile image'
-                        },
-                        bio: {
-                          type: 'string',
-                          description: 'Member bio/description'
-                        },
-                        skills: {
-                          type: 'array',
-                          items: {
-                            type: 'string'
-                          },
-                          description: 'List of skills'
-                        },
-                        createdAt: {
-                          type: 'string',
-                          format: 'date-time',
-                          description: 'Record creation timestamp'
-                        },
-                        updatedAt: {
-                          type: 'string',
-                          format: 'date-time',
-                          description: 'Record last update timestamp'
-                        }
+                        id: { type: 'string', format: 'uuid', description: 'Member unique identifier' },
+                        userId: { type: 'string', format: 'uuid', description: 'Associated user ID' },
+                        name: { type: 'string', description: 'Member full name' },
+                        role: { type: 'string', description: 'Professional role/title' },
+                        imageUrl: { type: 'string', format: 'uri', description: 'URL to member profile image' },
+                        bio: { type: 'string', description: 'Member bio/description' },
+                        skills: { type: 'array', items: { type: 'string' }, description: 'List of skills' },
+                        createdAt: { type: 'string', format: 'date-time', description: 'Record creation timestamp' },
+                        updatedAt: { type: 'string', format: 'date-time', description: 'Record last update timestamp' }
                       }
                     }
                   }
@@ -2458,14 +2250,8 @@ const options = {
             schema: {
               type: 'object',
               properties: {
-                status: {
-                  type: 'string',
-                  example: 'fail'
-                },
-                message: {
-                  type: 'string',
-                  example: 'You are not logged in. Please log in to get access.'
-                }
+                status: { type: 'string', example: 'fail' },
+                message: { type: 'string', example: 'You are not logged in. Please log in to get access.' }
               }
             }
           }
@@ -2478,86 +2264,8 @@ const options = {
             schema: {
               type: 'object',
               properties: {
-                status: {
-                  type: 'string',
-                  example: 'fail'
-                },
-                message: {
-                  type: 'string',
-                  example: 'Member not found'
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  delete: {
-    summary: 'Delete member information',
-    description: 'Deletes the authenticated member\'s information',
-    tags: ['Members'],
-    security: [
-      {
-        bearerAuth: []
-      }
-    ],
-    responses: {
-      200: {
-        description: 'Member information deleted successfully',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: {
-                  type: 'string',
-                  example: 'success'
-                },
-                message: {
-                  type: 'string',
-                  example: 'Member information deleted successfully'
-                }
-              }
-            }
-          }
-        }
-      },
-      401: {
-        description: 'Unauthorized',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: {
-                  type: 'string',
-                  example: 'fail'
-                },
-                message: {
-                  type: 'string',
-                  example: 'You are not logged in. Please log in to get access.'
-                }
-              }
-            }
-          }
-        }
-      },
-      404: {
-        description: 'Member not found',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: {
-                  type: 'string',
-                  example: 'fail'
-                },
-                message: {
-                  type: 'string',
-                  example: 'Member not found'
-                }
+                status: { type: 'string', example: 'fail' },
+                message: { type: 'string', example: 'Member not found' }
               }
             }
           }
@@ -2566,6 +2274,7 @@ const options = {
     }
   }
 },
+
 
 '/api/members/member/{id}': {
   get: {
