@@ -7707,408 +7707,408 @@ const options = {
     }
   },
 
-  '/api/notifications': {
-    get: {
-      summary: 'Get user notifications',
-      description: 'Retrieves all notifications for the authenticated user with pagination',
-      tags: ['Notifications'],
-      security: [
-        {
-          bearerAuth: []
-        }
-      ],
-      parameters: [
-        {
-          in: 'query',
-          name: 'page',
-          required: false,
-          schema: {
-            type: 'integer',
-            default: 1
-          },
-          description: 'Page number for pagination'
-        },
-        {
-          in: 'query',
-          name: 'limit',
-          required: false,
-          schema: {
-            type: 'integer',
-            default: 10
-          },
-          description: 'Number of notifications per page'
-        },
-        {
-          in: 'query',
-          name: 'read',
-          required: false,
-          schema: {
-            type: 'boolean'
-          },
-          description: 'Filter by read status (true/false)'
-        }
-      ],
-      responses: {
-        200: {
-          description: 'List of notifications',
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                properties: {
-                  status: {
-                    type: 'string',
-                    example: 'success'
-                  },
-                  data: {
-                    type: 'object',
-                    properties: {
-                      notifications: {
-                        type: 'array',
-                        items: {
-                          $ref: '#/components/schemas/Notification'
-                        }
-                      },
-                      total: {
-                        type: 'integer'
-                      },
-                      currentPage: {
-                        type: 'integer'
-                      },
-                      totalPages: {
-                        type: 'integer'
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        401: {
-          description: 'Unauthorized',
-          content: {
-            'application/json': {
-              schema: {
-                $ref: '#/components/schemas/ErrorResponse'
-              }
-            }
-          }
-        },
-        500: {
-          description: 'Server error',
-          content: {
-            'application/json': {
-              schema: {
-                $ref: '#/components/schemas/ErrorResponse'
-              }
-            }
-          }
-        }
-      }
-    }
-  },
+  // '/api/notifications': {
+  //   get: {
+  //     summary: 'Get user notifications',
+  //     description: 'Retrieves all notifications for the authenticated user with pagination',
+  //     tags: ['Notifications'],
+  //     security: [
+  //       {
+  //         bearerAuth: []
+  //       }
+  //     ],
+  //     parameters: [
+  //       {
+  //         in: 'query',
+  //         name: 'page',
+  //         required: false,
+  //         schema: {
+  //           type: 'integer',
+  //           default: 1
+  //         },
+  //         description: 'Page number for pagination'
+  //       },
+  //       {
+  //         in: 'query',
+  //         name: 'limit',
+  //         required: false,
+  //         schema: {
+  //           type: 'integer',
+  //           default: 10
+  //         },
+  //         description: 'Number of notifications per page'
+  //       },
+  //       {
+  //         in: 'query',
+  //         name: 'read',
+  //         required: false,
+  //         schema: {
+  //           type: 'boolean'
+  //         },
+  //         description: 'Filter by read status (true/false)'
+  //       }
+  //     ],
+  //     responses: {
+  //       200: {
+  //         description: 'List of notifications',
+  //         content: {
+  //           'application/json': {
+  //             schema: {
+  //               type: 'object',
+  //               properties: {
+  //                 status: {
+  //                   type: 'string',
+  //                   example: 'success'
+  //                 },
+  //                 data: {
+  //                   type: 'object',
+  //                   properties: {
+  //                     notifications: {
+  //                       type: 'array',
+  //                       items: {
+  //                         $ref: '#/components/schemas/Notification'
+  //                       }
+  //                     },
+  //                     total: {
+  //                       type: 'integer'
+  //                     },
+  //                     currentPage: {
+  //                       type: 'integer'
+  //                     },
+  //                     totalPages: {
+  //                       type: 'integer'
+  //                     }
+  //                   }
+  //                 }
+  //               }
+  //             }
+  //           }
+  //         }
+  //       },
+  //       401: {
+  //         description: 'Unauthorized',
+  //         content: {
+  //           'application/json': {
+  //             schema: {
+  //               $ref: '#/components/schemas/ErrorResponse'
+  //             }
+  //           }
+  //         }
+  //       },
+  //       500: {
+  //         description: 'Server error',
+  //         content: {
+  //           'application/json': {
+  //             schema: {
+  //               $ref: '#/components/schemas/ErrorResponse'
+  //             }
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
+  // },
   
-  '/api/notifications/unread-count': {
-    get: {
-      summary: 'Get unread notification count',
-      description: 'Retrieves the count of unread notifications for the authenticated user',
-      tags: ['Notifications'],
-      security: [
-        {
-          bearerAuth: []
-        }
-      ],
-      responses: {
-        200: {
-          description: 'Unread notification count',
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                properties: {
-                  status: {
-                    type: 'string',
-                    example: 'success'
-                  },
-                  data: {
-                    type: 'object',
-                    properties: {
-                      count: {
-                        type: 'integer'
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        401: {
-          description: 'Unauthorized',
-          content: {
-            'application/json': {
-              schema: {
-                $ref: '#/components/schemas/ErrorResponse'
-              }
-            }
-          }
-        },
-        500: {
-          description: 'Server error',
-          content: {
-            'application/json': {
-              schema: {
-                $ref: '#/components/schemas/ErrorResponse'
-              }
-            }
-          }
-        }
-      }
-    }
-  },
+  // '/api/notifications/unread-count': {
+  //   get: {
+  //     summary: 'Get unread notification count',
+  //     description: 'Retrieves the count of unread notifications for the authenticated user',
+  //     tags: ['Notifications'],
+  //     security: [
+  //       {
+  //         bearerAuth: []
+  //       }
+  //     ],
+  //     responses: {
+  //       200: {
+  //         description: 'Unread notification count',
+  //         content: {
+  //           'application/json': {
+  //             schema: {
+  //               type: 'object',
+  //               properties: {
+  //                 status: {
+  //                   type: 'string',
+  //                   example: 'success'
+  //                 },
+  //                 data: {
+  //                   type: 'object',
+  //                   properties: {
+  //                     count: {
+  //                       type: 'integer'
+  //                     }
+  //                   }
+  //                 }
+  //               }
+  //             }
+  //           }
+  //         }
+  //       },
+  //       401: {
+  //         description: 'Unauthorized',
+  //         content: {
+  //           'application/json': {
+  //             schema: {
+  //               $ref: '#/components/schemas/ErrorResponse'
+  //             }
+  //           }
+  //         }
+  //       },
+  //       500: {
+  //         description: 'Server error',
+  //         content: {
+  //           'application/json': {
+  //             schema: {
+  //               $ref: '#/components/schemas/ErrorResponse'
+  //             }
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
+  // },
   
-  '/api/notifications/{id}/mark-read': {
-    patch: {
-      summary: 'Mark notification as read',
-      description: 'Marks a specific notification as read',
-      tags: ['Notifications'],
-      security: [
-        {
-          bearerAuth: []
-        }
-      ],
-      parameters: [
-        {
-          in: 'path',
-          name: 'id',
-          required: true,
-          schema: {
-            type: 'string',
-            format: 'uuid'
-          },
-          description: 'ID of the notification to mark as read'
-        }
-      ],
-      responses: {
-        200: {
-          description: 'Notification marked as read',
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                properties: {
-                  status: {
-                    type: 'string',
-                    example: 'success'
-                  },
-                  data: {
-                    type: 'object',
-                    properties: {
-                      notification: {
-                        $ref: '#/components/schemas/Notification'
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        401: {
-          description: 'Unauthorized',
-          content: {
-            'application/json': {
-              schema: {
-                $ref: '#/components/schemas/ErrorResponse'
-              }
-            }
-          }
-        },
-        403: {
-          description: 'Forbidden - not the recipient of this notification',
-          content: {
-            'application/json': {
-              schema: {
-                $ref: '#/components/schemas/ErrorResponse'
-              }
-            }
-          }
-        },
-        404: {
-          description: 'Notification not found',
-          content: {
-            'application/json': {
-              schema: {
-                $ref: '#/components/schemas/ErrorResponse'
-              }
-            }
-          }
-        },
-        500: {
-          description: 'Server error',
-          content: {
-            'application/json': {
-              schema: {
-                $ref: '#/components/schemas/ErrorResponse'
-              }
-            }
-          }
-        }
-      }
-    }
-  },
+  // '/api/notifications/{id}/mark-read': {
+  //   patch: {
+  //     summary: 'Mark notification as read',
+  //     description: 'Marks a specific notification as read',
+  //     tags: ['Notifications'],
+  //     security: [
+  //       {
+  //         bearerAuth: []
+  //       }
+  //     ],
+  //     parameters: [
+  //       {
+  //         in: 'path',
+  //         name: 'id',
+  //         required: true,
+  //         schema: {
+  //           type: 'string',
+  //           format: 'uuid'
+  //         },
+  //         description: 'ID of the notification to mark as read'
+  //       }
+  //     ],
+  //     responses: {
+  //       200: {
+  //         description: 'Notification marked as read',
+  //         content: {
+  //           'application/json': {
+  //             schema: {
+  //               type: 'object',
+  //               properties: {
+  //                 status: {
+  //                   type: 'string',
+  //                   example: 'success'
+  //                 },
+  //                 data: {
+  //                   type: 'object',
+  //                   properties: {
+  //                     notification: {
+  //                       $ref: '#/components/schemas/Notification'
+  //                     }
+  //                   }
+  //                 }
+  //               }
+  //             }
+  //           }
+  //         }
+  //       },
+  //       401: {
+  //         description: 'Unauthorized',
+  //         content: {
+  //           'application/json': {
+  //             schema: {
+  //               $ref: '#/components/schemas/ErrorResponse'
+  //             }
+  //           }
+  //         }
+  //       },
+  //       403: {
+  //         description: 'Forbidden - not the recipient of this notification',
+  //         content: {
+  //           'application/json': {
+  //             schema: {
+  //               $ref: '#/components/schemas/ErrorResponse'
+  //             }
+  //           }
+  //         }
+  //       },
+  //       404: {
+  //         description: 'Notification not found',
+  //         content: {
+  //           'application/json': {
+  //             schema: {
+  //               $ref: '#/components/schemas/ErrorResponse'
+  //             }
+  //           }
+  //         }
+  //       },
+  //       500: {
+  //         description: 'Server error',
+  //         content: {
+  //           'application/json': {
+  //             schema: {
+  //               $ref: '#/components/schemas/ErrorResponse'
+  //             }
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
+  // },
   
-  '/api/notifications/mark-all-read': {
-    patch: {
-      summary: 'Mark all notifications as read',
-      description: 'Marks all notifications for the authenticated user as read',
-      tags: ['Notifications'],
-      security: [
-        {
-          bearerAuth: []
-        }
-      ],
-      responses: {
-        200: {
-          description: 'All notifications marked as read',
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                properties: {
-                  status: {
-                    type: 'string',
-                    example: 'success'
-                  },
-                  message: {
-                    type: 'string',
-                    example: 'All notifications marked as read'
-                  },
-                  data: {
-                    type: 'object',
-                    properties: {
-                      count: {
-                        type: 'integer',
-                        description: 'Number of notifications marked as read'
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        401: {
-          description: 'Unauthorized',
-          content: {
-            'application/json': {
-              schema: {
-                $ref: '#/components/schemas/ErrorResponse'
-              }
-            }
-          }
-        },
-        500: {
-          description: 'Server error',
-          content: {
-            'application/json': {
-              schema: {
-                $ref: '#/components/schemas/ErrorResponse'
-              }
-            }
-          }
-        }
-      }
-    }
-  },
+  // '/api/notifications/mark-all-read': {
+  //   patch: {
+  //     summary: 'Mark all notifications as read',
+  //     description: 'Marks all notifications for the authenticated user as read',
+  //     tags: ['Notifications'],
+  //     security: [
+  //       {
+  //         bearerAuth: []
+  //       }
+  //     ],
+  //     responses: {
+  //       200: {
+  //         description: 'All notifications marked as read',
+  //         content: {
+  //           'application/json': {
+  //             schema: {
+  //               type: 'object',
+  //               properties: {
+  //                 status: {
+  //                   type: 'string',
+  //                   example: 'success'
+  //                 },
+  //                 message: {
+  //                   type: 'string',
+  //                   example: 'All notifications marked as read'
+  //                 },
+  //                 data: {
+  //                   type: 'object',
+  //                   properties: {
+  //                     count: {
+  //                       type: 'integer',
+  //                       description: 'Number of notifications marked as read'
+  //                     }
+  //                   }
+  //                 }
+  //               }
+  //             }
+  //           }
+  //         }
+  //       },
+  //       401: {
+  //         description: 'Unauthorized',
+  //         content: {
+  //           'application/json': {
+  //             schema: {
+  //               $ref: '#/components/schemas/ErrorResponse'
+  //             }
+  //           }
+  //         }
+  //       },
+  //       500: {
+  //         description: 'Server error',
+  //         content: {
+  //           'application/json': {
+  //             schema: {
+  //               $ref: '#/components/schemas/ErrorResponse'
+  //             }
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
+  // },
   
-  '/api/notifications/{id}': {
-    delete: {
-      summary: 'Delete a notification',
-      description: 'Deletes a specific notification for the authenticated user',
-      tags: ['Notifications'],
-      security: [
-        {
-          bearerAuth: []
-        }
-      ],
-      parameters: [
-        {
-          in: 'path',
-          name: 'id',
-          required: true,
-          schema: {
-            type: 'string',
-            format: 'uuid'
-          },
-          description: 'ID of the notification to delete'
-        }
-      ],
-      responses: {
-        200: {
-          description: 'Notification deleted successfully',
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                properties: {
-                  status: {
-                    type: 'string',
-                    example: 'success'
-                  },
-                  message: {
-                    type: 'string',
-                    example: 'Notification deleted successfully'
-                  }
-                }
-              }
-            }
-          }
-        },
-        401: {
-          description: 'Unauthorized',
-          content: {
-            'application/json': {
-              schema: {
-                $ref: '#/components/schemas/ErrorResponse'
-              }
-            }
-          }
-        },
-        403: {
-          description: 'Forbidden - not the recipient of this notification',
-          content: {
-            'application/json': {
-              schema: {
-                $ref: '#/components/schemas/ErrorResponse'
-              }
-            }
-          }
-        },
-        404: {
-          description: 'Notification not found',
-          content: {
-            'application/json': {
-              schema: {
-                $ref: '#/components/schemas/ErrorResponse'
-              }
-            }
-          }
-        },
-        500: {
-          description: 'Server error',
-          content: {
-            'application/json': {
-              schema: {
-                $ref: '#/components/schemas/ErrorResponse'
-              }
-            }
-          }
-        }
-      }
-    }
-  },
+  // '/api/notifications/{id}': {
+  //   delete: {
+  //     summary: 'Delete a notification',
+  //     description: 'Deletes a specific notification for the authenticated user',
+  //     tags: ['Notifications'],
+  //     security: [
+  //       {
+  //         bearerAuth: []
+  //       }
+  //     ],
+  //     parameters: [
+  //       {
+  //         in: 'path',
+  //         name: 'id',
+  //         required: true,
+  //         schema: {
+  //           type: 'string',
+  //           format: 'uuid'
+  //         },
+  //         description: 'ID of the notification to delete'
+  //       }
+  //     ],
+  //     responses: {
+  //       200: {
+  //         description: 'Notification deleted successfully',
+  //         content: {
+  //           'application/json': {
+  //             schema: {
+  //               type: 'object',
+  //               properties: {
+  //                 status: {
+  //                   type: 'string',
+  //                   example: 'success'
+  //                 },
+  //                 message: {
+  //                   type: 'string',
+  //                   example: 'Notification deleted successfully'
+  //                 }
+  //               }
+  //             }
+  //           }
+  //         }
+  //       },
+  //       401: {
+  //         description: 'Unauthorized',
+  //         content: {
+  //           'application/json': {
+  //             schema: {
+  //               $ref: '#/components/schemas/ErrorResponse'
+  //             }
+  //           }
+  //         }
+  //       },
+  //       403: {
+  //         description: 'Forbidden - not the recipient of this notification',
+  //         content: {
+  //           'application/json': {
+  //             schema: {
+  //               $ref: '#/components/schemas/ErrorResponse'
+  //             }
+  //           }
+  //         }
+  //       },
+  //       404: {
+  //         description: 'Notification not found',
+  //         content: {
+  //           'application/json': {
+  //             schema: {
+  //               $ref: '#/components/schemas/ErrorResponse'
+  //             }
+  //           }
+  //         }
+  //       },
+  //       500: {
+  //         description: 'Server error',
+  //         content: {
+  //           'application/json': {
+  //             schema: {
+  //               $ref: '#/components/schemas/ErrorResponse'
+  //             }
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
+  // },
 
 
 
