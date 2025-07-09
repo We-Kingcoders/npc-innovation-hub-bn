@@ -1918,52 +1918,54 @@ const options = {
   }
 },
 // Add these path definitions to your paths object
-'/api/members': {
-  get: {
-    summary: 'Get all members',
-    description: 'Public endpoint - Retrieves all member information in card format',
-    tags: ['Members'],
-    security: [],
-    parameters: [
-      {
-        in: 'query',
-        name: 'page',
-        schema: { type: 'integer', default: 1 },
-        description: 'Page number'
-      },
-      {
-        in: 'query',
-        name: 'limit',
-        schema: { type: 'integer', default: 12 },
-        description: 'Number of members per page'
-      }
-    ],
-    responses: {
-      200: {
-        description: 'List of member cards',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: { type: 'string', example: 'success' },
-                results: { type: 'number', example: 12 },
-                totalItems: { type: 'number', example: 50 },
-                totalPages: { type: 'number', example: 5 },
-                currentPage: { type: 'number', example: 1 },
-                data: {
-                  type: 'object',
-                  properties: {
-                    members: {
-                      type: 'array',
-                      items: {
-                        type: 'object',
-                        properties: {
-                          id: { type: 'string', format: 'uuid', description: 'Member unique identifier' },
-                          userId: { type: 'string', format: 'uuid', description: 'Associated user ID' },
-                          name: { type: 'string', description: 'Member full name' },
-                          role: { type: 'string', description: 'Professional role/title' },
-                          imageUrl: { type: 'string', format: 'uri', description: 'URL to member profile image' }
+    "/api/members": {
+      "get": {
+        "summary": "Get all members",
+        "description": "Public endpoint - Retrieves all member information in card format",
+        "tags": ["Members"],
+        "security": [],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": { "type": "integer", "default": 1 },
+            "description": "Page number"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": { "type": "integer", "default": 12 },
+            "description": "Number of members per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of member cards",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "results": { "type": "number", "example": 12 },
+                    "totalItems": { "type": "number", "example": 50 },
+                    "totalPages": { "type": "number", "example": 5 },
+                    "currentPage": { "type": "number", "example": 1 },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "members": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "string", "format": "uuid" },
+                              "userId": { "type": "string", "format": "uuid" },
+                              "name": { "type": "string" },
+                              "role": { "type": "string" },
+                              "imageUrl": { "type": "string", "format": "uri" }
+                            }
+                          }
                         }
                       }
                     }
@@ -1971,1679 +1973,1038 @@ const options = {
                 }
               }
             }
-          }
-        }
-      },
-      500: {
-        description: 'Server error',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: { type: 'string', example: 'error' },
-                message: { type: 'string', example: 'An error occurred while fetching members' }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-},
-'/api/members/{userId}': {
-  post: {
-    summary: 'Create member information',
-    description: 'Creates basic information for the authenticated member',
-    tags: ['Members'],
-    security: [ { bearerAuth: [] } ],
-    parameters: [
-      {
-        in: 'path',
-        name: 'userId',
-        required: true,
-        schema: { type: 'string' },
-        description: 'User ID to create profile for'
-      }
-    ],
-    requestBody: {
-      content: {
-        'multipart/form-data': {
-          schema: {
-            type: 'object',
-            required: ['name', 'role'],
-            properties: {
-              name: { type: 'string', description: 'Full name' },
-              role: { type: 'string', description: 'Professional role/title' },
-              bio: { type: 'string', description: 'Professional bio' },
-              image: { type: 'string', format: 'binary', description: 'Profile image file' }
-            }
-          }
-        }
-      }
-    },
-    responses: {
-      201: {
-        description: 'Member information created successfully',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: { type: 'string', example: 'success' },
-                message: { type: 'string', example: 'Member information created successfully' },
-                data: {
-                  type: 'object',
-                  properties: {
-                    member: {
-                      type: 'object',
-                      properties: {
-                        id: { type: 'string', format: 'uuid', description: 'Member unique identifier' },
-                        userId: { type: 'string', format: 'uuid', description: 'Associated user ID' },
-                        name: { type: 'string', description: 'Member full name' },
-                        role: { type: 'string', description: 'Professional role/title' },
-                        imageUrl: { type: 'string', format: 'uri', description: 'URL to member profile image' },
-                        bio: { type: 'string', description: 'Member bio/description' },
-                        skills: { type: 'array', items: { type: 'string' }, description: 'List of skills' },
-                        createdAt: { type: 'string', format: 'date-time', description: 'Record creation timestamp' },
-                        updatedAt: { type: 'string', format: 'date-time', description: 'Record last update timestamp' }
-                      }
-                    }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "error" },
+                    "message": { "type": "string", "example": "An error occurred while fetching members" }
                   }
                 }
               }
             }
           }
         }
-      },
-      400: {
-        description: 'Bad request - Missing required fields',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: { type: 'string', example: 'fail' },
-                message: { type: 'string', example: 'Please provide name and role' }
-              }
-            }
-          }
-        }
-      },
-      401: {
-        description: 'Unauthorized',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: { type: 'string', example: 'fail' },
-                message: { type: 'string', example: 'You are not logged in. Please log in to get access.' }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  put: {
-    summary: 'Replace member information',
-    description: 'Replaces all basic information for the authenticated member',
-    tags: ['Members'],
-    security: [ { bearerAuth: [] } ],
-    parameters: [
-      {
-        in: 'path',
-        name: 'userId',
-        required: true,
-        schema: { type: 'string' },
-        description: 'User ID to replace profile for'
-      }
-    ],
-    requestBody: {
-      content: {
-        'multipart/form-data': {
-          schema: {
-            type: 'object',
-            required: ['name', 'role'],
-            properties: {
-              name: { type: 'string', description: 'Full name' },
-              role: { type: 'string', description: 'Professional role/title' },
-              bio: { type: 'string', description: 'Professional bio' },
-              image: { type: 'string', format: 'binary', description: 'Profile image file' }
-            }
-          }
-        }
       }
     },
-    responses: {
-      200: {
-        description: 'Member information replaced successfully',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: { type: 'string', example: 'success' },
-                message: { type: 'string', example: 'Member information replaced successfully' },
-                data: {
-                  type: 'object',
-                  properties: {
-                    member: {
-                      type: 'object',
-                      properties: {
-                        id: { type: 'string', format: 'uuid', description: 'Member unique identifier' },
-                        userId: { type: 'string', format: 'uuid', description: 'Associated user ID' },
-                        name: { type: 'string', description: 'Member full name' },
-                        role: { type: 'string', description: 'Professional role/title' },
-                        imageUrl: { type: 'string', format: 'uri', description: 'URL to member profile image' },
-                        bio: { type: 'string', description: 'Member bio/description' },
-                        skills: { type: 'array', items: { type: 'string' }, description: 'List of skills' },
-                        createdAt: { type: 'string', format: 'date-time', description: 'Record creation timestamp' },
-                        updatedAt: { type: 'string', format: 'date-time', description: 'Record last update timestamp' }
+    "/api/members/{userId}": {
+      "get": {
+        "summary": "Get member by userId",
+        "description": "Retrieves member information by userId (public)",
+        "tags": ["Members"],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "User ID to retrieve profile for"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Member information fetched",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "member": { "$ref": "#/components/schemas/Member" }
                       }
                     }
                   }
                 }
               }
             }
-          }
-        }
-      },
-      400: {
-        description: 'Bad request - Missing required fields',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: { type: 'string', example: 'fail' },
-                message: { type: 'string', example: 'Please provide name and role' }
+          },
+          "404": {
+            "description": "Member not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
               }
             }
           }
         }
       },
-      401: {
-        description: 'Unauthorized',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: { type: 'string', example: 'fail' },
-                message: { type: 'string', example: 'You are not logged in. Please log in to get access.' }
-              }
-            }
+      "post": {
+        "summary": "Create member information",
+        "description": "Creates basic information for the authenticated member",
+        "tags": ["Members"],
+        "security": [ { "bearerAuth": [] } ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "User ID to create profile for"
           }
-        }
-      }
-    }
-  },
-  patch: {
-    summary: 'Update member information',
-    description: 'Partially updates basic information for the authenticated member. Only provided fields will be updated.',
-    tags: ['Members'],
-    security: [ { bearerAuth: [] } ],
-    parameters: [
-      {
-        in: 'path',
-        name: 'userId',
-        required: true,
-        schema: { type: 'string' },
-        description: 'User ID to update profile for'
-      }
-    ],
-    requestBody: {
-      content: {
-        'multipart/form-data': {
-          schema: {
-            type: 'object',
-            properties: {
-              name: { type: 'string', description: 'Full name' },
-              role: { type: 'string', description: 'Professional role/title' },
-              bio: { type: 'string', description: 'Professional bio' },
-              image: { type: 'string', format: 'binary', description: 'Profile image file' }
-            }
-          }
-        }
-      }
-    },
-    responses: {
-      200: {
-        description: 'Member information updated successfully',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: { type: 'string', example: 'success' },
-                message: { type: 'string', example: 'Member information updated successfully' },
-                data: {
-                  type: 'object',
-                  properties: {
-                    member: {
-                      type: 'object',
-                      properties: {
-                        id: { type: 'string', format: 'uuid', description: 'Member unique identifier' },
-                        userId: { type: 'string', format: 'uuid', description: 'Associated user ID' },
-                        name: { type: 'string', description: 'Member full name' },
-                        role: { type: 'string', description: 'Professional role/title' },
-                        imageUrl: { type: 'string', format: 'uri', description: 'URL to member profile image' },
-                        bio: { type: 'string', description: 'Member bio/description' },
-                        skills: { type: 'array', items: { type: 'string' }, description: 'List of skills' },
-                        createdAt: { type: 'string', format: 'date-time', description: 'Record creation timestamp' },
-                        updatedAt: { type: 'string', format: 'date-time', description: 'Record last update timestamp' }
-                      }
-                    }
-                  }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "role"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "role": { "type": "string" },
+                  "bio": { "type": "string" },
+                  "image": { "type": "string", "format": "binary" }
                 }
               }
             }
           }
-        }
-      },
-      401: {
-        description: 'Unauthorized',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: { type: 'string', example: 'fail' },
-                message: { type: 'string', example: 'You are not logged in. Please log in to get access.' }
-              }
-            }
-          }
-        }
-      },
-      404: {
-        description: 'Member not found',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: { type: 'string', example: 'fail' },
-                message: { type: 'string', example: 'Member not found' }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-},
-
-
-'/api/members/member/{id}': {
-  get: {
-    summary: 'Get member by ID',
-    description: 'Public endpoint - Retrieves member information by ID',
-    tags: ['Members'],
-    security: [],
-    parameters: [
-      {
-        in: 'path',
-        name: 'id',
-        required: true,
-        schema: {
-          type: 'string',
-          format: 'uuid'
         },
-        description: 'Member ID'
+        "responses": {
+          "201": {
+            "description": "Member information created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Member information created successfully" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "member": { "$ref": "#/components/schemas/Member" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Missing required fields",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Replace member information",
+        "description": "Replaces all basic information for the authenticated member",
+        "tags": ["Members"],
+        "security": [ { "bearerAuth": [] } ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "User ID to replace profile for"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "role"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "role": { "type": "string" },
+                  "bio": { "type": "string" },
+                  "image": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Member information replaced successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Member information replaced successfully" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "member": { "$ref": "#/components/schemas/Member" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Missing required fields",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update member information",
+        "description": "Partially updates basic information for the authenticated member. Only provided fields will be updated.",
+        "tags": ["Members"],
+        "security": [ { "bearerAuth": [] } ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "User ID to update profile for"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "role": { "type": "string" },
+                  "bio": { "type": "string" },
+                  "image": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Member information updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Member information updated successfully" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "member": { "$ref": "#/components/schemas/Member" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Member not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete member information",
+        "description": "Deletes the member profile for the given userId",
+        "tags": ["Members"],
+        "security": [ { "bearerAuth": [] } ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "User ID to delete profile for"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Member information deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Member information deleted successfully" },
+                    "userId": { "type": "string", "format": "uuid" }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Member not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
       }
-    ],
-    responses: {
-      200: {
-        description: 'Member information retrieved successfully',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: {
-                  type: 'string',
-                  example: 'success'
-                },
-                data: {
-                  type: 'object',
-                  properties: {
-                    member: {
-                      $ref: '#/components/schemas/Member'
+    },
+    "/api/members/member/{id}": {
+      "get": {
+        "summary": "Get member by ID",
+        "description": "Public endpoint - Retrieves member information by ID",
+        "tags": ["Members"],
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" },
+            "description": "Member ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Member information retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "member": { "$ref": "#/components/schemas/Member" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Member not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+        "/api/members/{userId}/contacts": {
+      "post": {
+        "summary": "Create or update contact information",
+        "description": "Creates or updates contact information for a member profile.",
+        "tags": ["Members"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "User ID for the member"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "linkedin": { "type": "string", "format": "uri" },
+                  "github": { "type": "string", "format": "uri" },
+                  "twitter": { "type": "string", "format": "uri" },
+                  "telegram": { "type": "string", "format": "uri" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Contact information updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Contact information updated successfully" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "contacts": {
+                          "type": "object",
+                          "properties": {
+                            "linkedin": { "type": "string" },
+                            "github": { "type": "string" },
+                            "twitter": { "type": "string" },
+                            "telegram": { "type": "string" }
+                          }
+                        },
+                        "userId": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Member profile with contacts created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Member profile with contacts created" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "contacts": {
+                          "type": "object",
+                          "properties": {
+                            "linkedin": { "type": "string" },
+                            "github": { "type": "string" },
+                            "twitter": { "type": "string" },
+                            "telegram": { "type": "string" }
+                          }
+                        },
+                        "userId": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update contact information",
+        "description": "Partially updates contact information for a member profile.",
+        "tags": ["Members"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "User ID for the member"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "linkedin": { "type": "string", "format": "uri" },
+                  "github": { "type": "string", "format": "uri" },
+                  "twitter": { "type": "string", "format": "uri" },
+                  "telegram": { "type": "string", "format": "uri" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Contact information updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Contact information updated successfully" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "contacts": {
+                          "type": "object",
+                          "properties": {
+                            "linkedin": { "type": "string" },
+                            "github": { "type": "string" },
+                            "twitter": { "type": "string" },
+                            "telegram": { "type": "string" }
+                          }
+                        },
+                        "userId": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete contact information",
+        "description": "Deletes contact information for a member profile.",
+        "tags": ["Members"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "User ID for the member"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contact information deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Contact information deleted successfully" },
+                    "userId": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/members/{userId}/education": {
+      "post": {
+        "summary": "Create or update education information",
+        "description": "Creates or updates education details for a member profile.",
+        "tags": ["Members"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "User ID for the member"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "degree": { "type": "string" },
+                  "institution": { "type": "string" },
+                  "description": { "type": "string" },
+                  "educationImage": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Education information updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Education information updated successfully" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "education": {
+                          "type": "object",
+                          "properties": {
+                            "degree": { "type": "string" },
+                            "institution": { "type": "string" },
+                            "description": { "type": "string" },
+                            "imageUrl": { "type": "string" }
+                          }
+                        },
+                        "userId": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Member profile with education created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Member profile with education created" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "education": {
+                          "type": "object",
+                          "properties": {
+                            "degree": { "type": "string" },
+                            "institution": { "type": "string" },
+                            "description": { "type": "string" },
+                            "imageUrl": { "type": "string" }
+                          }
+                        },
+                        "userId": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update education information",
+        "description": "Partially updates education details for a member profile.",
+        "tags": ["Members"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "User ID for the member"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "degree": { "type": "string" },
+                  "institution": { "type": "string" },
+                  "description": { "type": "string" },
+                  "educationImage": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Education information updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Education information updated successfully" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "education": {
+                          "type": "object",
+                          "properties": {
+                            "degree": { "type": "string" },
+                            "institution": { "type": "string" },
+                            "description": { "type": "string" },
+                            "imageUrl": { "type": "string" }
+                          }
+                        },
+                        "userId": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete education information",
+        "description": "Deletes education information for a member profile.",
+        "tags": ["Members"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "User ID for the member"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Education information deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Education information deleted successfully" },
+                    "userId": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/members/{userId}/skills": {
+      "post": {
+        "summary": "Create or update skills information",
+        "description": "Creates or updates detailed skills and proficiency information for a member profile.",
+        "tags": ["Members"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "User ID for the member"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["skillDetails"],
+                "properties": {
+                  "skillDetails": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": ["name", "technologies", "percent"],
+                      "properties": {
+                        "name": { "type": "string" },
+                        "technologies": {
+                          "type": "array",
+                          "items": { "type": "string" }
+                        },
+                        "percent": { "type": "integer", "minimum": 0, "maximum": 100 }
+                      }
                     }
                   }
                 }
               }
             }
           }
+        },
+        "responses": {
+          "200": {
+            "description": "Skills updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Skills updated successfully" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "skillDetails": {
+                          "type": "array",
+                          "items": { "type": "object" }
+                        },
+                        "skills": {
+                          "type": "array",
+                          "items": { "type": "string" }
+                        },
+                        "userId": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Member profile with skills created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Member profile with skills created" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "skillDetails": {
+                          "type": "array",
+                          "items": { "type": "object" }
+                        },
+                        "skills": {
+                          "type": "array",
+                          "items": { "type": "string" }
+                        },
+                        "userId": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid skills data format",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
         }
       },
-      404: {
-        description: 'Member not found',
-        content: {
-          'application/json': {
-            schema: {
-              $ref: '#/components/schemas/Error'
+      "patch": {
+        "summary": "Update skills information",
+        "description": "Updates skills information for a member profile.",
+        "tags": ["Members"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "User ID for the member"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["skillDetails"],
+                "properties": {
+                  "skillDetails": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": ["name", "technologies", "percent"],
+                      "properties": {
+                        "name": { "type": "string" },
+                        "technologies": {
+                          "type": "array",
+                          "items": { "type": "string" }
+                        },
+                        "percent": { "type": "integer", "minimum": 0, "maximum": 100 }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Skills updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Skills updated successfully" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "skillDetails": {
+                          "type": "array",
+                          "items": { "type": "object" }
+                        },
+                        "skills": {
+                          "type": "array",
+                          "items": { "type": "string" }
+                        },
+                        "userId": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid skills data format",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete skills information",
+        "description": "Deletes skills information for a member profile.",
+        "tags": ["Members"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "User ID for the member"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Skills information deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Skills information deleted successfully" },
+                    "userId": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
             }
           }
         }
       }
-    }
-  }
-},
+    },
 
-'/api/members/me': {
-  get: {
-    summary: 'Get own member information',
-    description: 'Retrieves the authenticated member\'s information',
-    tags: ['Members'],
-    security: [
-      {
-        bearerAuth: []
-      }
-    ],
-    responses: {
-      200: {
-        description: 'Member information retrieved successfully',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: {
-                  type: 'string',
-                  example: 'success'
-                },
-                data: {
-                  type: 'object',
-                  properties: {
-                    member: {
-                      $ref: '#/components/schemas/Member'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      401: {
-        description: 'Unauthorized',
-        content: {
-          'application/json': {
-            schema: {
-              $ref: '#/components/schemas/Error'
-            }
-          }
-        }
-      },
-      404: {
-        description: 'Member information not found',
-        content: {
-          'application/json': {
-            schema: {
-              $ref: '#/components/schemas/Error'
-            }
-          }
-        }
-      }
-    }
-  }
-},
-
-'/api/members/contacts': {
-  post: {
-    summary: 'Create contact information',
-    description: 'Creates contact information for a new member profile',
-    tags: ['Members'],
-    security: [
-      {
-        bearerAuth: []
-      }
-    ],
-    requestBody: {
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              linkedin: {
-                type: 'string',
-                format: 'uri',
-                description: 'LinkedIn profile URL'
-              },
-              github: {
-                type: 'string',
-                format: 'uri',
-                description: 'GitHub profile URL'
-              },
-              twitter: {
-                type: 'string',
-                format: 'uri',
-                description: 'Twitter profile URL'
-              },
-              telegram: {
-                type: 'string',
-                format: 'uri',
-                description: 'Telegram contact URL'
-              }
-            }
-          }
-        }
-      }
-    },
-    responses: {
-      201: {
-        description: 'Member profile with contacts created',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: {
-                  type: 'string',
-                  example: 'success'
-                },
-                message: {
-                  type: 'string',
-                  example: 'Member profile with contacts created'
-                },
-                data: {
-                  type: 'object',
-                  properties: {
-                    contacts: {
-                      type: 'object',
-                      properties: {
-                        linkedin: { type: 'string' },
-                        github: { type: 'string' },
-                        twitter: { type: 'string' },
-                        telegram: { type: 'string' }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      200: {
-        description: 'Contact information updated successfully',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: {
-                  type: 'string',
-                  example: 'success'
-                },
-                message: {
-                  type: 'string',
-                  example: 'Contact information updated successfully'
-                },
-                data: {
-                  type: 'object',
-                  properties: {
-                    contacts: {
-                      type: 'object',
-                      properties: {
-                        linkedin: { type: 'string' },
-                        github: { type: 'string' },
-                        twitter: { type: 'string' },
-                        telegram: { type: 'string' }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      401: {
-        description: 'Unauthorized',
-        content: {
-          'application/json': {
-            schema: {
-              $ref: '#/components/schemas/Error'
-            }
-          }
-        }
-      }
-    }
-  },
-  put: {
-    summary: 'Replace contact information',
-    description: 'Replaces all contact information for the authenticated member',
-    tags: ['Members'],
-    security: [
-      {
-        bearerAuth: []
-      }
-    ],
-    requestBody: {
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              linkedin: {
-                type: 'string',
-                format: 'uri',
-                description: 'LinkedIn profile URL'
-              },
-              github: {
-                type: 'string',
-                format: 'uri',
-                description: 'GitHub profile URL'
-              },
-              twitter: {
-                type: 'string',
-                format: 'uri',
-                description: 'Twitter profile URL'
-              },
-              telegram: {
-                type: 'string',
-                format: 'uri',
-                description: 'Telegram contact URL'
-              }
-            }
-          }
-        }
-      }
-    },
-    responses: {
-      201: {
-        description: 'Member profile with contacts created',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: {
-                  type: 'string',
-                  example: 'success'
-                },
-                message: {
-                  type: 'string',
-                  example: 'Member profile with contacts created'
-                },
-                data: {
-                  type: 'object',
-                  properties: {
-                    contacts: {
-                      type: 'object',
-                      properties: {
-                        linkedin: { type: 'string' },
-                        github: { type: 'string' },
-                        twitter: { type: 'string' },
-                        telegram: { type: 'string' }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      200: {
-        description: 'Contact information updated successfully',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: {
-                  type: 'string',
-                  example: 'success'
-                },
-                message: {
-                  type: 'string',
-                  example: 'Contact information updated successfully'
-                },
-                data: {
-                  type: 'object',
-                  properties: {
-                    contacts: {
-                      type: 'object',
-                      properties: {
-                        linkedin: { type: 'string' },
-                        github: { type: 'string' },
-                        twitter: { type: 'string' },
-                        telegram: { type: 'string' }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      401: {
-        description: 'Unauthorized',
-        content: {
-          'application/json': {
-            schema: {
-              $ref: '#/components/schemas/Error'
-            }
-          }
-        }
-      }
-    }
-  },
-  patch: {
-    summary: 'Update contact information',
-    description: 'Partially updates contact information. Only provided fields will be updated.',
-    tags: ['Members'],
-    security: [
-      {
-        bearerAuth: []
-      }
-    ],
-    requestBody: {
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              linkedin: {
-                type: 'string',
-                format: 'uri',
-                description: 'LinkedIn profile URL'
-              },
-              github: {
-                type: 'string',
-                format: 'uri',
-                description: 'GitHub profile URL'
-              },
-              twitter: {
-                type: 'string',
-                format: 'uri',
-                description: 'Twitter profile URL'
-              },
-              telegram: {
-                type: 'string',
-                format: 'uri',
-                description: 'Telegram contact URL'
-              }
-            }
-          }
-        }
-      }
-    },
-    responses: {
-      201: {
-        description: 'Member profile with contacts created',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: {
-                  type: 'string',
-                  example: 'success'
-                },
-                message: {
-                  type: 'string',
-                  example: 'Member profile with contacts created'
-                },
-                data: {
-                  type: 'object',
-                  properties: {
-                    contacts: {
-                      type: 'object',
-                      properties: {
-                        linkedin: { type: 'string' },
-                        github: { type: 'string' },
-                        twitter: { type: 'string' },
-                        telegram: { type: 'string' }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      200: {
-        description: 'Contact information updated successfully',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: {
-                  type: 'string',
-                  example: 'success'
-                },
-                message: {
-                  type: 'string',
-                  example: 'Contact information updated successfully'
-                },
-                data: {
-                  type: 'object',
-                  properties: {
-                    contacts: {
-                      type: 'object',
-                      properties: {
-                        linkedin: { type: 'string' },
-                        github: { type: 'string' },
-                        twitter: { type: 'string' },
-                        telegram: { type: 'string' }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      401: {
-        description: 'Unauthorized',
-        content: {
-          'application/json': {
-            schema: {
-              $ref: '#/components/schemas/Error'
-            }
-          }
-        }
-      }
-    }
-  }
-},
-
-'/api/members/education': {
-  post: {
-    summary: 'Create education information',
-    description: 'Creates education details for a new member profile',
-    tags: ['Members'],
-    security: [
-      {
-        bearerAuth: []
-      }
-    ],
-    requestBody: {
-      content: {
-        'multipart/form-data': {
-          schema: {
-            type: 'object',
-            properties: {
-              degree: {
-                type: 'string',
-                description: 'Educational degree'
-              },
-              institution: {
-                type: 'string',
-                description: 'Educational institution'
-              },
-              description: {
-                type: 'string',
-                description: 'Description of education'
-              },
-              educationImage: {
-                type: 'string',
-                format: 'binary',
-                description: 'Institution image file'
-              }
-            }
-          }
-        }
-      }
-    },
-    responses: {
-      201: {
-        description: 'Member profile with education created',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: {
-                  type: 'string',
-                  example: 'success'
-                },
-                message: {
-                  type: 'string',
-                  example: 'Member profile with education created'
-                },
-                data: {
-                  type: 'object',
-                  properties: {
-                    education: {
-                      type: 'object',
-                      properties: {
-                        degree: { type: 'string' },
-                        institution: { type: 'string' },
-                        description: { type: 'string' },
-                        imageUrl: { type: 'string' }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      200: {
-        description: 'Education details updated successfully',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: {
-                  type: 'string',
-                  example: 'success'
-                },
-                message: {
-                  type: 'string',
-                  example: 'Education information updated successfully'
-                },
-                data: {
-                  type: 'object',
-                  properties: {
-                    education: {
-                      type: 'object',
-                      properties: {
-                        degree: { type: 'string' },
-                        institution: { type: 'string' },
-                        description: { type: 'string' },
-                        imageUrl: { type: 'string' }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      401: {
-        description: 'Unauthorized',
-        content: {
-          'application/json': {
-            schema: {
-              $ref: '#/components/schemas/Error'
-            }
-          }
-        }
-      }
-    }
-  },
-  put: {
-    summary: 'Replace education information',
-    description: 'Replaces all education details for the authenticated member',
-    tags: ['Members'],
-    security: [
-      {
-        bearerAuth: []
-      }
-    ],
-    requestBody: {
-      content: {
-        'multipart/form-data': {
-          schema: {
-            type: 'object',
-            properties: {
-              degree: {
-                type: 'string',
-                description: 'Educational degree'
-              },
-              institution: {
-                type: 'string',
-                description: 'Educational institution'
-              },
-              description: {
-                type: 'string',
-                description: 'Description of education'
-              },
-              educationImage: {
-                type: 'string',
-                format: 'binary',
-                description: 'Institution image file'
-              }
-            }
-          }
-        }
-      }
-    },
-    responses: {
-      201: {
-        description: 'Member profile with education created',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: {
-                  type: 'string',
-                  example: 'success'
-                },
-                message: {
-                  type: 'string',
-                  example: 'Member profile with education created'
-                },
-                data: {
-                  type: 'object',
-                  properties: {
-                    education: {
-                      type: 'object',
-                      properties: {
-                        degree: { type: 'string' },
-                        institution: { type: 'string' },
-                        description: { type: 'string' },
-                        imageUrl: { type: 'string' }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      200: {
-        description: 'Education details updated successfully',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: {
-                  type: 'string',
-                  example: 'success'
-                },
-                message: {
-                  type: 'string',
-                  example: 'Education information updated successfully'
-                },
-                data: {
-                  type: 'object',
-                  properties: {
-                    education: {
-                      type: 'object',
-                      properties: {
-                        degree: { type: 'string' },
-                        institution: { type: 'string' },
-                        description: { type: 'string' },
-                        imageUrl: { type: 'string' }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      401: {
-        description: 'Unauthorized',
-        content: {
-          'application/json': {
-            schema: {
-              $ref: '#/components/schemas/Error'
-            }
-          }
-        }
-      }
-    }
-  },
-  patch: {
-    summary: 'Update education information',
-    description: 'Partially updates education details. Only provided fields will be updated.',
-    tags: ['Members'],
-    security: [
-      {
-        bearerAuth: []
-      }
-    ],
-    requestBody: {
-      content: {
-        'multipart/form-data': {
-          schema: {
-            type: 'object',
-            properties: {
-              degree: {
-                type: 'string',
-                description: 'Educational degree'
-              },
-              institution: {
-                type: 'string',
-                description: 'Educational institution'
-              },
-              description: {
-                type: 'string',
-                description: 'Description of education'
-              },
-              educationImage: {
-                type: 'string',
-                format: 'binary',
-                description: 'Institution image file'
-              }
-            }
-          }
-        }
-      }
-    },
-    responses: {
-      201: {
-        description: 'Member profile with education created',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: {
-                  type: 'string',
-                  example: 'success'
-                },
-                message: {
-                  type: 'string',
-                  example: 'Member profile with education created'
-                },
-                data: {
-                  type: 'object',
-                  properties: {
-                    education: {
-                      type: 'object',
-                      properties: {
-                        degree: { type: 'string' },
-                        institution: { type: 'string' },
-                        description: { type: 'string' },
-                        imageUrl: { type: 'string' }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      200: {
-        description: 'Education details updated successfully',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: {
-                  type: 'string',
-                  example: 'success'
-                },
-                message: {
-                  type: 'string',
-                  example: 'Education information updated successfully'
-                },
-                data: {
-                  type: 'object',
-                  properties: {
-                    education: {
-                      type: 'object',
-                      properties: {
-                        degree: { type: 'string' },
-                        institution: { type: 'string' },
-                        description: { type: 'string' },
-                        imageUrl: { type: 'string' }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      401: {
-        description: 'Unauthorized',
-        content: {
-          'application/json': {
-            schema: {
-              $ref: '#/components/schemas/Error'
-            }
-          }
-        }
-      }
-    }
-  }
-},
-
-'/api/members/skills': {
-  post: {
-    summary: 'Create skills information',
-    description: 'Creates detailed skills and proficiency information for a new member profile',
-    tags: ['Members'],
-    security: [
-      {
-        bearerAuth: []
-      }
-    ],
-    requestBody: {
-      required: true,
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            required: ['skillDetails'],
-            properties: {
-              skillDetails: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  required: ['name', 'technologies', 'percent'],
-                  properties: {
-                    name: {
-                      type: 'string',
-                      description: 'Skill category name'
-                    },
-                    technologies: {
-                      type: 'array',
-                      items: {
-                        type: 'string'
-                      },
-                      description: 'List of specific technologies'
-                    },
-                    percent: {
-                      type: 'integer',
-                      minimum: 0,
-                      maximum: 100,
-                      description: 'Proficiency percentage'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    responses: {
-      201: {
-        description: 'Member profile with skills created',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: {
-                  type: 'string',
-                  example: 'success'
-                },
-                message: {
-                  type: 'string',
-                  example: 'Member profile with skills created'
-                },
-                data: {
-                  type: 'object',
-                  properties: {
-                    skillDetails: {
-                      type: 'array',
-                      items: {
-                        type: 'object'
-                      }
-                    },
-                    skills: {
-                      type: 'array',
-                      items: {
-                        type: 'string'
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      200: {
-        description: 'Skills updated successfully',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: {
-                  type: 'string',
-                  example: 'success'
-                },
-                message: {
-                  type: 'string',
-                  example: 'Skills updated successfully'
-                },
-                data: {
-                  type: 'object',
-                  properties: {
-                    skillDetails: {
-                      type: 'array',
-                      items: {
-                        type: 'object'
-                      }
-                    },
-                    skills: {
-                      type: 'array',
-                      items: {
-                        type: 'string'
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      400: {
-        description: 'Invalid skills data format',
-        content: {
-          'application/json': {
-            schema: {
-              $ref: '#/components/schemas/Error'
-            }
-          }
-        }
-      },
-      401: {
-        description: 'Unauthorized',
-        content: {
-          'application/json': {
-            schema: {
-              $ref: '#/components/schemas/Error'
-            }
-          }
-        }
-      }
-    }
-  },
-  put: {
-    summary: 'Replace skills information',
-    description: 'Replaces all skills and proficiency information for the authenticated member',
-    tags: ['Members'],
-    security: [
-      {
-        bearerAuth: []
-      }
-    ],
-    requestBody: {
-      required: true,
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            required: ['skillDetails'],
-            properties: {
-              skillDetails: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  required: ['name', 'technologies', 'percent'],
-                  properties: {
-                    name: {
-                      type: 'string',
-                      description: 'Skill category name'
-                    },
-                    technologies: {
-                      type: 'array',
-                      items: {
-                        type: 'string'
-                      },
-                      description: 'List of specific technologies'
-                    },
-                    percent: {
-                      type: 'integer',
-                      minimum: 0,
-                      maximum: 100,
-                      description: 'Proficiency percentage'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    responses: {
-      201: {
-        description: 'Member profile with skills created',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: {
-                  type: 'string',
-                  example: 'success'
-                },
-                message: {
-                  type: 'string',
-                  example: 'Member profile with skills created'
-                },
-                data: {
-                  type: 'object',
-                  properties: {
-                    skillDetails: {
-                      type: 'array',
-                      items: {
-                        type: 'object'
-                      }
-                    },
-                    skills: {
-                      type: 'array',
-                      items: {
-                        type: 'string'
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      200: {
-        description: 'Skills updated successfully',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: {
-                  type: 'string',
-                  example: 'success'
-                },
-                message: {
-                  type: 'string',
-                  example: 'Skills updated successfully'
-                },
-                data: {
-                  type: 'object',
-                  properties: {
-                    skillDetails: {
-                      type: 'array',
-                      items: {
-                        type: 'object'
-                      }
-                    },
-                    skills: {
-                      type: 'array',
-                      items: {
-                        type: 'string'
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      400: {
-        description: 'Invalid skills data format',
-        content: {
-          'application/json': {
-            schema: {
-              $ref: '#/components/schemas/Error'
-            }
-          }
-        }
-      },
-      401: {
-        description: 'Unauthorized',
-        content: {
-          'application/json': {
-            schema: {
-              $ref: '#/components/schemas/Error'
-            }
-          }
-        }
-      }
-    }
-  },
-  patch: {
-    summary: 'Update skills information',
-    description: 'For skills, patch replaces the entire skills array like PUT, since skills are treated as a collection',
-    tags: ['Members'],
-    security: [
-      {
-        bearerAuth: []
-      }
-    ],
-    requestBody: {
-      required: true,
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            required: ['skillDetails'],
-            properties: {
-              skillDetails: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  required: ['name', 'technologies', 'percent'],
-                  properties: {
-                    name: {
-                      type: 'string',
-                      description: 'Skill category name'
-                    },
-                    technologies: {
-                      type: 'array',
-                      items: {
-                        type: 'string'
-                      },
-                      description: 'List of specific technologies'
-                    },
-                    percent: {
-                      type: 'integer',
-                      minimum: 0,
-                      maximum: 100,
-                      description: 'Proficiency percentage'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    responses: {
-      201: {
-        description: 'Member profile with skills created',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: {
-                  type: 'string',
-                  example: 'success'
-                },
-                message: {
-                  type: 'string',
-                  example: 'Member profile with skills created'
-                },
-                data: {
-                  type: 'object',
-                  properties: {
-                    skillDetails: {
-                      type: 'array',
-                      items: {
-                        type: 'object'
-                      }
-                    },
-                    skills: {
-                      type: 'array',
-                      items: {
-                        type: 'string'
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      200: {
-        description: 'Skills updated successfully',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: {
-                  type: 'string',
-                  example: 'success'
-                },
-                message: {
-                  type: 'string',
-                  example: 'Skills updated successfully'
-                },
-                data: {
-                  type: 'object',
-                  properties: {
-                    skillDetails: {
-                      type: 'array',
-                      items: {
-                        type: 'object'
-                      }
-                    },
-                    skills: {
-                      type: 'array',
-                      items: {
-                        type: 'string'
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      400: {
-        description: 'Invalid skills data format',
-        content: {
-          'application/json': {
-            schema: {
-              $ref: '#/components/schemas/Error'
-            }
-          }
-        }
-      },
-      401: {
-        description: 'Unauthorized',
-        content: {
-          'application/json': {
-            schema: {
-              $ref: '#/components/schemas/Error'
-            }
-          }
-        }
-      }
-    }
-  }
-},
-
-'/api/members/import': {
-  post: {
-    summary: 'Import members from mock data',
-    description: 'Admin only - Imports member information from mock data',
-    tags: ['Members', 'Admin'],
-    security: [
-      {
-        bearerAuth: []
-      }
-    ],
-    requestBody: {
-      required: true,
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            required: ['members'],
-            properties: {
-              members: {
-                type: 'array',
-                items: {
-                  type: 'object'
-                },
-                description: 'Array of member data objects'
-              }
-            }
-          }
-        }
-      }
-    },
-    responses: {
-      200: {
-        description: 'Members imported successfully',
-        content: {
-          'application/json': {
-            schema: {
-              type: 'object',
-              properties: {
-                status: {
-                  type: 'string',
-                  example: 'success'
-                },
-                message: {
-                  type: 'string',
-                  example: 'Imported 5 members successfully with 0 failures'
-                },
-                data: {
-                  type: 'object',
-                  properties: {
-                    success: {
-                      type: 'integer'
-                    },
-                    failed: {
-                      type: 'integer'
-                    },
-                    errors: {
-                      type: 'array',
-                      items: {
-                        type: 'string'
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      401: {
-        description: 'Unauthorized',
-        content: {
-          'application/json': {
-            schema: {
-              $ref: '#/components/schemas/Error'
-            }
-          }
-        }
-      },
-      403: {
-        description: 'Forbidden - Admin only',
-        content: {
-          'application/json': {
-            schema: {
-              $ref: '#/components/schemas/Error'
-            }
-          }
-        }
-      }
-    }
-  }
-},
+ 
 
 '/api/projects': {
     get: {

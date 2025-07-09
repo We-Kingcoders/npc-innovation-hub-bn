@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import Member from '../models/member.model';
 import User from '../models/user.model';
 import cloudinary from "../utils/cloudinary.utils";
+
 // Get all members (public) - simplified for card display
 export const getAllMembers = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -68,7 +69,7 @@ export const getAllMembers = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-// Get member by ID (public)
+// Get member by member table PK (id)
 export const getMemberById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
@@ -102,6 +103,35 @@ export const getMemberById = async (req: Request, res: Response): Promise<void> 
     res.status(500).json({
       status: 'error',
       message: 'An error occurred while fetching member details',
+    });
+  }
+};
+
+// Get member by userId param (public)
+export const getMemberInfo = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId } = req.params;
+    if (!userId) {
+      res.status(400).json({ status: 'fail', message: 'userId is required in params.' });
+      return;
+    }
+    const member = await Member.findOne({ where: { userId } });
+    if (!member) {
+      res.status(404).json({
+        status: 'fail',
+        message: 'Member information not found. Please create your information first.',
+      });
+      return;
+    }
+    res.status(200).json({
+      status: 'success',
+      data: { member: { ...member.toJSON(), userId: member.userId } }
+    });
+  } catch (error) {
+    console.error('Error fetching member information:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'An error occurred while fetching member information',
     });
   }
 };
@@ -191,19 +221,15 @@ export const createOrUpdateMember = async (req: Request, res: Response): Promise
   }
 };
 
-
-
-// ... other endpoints unchanged, but make sure wherever a member object is returned, userId is included as above.
-
-// Create or update contact information
+// Create or update contact information (using userId param)
 export const createOrUpdateContacts = async (req: Request, res: Response): Promise<void> => {
   try {
-    const currentUser = req.user as { id: string; role: string };
-
-    let member = await Member.findOne({
-      where: { userId: currentUser.id }
-    });
-
+    const { userId } = req.params;
+    if (!userId) {
+      res.status(400).json({ status: 'fail', message: 'userId is required in params.' });
+      return;
+    }
+    let member = await Member.findOne({ where: { userId } });
     const contacts: any = member?.contacts || {};
 
     if ('linkedin' in req.body) contacts.linkedin = req.body.linkedin;
@@ -216,19 +242,15 @@ export const createOrUpdateContacts = async (req: Request, res: Response): Promi
         contacts,
         updatedAt: new Date(),
       });
-
       res.status(200).json({
         status: 'success',
         message: 'Contact information updated successfully',
-        data: {
-          contacts,
-          userId: member.userId // Always include userId
-        },
+        data: { contacts, userId: member.userId }
       });
     } else {
       member = await Member.create({
-        userId: currentUser.id,
-        name: req.body.name || `User${currentUser.id.substr(0, 5)}`,
+        userId,
+        name: req.body.name || `User${userId.substr(0, 5)}`,
         role: req.body.role || 'Member',
         bio: req.body.bio || '',
         imageUrl: '/members-images/member-demo.jpg',
@@ -237,14 +259,10 @@ export const createOrUpdateContacts = async (req: Request, res: Response): Promi
         createdAt: new Date(),
         updatedAt: new Date(),
       });
-
       res.status(201).json({
         status: 'success',
         message: 'Member profile with contacts created',
-        data: {
-          contacts,
-          userId: member.userId // Always include userId
-        },
+        data: { contacts, userId: member.userId }
       });
     }
   } catch (error) {
@@ -256,15 +274,15 @@ export const createOrUpdateContacts = async (req: Request, res: Response): Promi
   }
 };
 
-// Create or update education information
+// Create or update education information (using userId param)
 export const createOrUpdateEducation = async (req: Request, res: Response): Promise<void> => {
   try {
-    const currentUser = req.user as { id: string; role: string };
-
-    let member = await Member.findOne({
-      where: { userId: currentUser.id }
-    });
-
+    const { userId } = req.params;
+    if (!userId) {
+      res.status(400).json({ status: 'fail', message: 'userId is required in params.' });
+      return;
+    }
+    let member = await Member.findOne({ where: { userId } });
     let education: any = member?.education || {};
 
     if ('degree' in req.body) education.degree = req.body.degree;
@@ -274,7 +292,6 @@ export const createOrUpdateEducation = async (req: Request, res: Response): Prom
     if (!education.imageUrl) {
       education.imageUrl = '/members-images/university.jpg';
     }
-
     if (req.file) {
       if (education.imageUrl && !education.imageUrl.includes('university.jpg')) {
         const publicId = education.imageUrl.split('/').pop()?.split('.')[0];
@@ -294,19 +311,15 @@ export const createOrUpdateEducation = async (req: Request, res: Response): Prom
         education,
         updatedAt: new Date(),
       });
-
       res.status(200).json({
         status: 'success',
         message: 'Education information updated successfully',
-        data: {
-          education,
-          userId: member.userId // Always include userId
-        },
+        data: { education, userId: member.userId }
       });
     } else {
       member = await Member.create({
-        userId: currentUser.id,
-        name: req.body.name || `User${currentUser.id.substr(0, 5)}`,
+        userId,
+        name: req.body.name || `User${userId.substr(0, 5)}`,
         role: req.body.role || 'Member',
         bio: req.body.bio || '',
         imageUrl: '/members-images/member-demo.jpg',
@@ -315,14 +328,10 @@ export const createOrUpdateEducation = async (req: Request, res: Response): Prom
         createdAt: new Date(),
         updatedAt: new Date(),
       });
-
       res.status(201).json({
         status: 'success',
         message: 'Member profile with education created',
-        data: {
-          education,
-          userId: member.userId // Always include userId
-        },
+        data: { education, userId: member.userId }
       });
     }
   } catch (error) {
@@ -334,12 +343,15 @@ export const createOrUpdateEducation = async (req: Request, res: Response): Prom
   }
 };
 
-// Create or update skills information
+// Create or update skills information (using userId param)
 export const createOrUpdateSkills = async (req: Request, res: Response): Promise<void> => {
   try {
-    const currentUser = req.user as { id: string; role: string };
+    const { userId } = req.params;
+    if (!userId) {
+      res.status(400).json({ status: 'fail', message: 'userId is required in params.' });
+      return;
+    }
     const { skillDetails } = req.body;
-
     if (!skillDetails || !Array.isArray(skillDetails)) {
       res.status(400).json({
         status: 'fail',
@@ -348,9 +360,7 @@ export const createOrUpdateSkills = async (req: Request, res: Response): Promise
       return;
     }
 
-    let member = await Member.findOne({
-      where: { userId: currentUser.id }
-    });
+    let member = await Member.findOne({ where: { userId } });
 
     const simpleSkills = skillDetails.reduce((acc: string[], skill) => {
       if (skill.technologies && Array.isArray(skill.technologies)) {
@@ -365,20 +375,15 @@ export const createOrUpdateSkills = async (req: Request, res: Response): Promise
         skills: [...new Set(simpleSkills)],
         updatedAt: new Date(),
       });
-
       res.status(200).json({
         status: 'success',
         message: 'Skills updated successfully',
-        data: {
-          skillDetails,
-          skills: [...new Set(simpleSkills)],
-          userId: member.userId // Always include userId
-        },
+        data: { skillDetails, skills: [...new Set(simpleSkills)], userId: member.userId }
       });
     } else {
       member = await Member.create({
-        userId: currentUser.id,
-        name: req.body.name || `User${currentUser.id.substr(0, 5)}`,
+        userId,
+        name: req.body.name || `User${userId.substr(0, 5)}`,
         role: req.body.role || 'Member',
         bio: req.body.bio || '',
         imageUrl: '/members-images/member-demo.jpg',
@@ -387,15 +392,10 @@ export const createOrUpdateSkills = async (req: Request, res: Response): Promise
         createdAt: new Date(),
         updatedAt: new Date(),
       });
-
       res.status(201).json({
         status: 'success',
         message: 'Member profile with skills created',
-        data: {
-          skillDetails,
-          skills: [...new Set(simpleSkills)],
-          userId: member.userId // Always include userId
-        },
+        data: { skillDetails, skills: [...new Set(simpleSkills)], userId: member.userId }
       });
     }
   } catch (error) {
@@ -407,15 +407,15 @@ export const createOrUpdateSkills = async (req: Request, res: Response): Promise
   }
 };
 
-// Delete member information
+// Delete member information (using userId param)
 export const deleteMember = async (req: Request, res: Response): Promise<void> => {
   try {
-    const currentUser = req.user as { id: string; role: string };
-
-    const member = await Member.findOne({
-      where: { userId: currentUser.id }
-    });
-
+    const { userId } = req.params;
+    if (!userId) {
+      res.status(400).json({ status: 'fail', message: 'userId is required in params.' });
+      return;
+    }
+    const member = await Member.findOne({ where: { userId } });
     if (!member) {
       res.status(404).json({
         status: 'fail',
@@ -423,68 +423,29 @@ export const deleteMember = async (req: Request, res: Response): Promise<void> =
       });
       return;
     }
-
     if (member.imageUrl && !member.imageUrl.includes('member-demo.jpg')) {
       const publicId = member.imageUrl.split('/').pop()?.split('.')[0];
       if (publicId) {
         await cloudinary.uploader.destroy(`innovation-hub/members/${publicId}`);
       }
     }
-
     if (member.education?.imageUrl && !member.education.imageUrl.includes('university.jpg')) {
       const publicId = member.education.imageUrl.split('/').pop()?.split('.')[0];
       if (publicId) {
         await cloudinary.uploader.destroy(`innovation-hub/education/${publicId}`);
       }
     }
-
     await member.destroy();
-
     res.status(200).json({
       status: 'success',
       message: 'Member information deleted successfully',
-      userId: member.userId // Always include userId
+      userId: member.userId
     });
   } catch (error) {
     console.error('Error deleting member:', error);
     res.status(500).json({
       status: 'error',
       message: 'An error occurred while deleting member information',
-    });
-  }
-};
-
-// Get my member information
-export const getMyInfo = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const currentUser = req.user as { id: string; role: string };
-
-    const member = await Member.findOne({
-      where: { userId: currentUser.id }
-    });
-
-    if (!member) {
-      res.status(404).json({
-        status: 'fail',
-        message: 'Member information not found. Please create your information first.',
-      });
-      return;
-    }
-
-    res.status(200).json({
-      status: 'success',
-      data: {
-        member: {
-          ...member.toJSON(),
-          userId: member.userId // Always include userId
-        }
-      },
-    });
-  } catch (error) {
-    console.error('Error fetching member information:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'An error occurred while fetching your information',
     });
   }
 };

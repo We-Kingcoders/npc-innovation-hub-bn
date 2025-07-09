@@ -28,6 +28,9 @@ const upload = multer({
 router.get('/', memberController.getAllMembers);
 router.get('/member/:id', memberController.getMemberById);
 
+// Get member info by userId (public or protected as needed)
+router.get('/:userId', memberController.getMemberInfo);
+
 // Protected member profile routes (userId as path param)
 router.post(
   '/:userId', 
@@ -48,73 +51,65 @@ router.patch(
   memberController.createOrUpdateMember
 );
 
-// Contact routes
+// Contact routes (userId as path param)
 router.post(
-  '/contacts', 
+  '/:userId/contacts', 
   protectRoute,
   memberController.createOrUpdateContacts
 );
-
 router.put(
-  '/contacts', 
+  '/:userId/contacts', 
   protectRoute,
   memberController.createOrUpdateContacts
 );
-
 router.patch(
-  '/contacts', 
+  '/:userId/contacts', 
   protectRoute,
   memberController.createOrUpdateContacts
 );
 
-// Education routes
+// Education routes (userId as path param)
 router.post(
-  '/education', 
+  '/:userId/education', 
+  protectRoute,
+  upload.single('educationImage'),
+  memberController.createOrUpdateEducation
+);
+router.put(
+  '/:userId/education', 
+  protectRoute,
+  upload.single('educationImage'),
+  memberController.createOrUpdateEducation
+);
+router.patch(
+  '/:userId/education', 
   protectRoute,
   upload.single('educationImage'),
   memberController.createOrUpdateEducation
 );
 
-router.put(
-  '/education', 
-  protectRoute,
-  upload.single('educationImage'),
-  memberController.createOrUpdateEducation
-);
-
-router.patch(
-  '/education', 
-  protectRoute,
-  upload.single('educationImage'),
-  memberController.createOrUpdateEducation
-);
-
-// Skills routes
+// Skills routes (userId as path param)
 router.post(
-  '/skills', 
+  '/:userId/skills', 
   protectRoute,
   memberController.createOrUpdateSkills
 );
-
 router.put(
-  '/skills', 
+  '/:userId/skills', 
   protectRoute,
   memberController.createOrUpdateSkills
 );
-
 router.patch(
-  '/skills', 
+  '/:userId/skills', 
   protectRoute,
   memberController.createOrUpdateSkills
 );
 
-// Delete profile
+// Delete profile (userId as path param)
 router.delete(
-  '/', 
+  '/:userId', 
   protectRoute,
   memberController.deleteMember
 );
-
-
 
 export default router;
