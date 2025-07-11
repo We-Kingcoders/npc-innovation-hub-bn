@@ -13,6 +13,7 @@ import { passwordEventEmitter } from '../events/password.event'
 import '../utils/cloudinary.utils'
 import User from '../models/user.model'
 import { Notification, NotificationType } from '../models/notification.model';
+import { sendOTP } from "../middlewares/otp.middleware"; // adjust path as needed
 
 // Define MulterFile type for file uploads
 type MulterFile = Express.Multer.File;
@@ -226,31 +227,38 @@ Innovation Hub Team
 export const userLogin = async (req: Request, res: Response): Promise<void> => {
   try {
     console.log(`Login attempt at: ${new Date().toISOString()} by ${req.ip}`);
-    const { email, password } = req.body
+    const { email, password } = req.body;
 
-    const user = await UserService.getUserByEmail(email)
+    if (!email || !password) {
+      res.status(400).json({
+        status: "fail",
+        message: "Email and password are required",
+      });
+      return;
+    }
+
+    const user = await UserService.getUserByEmail(email);
     if (!user) {
       res.status(401).json({
-        status: 'fail',
-        message: 'Invalid email or password',
-      })
-      return
+        status: "fail",
+        message: "Invalid email or password",
+      });
+      return;
     }
 
     if (!user.isActive) {
       res.status(403).json({
-        status: 'fail',
-        message: 'Oops, this account is deactivated',
-      })
-      return
+        status: "fail",
+        message: "Oops, this account is deactivated",
+      });
+      return;
     }
 
     if (!user.verified) {
-      const token = await generateToken(user, '1h')
-      const verificationLink = `${process.env.FRONTEND_URL}/api/users/verify-email?token=${token}`
+      const token = await generateToken(user, "1h");
+      const verificationLink = `${process.env.FRONTEND_URL}/api/users/verify-email?token=${token}`;
 
-      const subject = 'Innovation Hub - Email Verification Required'
-
+      const subject = "Innovation Hub - Email Verification Required";
       const text = `
 Dear ${user.firstName},
 
@@ -262,8 +270,7 @@ If you did not create an account with us, please ignore this message and Report.
 
 Sincerely,
 Innovation Hub Team
-      `
-
+      `;
       const html = `
 <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
   <h2 style="color: #2c3e50;">Innovation Hub - Email Verification Required</h2>
@@ -277,47 +284,53 @@ Innovation Hub Team
   <p>If you did not create an account with us, please ignore this message and Report.</p>
   <p>Sincerely,<br>Innovation Hub Team</p>
 </div>
-      `
-
-      await sendEmail(user.email, subject, text, html)
+      `;
+      await sendEmail(user.email, subject, text, html);
       res.status(403).json({
-        message: 'This user is not verified. Check your email to verify your account.',
-      })
-      return
+        message: "This user is not verified. Check your email to verify your account.",
+      });
+      return;
     }
 
-    const isPasswordValid = await comparePassword(password, user.password)
+    const isPasswordValid = await comparePassword(password, user.password);
     if (!isPasswordValid) {
       res.status(401).json({
-        status: 'fail',
-        message: 'Invalid email or password',
-      })
-      return
+        status: "fail",
+        message: "Invalid email or password",
+      });
+      return;
     }
 
-    console.log(`User login: ${user.email} (${user.role}) at ${new Date().toISOString()}`)
+    // Proceed to send OTP and generate a temporary login token for the OTP step.
+    try {
+      await sendOTP(req, res, async () => {
+        // Make sure to await generateToken!
+        const tempLoginToken = await generateToken(
+          { id: user.id, email: user.email, role: user.role },
+          "10m"
+        );
 
-    const token = await generateToken(user)
+        const userWithoutPassword = { ...user.dataValues };
+        delete userWithoutPassword.password;
 
-    const userWithoutPassword = { ...user.dataValues }
-    delete userWithoutPassword.password
-
-    res.status(200).json({
-      status: 'success',
-      message: 'Login successful',
-      token: token,
-      data: {
-        user: userWithoutPassword,
-      },
-    })
+        res.status(200).json({
+          status: "pending",
+          message: "OTP sent to your email. Please verify to complete login.",
+          token: tempLoginToken, // This should now be a string, not {}
+          data: { user: userWithoutPassword },
+        });
+      });
+    } catch (err) {
+      res.status(500).json({ status: "error", message: "Could not send OTP." });
+    }
   } catch (error) {
-    console.error('Error during login:', error)
+    console.error("Error during login:", error);
     res.status(500).json({
-      status: 'error',
-      message: 'An error occurred during login',
-    })
+      status: "error",
+      message: "An error occurred during login",
+    });
   }
-}
+};
 
 /**
  * User logout
@@ -1001,3 +1014,11 @@ export const getDashboardStats = async (req: Request, res: Response): Promise<vo
     });
   }
 };
+
+export function getAllAllowStates(arg0: string, protectRoute: (req: Request, res: Response, next: NextFunction) => Promise<void>, getAllAllowStates: any) {
+  throw new Error("Function not implemented.");
+}
+export function updateAllowState(arg0: string, protectRoute: (req: Request, res: Response, next: NextFunction) => Promise<void>, updateAllowState: any) {
+  throw new Error("Function not implemented.");
+}
+
