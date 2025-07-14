@@ -342,95 +342,130 @@ post: {
   }
 }
 },
-'/api/users/auth/google': {
-get: {
-  summary: 'Initiate Google OAuth authentication',
-  description: 'Redirects the user to Google\'s authentication page',
-  tags: ['Authentication'],
-  security: [],
-  responses: {
-    302: {
-      description: 'Redirects to Google login page'
-    }
-  }
-}
-},
-'/api/users/auth/google/callback': {
-get: {
-  summary: 'Google OAuth callback endpoint',
-  description: 'Callback URL for Google OAuth authentication',
-  tags: ['Authentication'],
-  security: [],
-  parameters: [
-    {
-      in: 'query',
-      name: 'code',
-      schema: {
-        type: 'string'
-      },
-      description: 'Authorization code from Google'
-    }
-  ],
-  responses: {
-    302: {
-      description: 'Redirects after successful Google authentication'
-    }
-  }
-}
-},
-'/api/users/auth/google/token': {
-get: {
-  summary: 'Get JWT token after Google authentication',
-  description: 'Exchanges Google OAuth credentials for a JWT token',
-  tags: ['Authentication'],
-  security: [],
-  responses: {
-    200: {
-      description: 'Returns JWT token',
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: {
-              status: {
-                type: 'string',
-                example: 'success'
+  // "/api/users/auth/google": {
+  //   "get": {
+  //     "summary": "Initiate Google OAuth authentication",
+  //     "description": "Begins the Google OAuth flow. Redirects the user to Google's authentication page.",
+  //     "tags": ["Authentication"],
+  //     "security": [],
+  //     "responses": {
+  //       "302": {
+  //         "description": "Redirects to Google authentication page"
+  //       }
+  //     }
+  //   }
+  // },
+  // "/api/users/auth/google/callback": {
+  //   "get": {
+  //     "summary": "Google OAuth callback endpoint",
+  //     "description": "This is the callback URL for Google OAuth. Upon successful authentication, the user is redirected here by Google; authentication is handled and then the user is redirected to the frontend with a JWT token.",
+  //     "tags": ["Authentication"],
+  //     "security": [],
+  //     "parameters": [
+  //       {
+  //         "in": "query",
+  //         "name": "code",
+  //         "schema": {
+  //           "type": "string"
+  //         },
+  //         "description": "Authorization code provided by Google"
+  //       }
+  //     ],
+  //     "responses": {
+  //       "302": {
+  //         "description": "Redirects to frontend with JWT token in the query string after successful authentication"
+  //       },
+  //       "400": {
+  //         "description": "Invalid or missing Google OAuth code"
+  //       },
+  //       "500": {
+  //         "description": "Internal server error"
+  //       }
+  //     }
+  //   }
+  // },
+  // "/api/users/auth/google/token": {
+  //   "get": {
+  //     "summary": "Get JWT token after Google authentication",
+  //     "description": "Issues a JWT token after Google authentication. Usually redirects to the frontend with the token in the query string.",
+  //     "tags": ["Authentication"],
+  //     "security": [],
+  //     "responses": {
+  //       "302": {
+  //         "description": "Redirect to frontend with JWT token in query string"
+  //       },
+  //       "500": {
+  //         "description": "Error generating token"
+  //       }
+  //     }
+  //   }
+  // },
+  // "/api/users/auth/google/failure": {
+  //   "get": {
+  //     "summary": "Handler for Google authentication failure",
+  //     "description": "Endpoint for handling failed Google authentication. Returns a JSON error response.",
+  //     "tags": ["Authentication"],
+  //     "security": [],
+  //     "responses": {
+  //       "400": {
+  //         "description": "Google authentication failed",
+  //         "content": {
+  //           "application/json": {
+  //             "schema": {
+  //               "$ref": "#/components/schemas/Error"
+  //             }
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
+  // },
+    "/api/users/auth/google/auth": {
+    "post": {
+      "summary": "Login with Google (using Google OAuth tokenId)",
+      "description": "Accepts a Google OAuth token ID (from Google Sign-In or One Tap) and returns a JWT if the token is valid.",
+      "tags": ["Authentication"],
+      "security": [],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "tokenId": {
+                  "type": "string",
+                  "example": "eyJhbGciOiJSUzI1NiIsImtpZCI6Ij..."
+                }
               },
-              token: {
-                type: 'string',
-                example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
-              },
-              data: {
-                $ref: '#/components/schemas/User'
-              }
+              "required": ["tokenId"]
             }
           }
         }
-      }
-    }
-  }
-}
-},
-'/api/users/auth/google/failure': {
-get: {
-  summary: 'Handler for Google authentication failure',
-  description: 'Endpoint for handling failed Google authentication',
-  tags: ['Authentication'],
-  security: [],
-  responses: {
-    401: {
-      description: 'Google authentication failed',
-      content: {
-        'application/json': {
-          schema: {
-            $ref: '#/components/schemas/Error'
+      },
+      "responses": {
+        "200": {
+          "description": "JWT returned after successful Google authentication",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "token": { "type": "string", "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
+                }
+              }
+            }
           }
+        },
+        "400": {
+          "description": "Bad Request (missing or invalid tokenId)"
+        },
+        "401": {
+          "description": "Unauthorized (invalid Google token or user not allowed)"
         }
       }
     }
-  }
-}
-},
+  },
 '/api/users/verify-email': {
 get: {
   summary: 'Verify user\'s email address',

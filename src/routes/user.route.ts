@@ -25,6 +25,7 @@ import {
   validateUserUpdatePassword,
 } from "../validations/user.validation";
 import { sendOTP, verifyOTP } from "../middlewares/otp.middleware";
+import { loginWithGoogleToken } from '../controllers/user.controller';
 
 const userRoutes = express.Router();
 
@@ -80,5 +81,6 @@ userRoutes.post("/verify-otp", verifyOTP);
 //   protectRoute,
 //   UserController.updateAllowState
 // );
-
+// Initiate Google OAuth authentication (matches /api/users/auth/google)
+userRoutes.post('/auth/google/auth', loginWithGoogleToken);
 export default userRoutes;

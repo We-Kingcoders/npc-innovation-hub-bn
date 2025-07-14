@@ -11,9 +11,6 @@ import memberRoutes from './routes/member.route'; // Import member routes
 import projectRoutes from './routes/project.routes'; // Import project routes
 import resourceRoutes from './routes/resource.routes';
 import eventRoutes from './routes/event.routes';
-// import userRoutes from './user.routes';
-// import userRoutes from './routes/user.route';
-// import hubRoutes from './hub.routes';
 import hubRoutes from './routes/hub.routes';
 // import chatRoutes from './chat.routes';
 import chatRoutes from './routes/chat.routes';
@@ -32,25 +29,25 @@ import userRoutes from './routes/user.route';
 // Initialize Express app
 const app: Express = express();
 
-// Initialize Sequelize
-const env = process.env.NODE_ENV || 'development';
-const sequelize = new Sequelize(
-  process.env.DB_NAME as string,
-  process.env.DB_USERNAME as string,
-  process.env.DB_PASSWORD as string,
-  {
-    host: process.env.DB_HOST,
-    port: parseInt(process.env.DB_PORT || '5432'),
-    dialect: 'postgres',
-    dialectOptions: {
-      ssl: {
-        require: true,
-        rejectUnauthorized: false,
-      },
-    },
-    schema: 'public', // Explicitly set schema
-  }
-);
+// // Initialize Sequelize
+// const env = process.env.NODE_ENV || 'development';
+// const sequelize = new Sequelize(
+//   process.env.DB_NAME as string,
+//   process.env.DB_USERNAME as string,
+//   process.env.DB_PASSWORD as string,
+//   {
+//     host: process.env.DB_HOST,
+//     port: parseInt(process.env.DB_PORT || '5432'),
+//     dialect: 'postgres',
+//     dialectOptions: {
+//       ssl: {
+//         require: true,
+//         rejectUnauthorized: false,
+//       },
+//     },
+//     schema: 'public', // Explicitly set schema
+//   }
+// );
 
 // Security middleware
 app.use(helmet());
@@ -65,6 +62,7 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Mount API routes
 app.use('/api/users', userRoutes);
+app.use('/auth/google', userRoutes);
 // Routes
 app.use('/api/blogs', blogRoutes);
 app.use('/api/members', memberRoutes); // Mount member routes
@@ -103,22 +101,22 @@ app.use((req: Request, res: Response) => {
 // Export app for testing purposes
 export { app };
 
-// Start the server with database sync
-if (require.main === module) {
-  // This block only runs when the file is executed directly (not imported)
-  const PORT = process.env.PORT || 5000;
+// // Start the server with database sync
+// if (require.main === module) {
+//   // This block only runs when the file is executed directly (not imported)
+//   const PORT = process.env.PORT || 5000;
 
-  // Force sync database tables
-  sequelize.sync({ force: false })
-    .then(() => {
-      console.log('Database tables created successfully!');
-      app.listen(PORT, () => {
-        console.log(`🚀 Server running on port ${PORT}`);
-        console.log(`🔗 Health check: http://localhost:${PORT}/health`);
-        console.log(`📚 API Documentation: http://localhost:${PORT}/api-docs`);
-      });
-    })
-    .catch(err => {
-      console.error('Error syncing database:', err);
-    });
-}
+//   // Force sync database tables
+//   sequelize.sync({ force: false })
+//     .then(() => {
+//       console.log('Database tables created successfully!');
+//       app.listen(PORT, () => {
+//         console.log(`🚀 Server running on port ${PORT}`);
+//         console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+//         console.log(`📚 API Documentation: http://localhost:${PORT}/api-docs`);
+//       });
+//     })
+//     .catch(err => {
+//       console.error('Error syncing database:', err);
+//     });
+// }

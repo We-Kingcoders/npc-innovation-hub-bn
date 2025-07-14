@@ -487,46 +487,87 @@ export const updatePassword = async (
   }
 }
 
-/**
- * Login via Google OAuth
- */
-export const LoginViaGoogle = async (req: Request, res: Response) => {
-  const user = req.user as UserSignupAttributes;
+// Google OAuth2 client import and initialization
+import { OAuth2Client } from 'google-auth-library';
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// google login
+
+export const loginWithGoogleToken = async (req: Request, res: Response) => {
+  const { tokenId } = req.body;
+
+  if (!tokenId) {
+    return res.status(400).json({ message: 'Missing tokenId' });
+  }
+
   try {
-    console.log(`Google login: ${user.email} at ${new Date().toISOString()}`);
-    // Ensure role is always "Admin" or "Member"
-    const safeUser = { ...user, role: user.role ?? "Member" } as UserSignupAttributes & { role: "Admin" | "Member" };
-    const token = await generateToken(safeUser);
-    res.redirect(`${process.env.FRONTEND_URL}/auth/google/callback?token=${token}`);
-  } catch (error) {
-    console.error('Error in Google login:', error);
-    res.status(500).json({ message: 'Error generating token' });
+    // Verify Google ID token
+    const ticket = await googleClient.verifyIdToken({
+      idToken: tokenId,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+
+    // Debug: Log the payload to see what you actually get from Google
+    console.log("Google payload from ID token:", payload);
+
+    if (!payload || !payload.email) {
+      // Extra logging to help debugging
+      console.error("Email is missing in Google payload:", payload);
+      return res.status(401).json({ message: 'Google token does not contain email' });
+    }
+
+    // Find or create user in your DB
+    let user = await UserService.getUserByEmail(payload.email);
+    if (!user) {
+      user = await UserService.register({
+        firstName: payload.given_name || 'Google',
+        lastName: payload.family_name || 'User',
+        email: payload.email,
+        password: '', // No password for Google-only users
+        gender: 'Not Specified',
+        phone: '',
+        role: 'Member',
+        updatedAt: new Date(),
+        createdAt: new Date(),
+        verified: true,   // Consider Google-verified emails as verified
+        isActive: true,   // Or set your default
+      });
+    } else {
+      // Optionally update user info from Google
+      user.firstName = payload.given_name || user.firstName;
+      user.lastName = payload.family_name || user.lastName;
+      user.verified = true;
+      user.isActive = true;
+      await user.save();
+    }
+
+    // Ensure req.body.email is set for sendOTP middleware
+    req.body.email = user.email;
+
+    // Use your existing OTP sending middleware just like for classic login
+    await sendOTP(req, res, async () => {
+      const tempLoginToken = await generateToken(
+        { id: user.id, email: user.email, role: user.role },
+        "10m"
+      );
+      const userWithoutPassword = { ...user.dataValues };
+      delete userWithoutPassword.password;
+
+      res.status(200).json({
+        status: "pending",
+        message: "OTP sent to your email. Please verify to complete login.",
+        token: tempLoginToken,
+        data: { user: userWithoutPassword },
+      });
+    });
+  } catch (err) {
+    // More detailed error logging
+    console.error('Google token login error:', err);
+    res.status(401).json({ message: 'Invalid Google token' });
   }
 };
-
-/**
- * Google OAuth redirect
- */
-export const googleRedirect = function () {
-  return passport.authenticate('google', {
-    successRedirect: '/auth/google/token',
-    failureRedirect: '/auth/google/failure',
-  })
-}
-
-/**
- * Google OAuth authentication
- */
-export const googleAuthenticate = function () {
-  return passport.authenticate('google', { scope: ['email', 'profile'] })
-}
-
-/**
- * Handle Google OAuth failure
- */
-export const googleAuthFailed = function (_req: Request, res: Response) {
-  res.status(400).json({ message: 'Authentication failed' })
-}
 
 /**
  * Request password reset
