@@ -18,6 +18,7 @@ import chatRoutes from './routes/chat.routes';
 import notificationRoutes from './routes/notification.routes';
 import hireRoutes from './routes/hire.route';
 import adminHireRoutes from './routes/admin/hire.routes';
+import taskRoutes from './routes/task.routes';
 
 // Load environment variables
 dotenv.config();
@@ -73,6 +74,7 @@ app.use('/users', userRoutes);
 app.use('/api/hub', hubRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/tasks', taskRoutes)
 // Public route
 app.use('/api/hire-us', hireRoutes);
 
