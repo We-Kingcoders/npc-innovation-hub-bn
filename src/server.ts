@@ -30,26 +30,6 @@ import userRoutes from './routes/user.route';
 // Initialize Express app
 const app: Express = express();
 
-// // Initialize Sequelize
-// const env = process.env.NODE_ENV || 'development';
-// const sequelize = new Sequelize(
-//   process.env.DB_NAME as string,
-//   process.env.DB_USERNAME as string,
-//   process.env.DB_PASSWORD as string,
-//   {
-//     host: process.env.DB_HOST,
-//     port: parseInt(process.env.DB_PORT || '5432'),
-//     dialect: 'postgres',
-//     dialectOptions: {
-//       ssl: {
-//         require: true,
-//         rejectUnauthorized: false,
-//       },
-//     },
-//     schema: 'public', // Explicitly set schema
-//   }
-// );
-
 // Security middleware
 app.use(helmet());
 app.use(cors());
@@ -103,22 +83,4 @@ app.use((req: Request, res: Response) => {
 // Export app for testing purposes
 export { app };
 
-// // Start the server with database sync
-// if (require.main === module) {
-//   // This block only runs when the file is executed directly (not imported)
-//   const PORT = process.env.PORT || 5000;
 
-//   // Force sync database tables
-//   sequelize.sync({ force: false })
-//     .then(() => {
-//       console.log('Database tables created successfully!');
-//       app.listen(PORT, () => {
-//         console.log(`🚀 Server running on port ${PORT}`);
-//         console.log(`🔗 Health check: http://localhost:${PORT}/health`);
-//         console.log(`📚 API Documentation: http://localhost:${PORT}/api-docs`);
-//       });
-//     })
-//     .catch(err => {
-//       console.error('Error syncing database:', err);
-//     });
-// }
