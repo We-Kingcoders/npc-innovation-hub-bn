@@ -7,7 +7,7 @@ class Blog
   extends Model<BlogAttributes, BlogCreationAttributes>
   implements BlogAttributes
 {
-  declare id: string
+  declare id: string      
   declare title: string
   declare content: string
   declare summary: string
