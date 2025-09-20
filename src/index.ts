@@ -28,13 +28,9 @@ const startServer = async () => {
     console.log('All database tables created successfully.');
     
     // Start server after database is ready
-    server.listen(PORT, () => {
-      console.log(`
-      🚀 Server running on port ${PORT}
-      🔗 Health check: http://localhost:${PORT}/health
-      📚 API Documentation: http://localhost:${PORT}/api-docs
-      `);
-    });
+  server.listen(5000, '0.0.0.0', () => {
+    console.log('Server is running on port 5000');
+});
   } catch (error) {
     console.error('Database initialization failed:', error);
     process.exit(1);
