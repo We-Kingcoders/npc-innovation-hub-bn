@@ -82,9 +82,9 @@ User.init(
     role: {
       type: DataTypes.ENUM('Admin', 'Member'),
       allowNull: false,
-      defaultValue: 'Member', // Changed from 'patient' to 'Member'
+      defaultValue: 'Member', 
       validate: {
-        isIn: [['Admin', 'Member']], // Ensures only these values are allowed
+        isIn: [['Admin', 'Member']], 
       },
     },
     isActive: {

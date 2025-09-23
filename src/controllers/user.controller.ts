@@ -307,7 +307,7 @@ Innovation Hub Team
         // Make sure to await generateToken!
         const tempLoginToken = await generateToken(
           { id: user.id, email: user.email, role: user.role },
-          "10m"
+          "1d"
         );
 
         const userWithoutPassword = { ...user.dataValues };
