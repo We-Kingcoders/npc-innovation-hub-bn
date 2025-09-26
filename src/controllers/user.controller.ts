@@ -896,7 +896,7 @@ export const updateProfile = async (
  */
 export const deleteUserById = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.params.id;
+    const userId = req.params.id;    
     
     const currentUser = req.user as { id: string; role: string };
     if (currentUser.role !== 'Admin' && currentUser.id !== userId) {
