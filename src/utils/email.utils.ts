@@ -2,141 +2,126 @@
  * Email Utilities
  * Handles all email communication for Innovation Hub
  * 
- * Last updated: 2025-09-26 20:21:32 UTC
- * Updated by: shemaalain2025-cloud
+ * Last updated: 2025-09-26 20:42:00 UTC
+ * Updated by: Copilot
  */
 
 import nodemailer from "nodemailer";
 import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
-import { SentMessageInfo, Options } from "nodemailer/lib/smtp-transport";
+import { SentMessageInfo } from "nodemailer/lib/smtp-transport";
 
 dotenv.config();
 
-// Connection retry settings
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 2000; // ms
-
-// Track connection status
-let primaryEmailAvailable = true;
-let transporterInitialized = false;
-let fallbackTransporterInitialized = false;
-
 // Primary transporter
-let transporter: nodemailer.Transporter<SentMessageInfo, Options>;
+let primaryTransporter: nodemailer.Transporter;
+// Fallback transporter
+let fallbackTransporter: nodemailer.Transporter;
 
-// Fallback transporter for when primary fails
-let fallbackTransporter: nodemailer.Transporter<SentMessageInfo, Options>;
+// Flag to track if transporters are initialized
+let primaryTransporterReady = false;
+let fallbackTransporterReady = false;
+let primaryTransporterFailed = false;
 
-// Initialize primary transporter with improved settings
-function initializePrimaryTransporter() {
-  try {
-    // Configure primary transporter with better timeout and connection settings
-    transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-      tls: {
-        rejectUnauthorized: false
-      },
-      connectionTimeout: 10000, // 10 seconds instead of default
-      socketTimeout: 30000, // 30 seconds
-      pool: true, // Use connection pooling
-      maxConnections: 5, // Maximum number of connections
-      maxMessages: 100 // Maximum number of messages per connection
-    });
+// Retry configuration
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1 second
+const RECONNECT_INTERVAL = 30000; // 30 seconds
 
-    // Verify connection
-    transporter.verify((error, success) => {
-      if (error) {
-        console.error(`[${new Date().toISOString()}] Primary SMTP connection error:`, error);
-        primaryEmailAvailable = false;
-      } else {
-        console.log(`[${new Date().toISOString()}] Primary SMTP server is ready`);
-        primaryEmailAvailable = true;
-        transporterInitialized = true;
-      }
-    });
-  } catch (error) {
-    console.error(`[${new Date().toISOString()}] Error initializing primary email transport:`, error);
-    primaryEmailAvailable = false;
-  }
+// Initialize primary transporter (Gmail)
+try {
+  primaryTransporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+    tls: {
+      rejectUnauthorized: false
+    },
+    // Add connection timeout (default is too high)
+    connectionTimeout: 10000, // 10 seconds
+    greetingTimeout: 5000,    // 5 seconds
+    socketTimeout: 10000      // 10 seconds
+  });
+
+  // Verify connection
+  primaryTransporter.verify((error) => {
+    if (error) {
+      console.error(`[${new Date().toISOString()}] Primary SMTP connection error:`, error);
+      primaryTransporterFailed = true;
+      // Schedule reconnection attempts
+      scheduleReconnection();
+    } else {
+      console.log(`[${new Date().toISOString()}] Primary SMTP server is ready`);
+      primaryTransporterReady = true;
+    }
+  });
+} catch (err) {
+  console.error(`[${new Date().toISOString()}] Failed to create primary email transporter:`, err);
+  primaryTransporterFailed = true;
 }
 
-// Initialize fallback transporter
-function initializeFallbackTransporter() {
-  try {
-    // Check if SendGrid credentials are available as fallback
-    if (process.env.SENDGRID_API_KEY) {
-      fallbackTransporter = nodemailer.createTransport({
-        service: 'SendGrid',
-        auth: {
-          user: 'apikey',
-          pass: process.env.SENDGRID_API_KEY
-        }
-      });
-    } else if (process.env.MAILGUN_API_KEY && process.env.MAILGUN_DOMAIN) {
-      // Mailgun as another alternative
-      fallbackTransporter = nodemailer.createTransport({
-        service: 'Mailgun',
-        auth: {
-          user: process.env.MAILGUN_USER || 'api',
-          pass: process.env.MAILGUN_API_KEY
-        },
-        host: 'api.mailgun.net',
-        secure: false
-      });
-    } else {
-      // If no API-based services are available, create an Ethereal account as last resort
-      nodemailer.createTestAccount().then(testAccount => {
-        fallbackTransporter = nodemailer.createTransport({
-          host: 'smtp.ethereal.email',
-          port: 587,
-          secure: false,
-          auth: {
-            user: testAccount.user,
-            pass: testAccount.pass
-          }
-        });
-        
-        fallbackTransporterInitialized = true;
-        console.log(`[${new Date().toISOString()}] Fallback (Ethereal) email configured`);
-        console.log(`[${new Date().toISOString()}] Credentials: ${testAccount.user} / ${testAccount.pass}`);
-        console.log(`[${new Date().toISOString()}] View emails at: https://ethereal.email`);
-      }).catch(err => {
-        console.error(`[${new Date().toISOString()}] Failed to create fallback email account:`, err);
-      });
-      return;
-    }
+// Setup fallback (Ethereal) transporter for when Gmail fails
+setupFallbackTransporter();
 
-    // Verify fallback connection
-    fallbackTransporter.verify((error, success) => {
+// Function to set up fallback transporter
+async function setupFallbackTransporter(): Promise<void> {
+  try {
+    const testAccount = await nodemailer.createTestAccount();
+    
+    fallbackTransporter = nodemailer.createTransport({
+      host: 'smtp.ethereal.email',
+      port: 587,
+      secure: false,
+      auth: {
+        user: testAccount.user,
+        pass: testAccount.pass
+      }
+    });
+    
+    fallbackTransporterReady = true;
+    console.log(`[${new Date().toISOString()}] Fallback (Ethereal) email configured`);
+    console.log(`[${new Date().toISOString()}] Credentials: ${testAccount.user} / ${testAccount.pass}`);
+    console.log(`[${new Date().toISOString()}] View emails at: https://ethereal.email`);
+    
+    // Verify connection
+    fallbackTransporter.verify((error) => {
       if (error) {
         console.error(`[${new Date().toISOString()}] Fallback SMTP connection error:`, error);
+        fallbackTransporterReady = false;
       } else {
         console.log(`[${new Date().toISOString()}] Fallback SMTP server is ready`);
-        fallbackTransporterInitialized = true;
       }
     });
-  } catch (error) {
-    console.error(`[${new Date().toISOString()}] Error initializing fallback email transport:`, error);
+  } catch (err) {
+    console.error(`[${new Date().toISOString()}] Failed to create fallback email transporter:`, err);
+    fallbackTransporterReady = false;
   }
 }
 
-// Initialize both transporters
-initializePrimaryTransporter();
-initializeFallbackTransporter();
-
-// Schedule periodic health checks for the primary email service
-setInterval(() => {
-  if (!primaryEmailAvailable) {
+// Function to attempt reconnection to primary SMTP server
+function scheduleReconnection(): void {
+  console.log(`[${new Date().toISOString()}] Scheduling primary SMTP reconnection in ${RECONNECT_INTERVAL/1000} seconds...`);
+  setTimeout(() => {
     console.log(`[${new Date().toISOString()}] Attempting to reconnect primary email service...`);
-    initializePrimaryTransporter();
-  }
-}, 300000); // Check every 5 minutes
+    
+    primaryTransporter.verify((error) => {
+      if (error) {
+        console.error(`[${new Date().toISOString()}] Primary SMTP connection error:`, error);
+        primaryTransporterFailed = true;
+        primaryTransporterReady = false;
+        // Schedule another reconnection
+        scheduleReconnection();
+      } else {
+        console.log(`[${new Date().toISOString()}] Primary SMTP server reconnected successfully`);
+        primaryTransporterFailed = false;
+        primaryTransporterReady = true;
+      }
+    });
+  }, RECONNECT_INTERVAL);
+}
 
 // Define email interface for type safety
 interface EmailOptions {
@@ -169,7 +154,7 @@ const emailSendLog: Record<string, number[]> = {};
 const MAX_EMAILS_PER_HOUR = 20;
 
 /**
- * Send an email with retry logic and fallback options
+ * Send an email with retry and fallback logic
  * @param to Recipient email address(es)
  * @param subject Email subject
  * @param text Plain text email body
@@ -180,8 +165,23 @@ export async function sendEmail(
   to: string | string[],
   subject: string,
   text?: string,
-  html?: string
-): Promise<any> {
+  html?: string,
+  retryCount = 0
+): Promise<SentMessageInfo> {
+  // Check if any transporter is ready
+  if (!primaryTransporterReady && !fallbackTransporterReady) {
+    console.log(`[${new Date().toISOString()}] Waiting for email transporter to initialize...`);
+    // Wait and retry
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    if (!primaryTransporterReady && !fallbackTransporterReady) {
+      if (retryCount < MAX_RETRIES) {
+        console.log(`[${new Date().toISOString()}] No email transporter available. Retrying (${retryCount + 1}/${MAX_RETRIES})...`);
+        return sendEmail(to, subject, text, html, retryCount + 1);
+      }
+      throw new Error('Email transport not initialized after multiple attempts.');
+    }
+  }
+  
   // Basic rate limiting
   const recipient = Array.isArray(to) ? to[0] : to;
   const now = Date.now();
@@ -200,7 +200,7 @@ export async function sendEmail(
     throw new Error(`Email rate limit exceeded for this recipient (${MAX_EMAILS_PER_HOUR} per hour)`);
   }
   
-  // Log email sending attempt
+  // Log email sending timestamp
   emailSendLog[recipient].push(now);
   
   const mailOptions = {
@@ -211,54 +211,71 @@ export async function sendEmail(
     html: html,
   };
 
-  let lastError;
-  // Attempt with primary transporter with retries
-  if (primaryEmailAvailable && transporterInitialized) {
-    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-      try {
-        console.log(`[${new Date().toISOString()}] Sending email to: ${Array.isArray(to) ? to.join(', ') : to} (Attempt ${attempt})`);
-        const info = await transporter.sendMail(mailOptions);
-        console.log(`[${new Date().toISOString()}] Email sent: ${info.messageId}`);
-        return info;
-      } catch (error) {
-        lastError = error;
-        console.error(`[${new Date().toISOString()}] Error sending email (Attempt ${attempt}):`, error);
-        
-        // If it's a connection error, mark primary as unavailable
-        if (error.code === 'ETIMEDOUT' || error.code === 'ECONNREFUSED' || error.code === 'EAUTH') {
-          primaryEmailAvailable = false;
-          console.log(`[${new Date().toISOString()}] Primary email service marked as unavailable. Will try fallback.`);
-          break; // Exit retry loop and try fallback
-        }
-        
-        if (attempt < MAX_RETRIES) {
-          console.log(`[${new Date().toISOString()}] Retrying in ${RETRY_DELAY / 1000} seconds...`);
-          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
-        }
-      }
-    }
-  }
-
-  // If primary failed or is unavailable, try fallback
-  if (fallbackTransporterInitialized) {
-    try {
+  try {
+    // Choose the appropriate transporter
+    let transporter: nodemailer.Transporter;
+    let transporterType: string;
+    
+    if (primaryTransporterReady && !primaryTransporterFailed) {
+      transporter = primaryTransporter;
+      transporterType = "primary";
+    } else if (fallbackTransporterReady) {
+      transporter = fallbackTransporter;
+      transporterType = "fallback";
       console.log(`[${new Date().toISOString()}] Using fallback email service for: ${Array.isArray(to) ? to.join(', ') : to}`);
-      const info = await fallbackTransporter.sendMail(mailOptions);
-      console.log(`[${new Date().toISOString()}] Email sent via fallback: ${info.messageId}`);
+    } else {
+      throw new Error("No email transporter available");
+    }
+    
+    console.log(`[${new Date().toISOString()}] Sending email to: ${Array.isArray(to) ? to.join(', ') : to} (Attempt ${retryCount + 1})`);
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`[${new Date().toISOString()}] Email sent: ${info.messageId}`);
+    
+    // For Ethereal emails, provide the preview URL
+    if (transporterType === "fallback" && info.messageId) {
+      console.log(`[${new Date().toISOString()}] Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+    }
+    
+    return info;
+  } catch (error: unknown) {
+    // Type guard for error
+    const err = error as Error;
+    
+    console.error(`[${new Date().toISOString()}] Error sending email:`, err);
+    
+    // Handle specific error cases
+    if (err.message && err.message.includes('ETIMEDOUT') && retryCount < MAX_RETRIES) {
+      console.log(`[${new Date().toISOString()}] Connection timeout. Retrying (${retryCount + 1}/${MAX_RETRIES})...`);
       
-      // For Ethereal emails, provide the preview URL
-      if (nodemailer.getTestMessageUrl && info) {
-        console.log(`[${new Date().toISOString()}] Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+      // If using primary transporter, mark it as failed for this attempt
+      if (!primaryTransporterFailed) {
+        primaryTransporterFailed = true;
+        // Schedule reconnection
+        scheduleReconnection();
       }
       
-      return info;
-    } catch (error) {
-      console.error(`[${new Date().toISOString()}] Fallback email service also failed:`, error);
-      throw error; // Both primary and fallback failed
+      // Wait before retry
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+      
+      // Retry with incremented retry count
+      return sendEmail(to, subject, text, html, retryCount + 1);
     }
-  } else {
-    console.error(`[${new Date().toISOString()}] No available email transport. Primary and fallback both unavailable.`);
-    throw lastError || new Error('No available email transport');
+    
+    // If we're using the primary transporter and it failed, try the fallback
+    if (!primaryTransporterFailed && primaryTransporterReady && fallbackTransporterReady && retryCount < MAX_RETRIES) {
+      console.log(`[${new Date().toISOString()}] Primary email service failed. Switching to fallback...`);
+      primaryTransporterFailed = true;
+      // Schedule reconnection
+      scheduleReconnection();
+      
+      // Wait before retry with fallback
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+      
+      // Retry with fallback
+      return sendEmail(to, subject, text, html, retryCount + 1);
+    }
+    
+    throw err;
   }
 }
 
@@ -267,54 +284,91 @@ export async function sendEmail(
  * @param options Email options including attachments
  * @returns Promise resolving to send info
  */
-export async function sendEmailWithAttachments(options: EmailOptions): Promise<any> {
+export async function sendEmailWithAttachments(options: EmailOptions, retryCount = 0): Promise<SentMessageInfo> {
+  // Check if any transporter is ready
+  if (!primaryTransporterReady && !fallbackTransporterReady) {
+    console.log(`[${new Date().toISOString()}] Waiting for email transporter to initialize...`);
+    // Wait and retry
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    if (!primaryTransporterReady && !fallbackTransporterReady) {
+      if (retryCount < MAX_RETRIES) {
+        console.log(`[${new Date().toISOString()}] No email transporter available. Retrying (${retryCount + 1}/${MAX_RETRIES})...`);
+        return sendEmailWithAttachments(options, retryCount + 1);
+      }
+      throw new Error('Email transport not initialized after multiple attempts.');
+    }
+  }
+  
   const mailOptions = {
     from: `"Innovation Hub" <${process.env.EMAIL_USER}>`,
     ...options
   };
 
-  let lastError;
-  // Attempt with primary transporter with retries
-  if (primaryEmailAvailable && transporterInitialized) {
-    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-      try {
-        console.log(`[${new Date().toISOString()}] Sending email with attachments to: ${Array.isArray(options.to) ? options.to.join(', ') : options.to} (Attempt ${attempt})`);
-        const info = await transporter.sendMail(mailOptions);
-        console.log(`[${new Date().toISOString()}] Email with attachments sent: ${info.messageId}`);
-        return info;
-      } catch (error) {
-        lastError = error;
-        console.error(`[${new Date().toISOString()}] Error sending email with attachments (Attempt ${attempt}):`, error);
-        
-        // If it's a connection error, mark primary as unavailable
-        if (error.code === 'ETIMEDOUT' || error.code === 'ECONNREFUSED' || error.code === 'EAUTH') {
-          primaryEmailAvailable = false;
-          console.log(`[${new Date().toISOString()}] Primary email service marked as unavailable. Will try fallback.`);
-          break; // Exit retry loop and try fallback
-        }
-        
-        if (attempt < MAX_RETRIES) {
-          console.log(`[${new Date().toISOString()}] Retrying in ${RETRY_DELAY / 1000} seconds...`);
-          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
-        }
+  try {
+    // Choose the appropriate transporter
+    let transporter: nodemailer.Transporter;
+    let transporterType: string;
+    
+    if (primaryTransporterReady && !primaryTransporterFailed) {
+      transporter = primaryTransporter;
+      transporterType = "primary";
+    } else if (fallbackTransporterReady) {
+      transporter = fallbackTransporter;
+      transporterType = "fallback";
+      console.log(`[${new Date().toISOString()}] Using fallback email service for: ${Array.isArray(options.to) ? options.to.join(', ') : options.to}`);
+    } else {
+      throw new Error("No email transporter available");
+    }
+    
+    console.log(`[${new Date().toISOString()}] Sending email with attachments to: ${Array.isArray(options.to) ? options.to.join(', ') : options.to} (Attempt ${retryCount + 1})`);
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`[${new Date().toISOString()}] Email with attachments sent: ${info.messageId}`);
+    
+    // For Ethereal emails, provide the preview URL
+    if (transporterType === "fallback" && info.messageId) {
+      console.log(`[${new Date().toISOString()}] Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+    }
+    
+    return info;
+  } catch (error: unknown) {
+    // Type guard for error
+    const err = error as Error;
+    
+    console.error(`[${new Date().toISOString()}] Error sending email with attachments:`, err);
+    
+    // Handle specific error cases
+    if (err.message && err.message.includes('ETIMEDOUT') && retryCount < MAX_RETRIES) {
+      console.log(`[${new Date().toISOString()}] Connection timeout. Retrying (${retryCount + 1}/${MAX_RETRIES})...`);
+      
+      // If using primary transporter, mark it as failed for this attempt
+      if (!primaryTransporterFailed) {
+        primaryTransporterFailed = true;
+        // Schedule reconnection
+        scheduleReconnection();
       }
+      
+      // Wait before retry
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+      
+      // Retry with incremented retry count
+      return sendEmailWithAttachments(options, retryCount + 1);
     }
-  }
-
-  // If primary failed or is unavailable, try fallback
-  if (fallbackTransporterInitialized) {
-    try {
-      console.log(`[${new Date().toISOString()}] Using fallback email service for attachments email: ${Array.isArray(options.to) ? options.to.join(', ') : options.to}`);
-      const info = await fallbackTransporter.sendMail(mailOptions);
-      console.log(`[${new Date().toISOString()}] Email with attachments sent via fallback: ${info.messageId}`);
-      return info;
-    } catch (error) {
-      console.error(`[${new Date().toISOString()}] Fallback email service also failed for attachments:`, error);
-      throw error; // Both primary and fallback failed
+    
+    // If we're using the primary transporter and it failed, try the fallback
+    if (!primaryTransporterFailed && primaryTransporterReady && fallbackTransporterReady && retryCount < MAX_RETRIES) {
+      console.log(`[${new Date().toISOString()}] Primary email service failed. Switching to fallback...`);
+      primaryTransporterFailed = true;
+      // Schedule reconnection
+      scheduleReconnection();
+      
+      // Wait before retry with fallback
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+      
+      // Retry with fallback
+      return sendEmailWithAttachments(options, retryCount + 1);
     }
-  } else {
-    console.error(`[${new Date().toISOString()}] No available email transport. Primary and fallback both unavailable.`);
-    throw lastError || new Error('No available email transport');
+    
+    throw err;
   }
 }
 
@@ -329,7 +383,7 @@ export async function sendTemplateEmail(
   to: string | string[],
   template: EmailTemplate,
   data: Record<string, any>
-): Promise<any> {
+): Promise<SentMessageInfo> {
   // Default data values
   const defaultData = {
     appName: 'Innovation Hub',
@@ -497,22 +551,10 @@ The Innovation Hub Team
   return sendEmail(to, subject, text, html);
 }
 
-// Regularly check primary email connection
-setInterval(() => {
-  if (transporterInitialized) {
-    transporter.verify((error, success) => {
-      primaryEmailAvailable = !error;
-      if (error) {
-        console.log(`[${new Date().toISOString()}] Primary email service is currently unavailable:`, error.message);
-      }
-    });
-  }
-}, 600000); // Check every 10 minutes
-
 // Log module initialization
-console.log(`[${new Date().toISOString()}] Email utils initialized by shemaalain2025-cloud with improved reliability`);
+console.log(`[${new Date().toISOString()}] Email utils initialized`);
 
-module.exports = {
+export {
   sendEmail,
   sendEmailWithAttachments,
   sendTemplateEmail,
