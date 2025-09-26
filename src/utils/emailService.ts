@@ -24,7 +24,7 @@ export const sendEmail = async (options: EmailOptions): Promise<void> => {
     rejectUnauthorized: true, // safer than false
   },
   connectionTimeout: 10000, // 10s, to avoid ETIMEDOUT on Render
-});
+});  
 
 
   const mailOptions = {
