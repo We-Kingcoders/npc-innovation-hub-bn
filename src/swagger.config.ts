@@ -27,7 +27,7 @@ const options = {
       description: 'Development server',
     },
     {
-      url: 'https://npc-innovation-hub-bn-1.onrender.com',
+      url: 'https://npc-innovation-hub-bn-3.onrender.com',
       description: 'Production server (HTTPS)',
     },
   ],
