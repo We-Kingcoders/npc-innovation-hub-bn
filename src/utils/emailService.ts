@@ -35,4 +35,4 @@ export const sendEmail = async (options: EmailOptions): Promise<void> => {
   };
 
   await transporter.sendMail(mailOptions);
-};
+};   
