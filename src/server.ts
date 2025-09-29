@@ -54,7 +54,7 @@ app.use('/users', userRoutes);
 app.use('/api/hub', hubRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/notifications', notificationRoutes);
-app.use('/tasks', taskRoutes)
+app.use('/tasks', taskRoutes)   
 // Public route
 app.use('/api/hire-us', hireRoutes);
 
