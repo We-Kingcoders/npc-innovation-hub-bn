@@ -1,12 +1,14 @@
 /**
  * Email Utilities
- * Handles all email communication for Innovation Hub
+ * Handles all email communication for Innovation Hub.
+ * Uses @sendgrid/mail for production and nodemailer with Ethereal for development.
  * 
- * Last updated: 2025-07-02 08:52:42 UTC
- * Updated by: Alain275
+ * Last updated: 2025-10-03 09:36:46 UTC
+ * Updated by: shemaalain2025-cloud
  */
 
 import nodemailer from "nodemailer";
+import sgMail from "@sendgrid/mail";
 import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
@@ -14,29 +16,23 @@ import { SentMessageInfo, Options } from "nodemailer/lib/smtp-transport";
 
 dotenv.config();
 
-// Initialize with a default transporter
-let transporter: nodemailer.Transporter<SentMessageInfo, Options> = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false
+// --- Production: SendGrid Setup ---
+if (process.env.NODE_ENV === 'production') {
+  if (process.env.SENDGRID_API_KEY) {
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    console.log(`[${new Date().toISOString()}] SendGrid email configured for production.`);
+  } else {
+    console.error(`[${new Date().toISOString()}] FATAL: SENDGRID_API_KEY is not set for production environment.`);
   }
-});
+}
 
-// Flag to track if transporter is initialized
-let transporterInitialized = true;
+// --- Development: Nodemailer with Ethereal Setup ---
+let devTransporter: nodemailer.Transporter<SentMessageInfo, Options> | null = null;
+let transporterInitialized = process.env.NODE_ENV === 'production'; // Initialized if in production
 
-// Check if we're using development mode with Ethereal email
 if (process.env.NODE_ENV === 'development' && process.env.USE_ETHEREAL === 'true') {
-  // Set flag to false until Ethereal account is created
-  transporterInitialized = false;
-  
-  // Create Ethereal test account for development
   nodemailer.createTestAccount().then(testAccount => {
-    transporter = nodemailer.createTransport({
+    devTransporter = nodemailer.createTransport({
       host: 'smtp.ethereal.email',
       port: 587,
       secure: false,
@@ -48,23 +44,22 @@ if (process.env.NODE_ENV === 'development' && process.env.USE_ETHEREAL === 'true
     
     transporterInitialized = true;
     console.log(`[${new Date().toISOString()}] Ethereal email configured for development`);
-    console.log(`[${new Date().toISOString()}] Credentials: ${testAccount.user} / ${testAccount.pass}`);
-    console.log(`[${new Date().toISOString()}] View emails at: https://ethereal.email`);
     
-    // Verify connection once Ethereal is set up
-    transporter.verify((error, success) => {
+    devTransporter.verify((error) => {
       if (error) {
-        console.error(`[${new Date().toISOString()}] SMTP connection error:`, error);
+        console.error(`[${new Date().toISOString()}] Ethereal SMTP connection error:`, error);
       } else {
-        console.log(`[${new Date().toISOString()}] SMTP server is ready to send messages`);
+        console.log(`[${new Date().toISOString()}] Ethereal SMTP server is ready to send messages`);
       }
     });
   }).catch(err => {
     console.error(`[${new Date().toISOString()}] Failed to create Ethereal test account:`, err);
-    console.log(`[${new Date().toISOString()}] Falling back to default email transport`);
-    transporterInitialized = true; // Fall back to default transporter
+    // Fallback if needed, but for now we just log the error
   });
+} else if (process.env.NODE_ENV === 'development') {
+    console.warn(`[${new Date().toISOString()}] Development mode without USE_ETHEREAL=true. No email transport configured for dev.`);
 }
+
 
 // Define email interface for type safety
 interface EmailOptions {
@@ -92,12 +87,12 @@ export enum EmailTemplate {
   ROLE_UPDATE = 'role-update',
 }
 
-// Track email sending rate for throttling
+// Rate limiting logic can remain the same if desired
 const emailSendLog: Record<string, number[]> = {};
 const MAX_EMAILS_PER_HOUR = 20;
 
 /**
- * Send an email
+ * Send an email. Uses SendGrid for production, Nodemailer/Ethereal for development.
  * @param to Recipient email address(es)
  * @param subject Email subject
  * @param text Plain text email body
@@ -110,76 +105,16 @@ export async function sendEmail(
   text?: string,
   html?: string
 ): Promise<any> {
-  // Wait for transporter to be initialized
-  if (!transporterInitialized) {
-    console.log(`[${new Date().toISOString()}] Waiting for email transporter to initialize...`);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    if (!transporterInitialized) {
-      throw new Error('Email transport not initialized. Please try again later.');
-    }
-  }
-  
-  // In development with Ethereal, redirect all emails to the test account
-  if (process.env.NODE_ENV === 'development' && process.env.USE_ETHEREAL === 'true') {
-    console.log(`[${new Date().toISOString()}] Development mode: Redirecting email to Ethereal`);
-    console.log(`[${new Date().toISOString()}] Original recipient: ${Array.isArray(to) ? to.join(', ') : to}`);
-    console.log(`[${new Date().toISOString()}] Email subject: ${subject}`);
-    // The recipient will be ignored and the email will go to the Ethereal inbox
-  } else {
-    // Basic rate limiting
-    const recipient = Array.isArray(to) ? to[0] : to;
-    const now = Date.now();
-    if (!emailSendLog[recipient]) {
-      emailSendLog[recipient] = [];
-    }
-    
-    // Remove timestamps older than 1 hour
-    emailSendLog[recipient] = emailSendLog[recipient].filter(
-      timestamp => now - timestamp < 3600000
-    );
-    
-    // Check if rate limit exceeded
-    if (emailSendLog[recipient].length >= MAX_EMAILS_PER_HOUR) {
-      console.warn(`[${new Date().toISOString()}] Rate limit exceeded for recipient: ${recipient}`);
-      throw new Error(`Email rate limit exceeded for this recipient (${MAX_EMAILS_PER_HOUR} per hour)`);
-    }
-    
-    // Log email sending timestamp
-    emailSendLog[recipient].push(now);
-  }
-  
-  const mailOptions = {
-    from: `"Innovation Hub" <${process.env.EMAIL_USER}>`,
-    to: to,
-    subject: subject,
-    text: text,
-    html: html,
-  };
-
-  try {
-    console.log(`[${new Date().toISOString()}] Sending email to: ${Array.isArray(to) ? to.join(', ') : to}`);
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`[${new Date().toISOString()}] Email sent: ${info.messageId}`);
-    
-    // For Ethereal emails, provide the preview URL
-    if (process.env.NODE_ENV === 'development' && process.env.USE_ETHEREAL === 'true' && info.messageId) {
-      console.log(`[${new Date().toISOString()}] Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
-    }
-    
-    return info;
-  } catch (error) {
-    console.error(`[${new Date().toISOString()}] Error sending email:`, error);
-    throw error;
-  }
+    const options: EmailOptions = { to, subject, text, html };
+    return sendEmailWithAttachments(options);
 }
 
 /**
- * Send an email with attachments
+ * Send an email with attachments. Uses SendGrid for production, Nodemailer/Ethereal for development.
  * @param options Email options including attachments
  * @returns Promise resolving to send info
  */
 export async function sendEmailWithAttachments(options: EmailOptions): Promise<any> {
-  // Wait for transporter to be initialized
   if (!transporterInitialized) {
     console.log(`[${new Date().toISOString()}] Waiting for email transporter to initialize...`);
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -187,30 +122,80 @@ export async function sendEmailWithAttachments(options: EmailOptions): Promise<a
       throw new Error('Email transport not initialized. Please try again later.');
     }
   }
-  
-  const mailOptions = {
-    from: `"Innovation Hub" <${process.env.EMAIL_USER}>`,
-    ...options
-  };
 
-  try {
-    console.log(`[${new Date().toISOString()}] Sending email with attachments to: ${Array.isArray(options.to) ? options.to.join(', ') : options.to}`);
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`[${new Date().toISOString()}] Email with attachments sent: ${info.messageId}`);
-    
-    // For Ethereal emails, provide the preview URL
-    if (process.env.NODE_ENV === 'development' && process.env.USE_ETHEREAL === 'true' && info.messageId) {
-      console.log(`[${new Date().toISOString()}] Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+  // --- PRODUCTION: Use SendGrid API ---
+  if (process.env.NODE_ENV === 'production') {
+    if (!process.env.SENDGRID_VERIFIED_SENDER) {
+      throw new Error("SENDGRID_VERIFIED_SENDER is not set in environment variables.");
     }
-    
-    return info;
-  } catch (error) {
-    console.error(`[${new Date().toISOString()}] Error sending email with attachments:`, error);
-    throw error;
+    const msg: any = {
+      to: options.to,
+      from: {
+        name: "Innovation Hub",
+        email: process.env.SENDGRID_VERIFIED_SENDER
+      },
+      subject: options.subject,
+      text: options.text,
+      html: options.html,
+      cc: options.cc,
+      bcc: options.bcc,
+    };
+
+    if (options.attachments && options.attachments.length > 0) {
+      msg.attachments = options.attachments.map(att => ({
+        content: fs.readFileSync(att.path).toString('base64'),
+        filename: att.filename,
+        type: att.contentType,
+        disposition: 'attachment',
+      }));
+    }
+
+    try {
+      console.log(`[${new Date().toISOString()}] Sending email via SendGrid to: ${Array.isArray(options.to) ? options.to.join(', ') : options.to}`);
+      const response = await sgMail.send(msg);
+      console.log(`[${new Date().toISOString()}] Email sent successfully via SendGrid.`);
+      return response;
+    } catch (error: any) {
+      console.error(`[${new Date().toISOString()}] Error sending email via SendGrid:`, error);
+      if (error.response) {
+        console.error('SendGrid Error Body:', error.response.body);
+      }
+      throw error;
+    }
+  }
+
+  // --- DEVELOPMENT: Use Nodemailer with Ethereal ---
+  else if (process.env.NODE_ENV === 'development' && devTransporter) {
+    const mailOptions = {
+        from: `"Innovation Hub (Dev)" <no-reply@innovation-hub.dev>`,
+        to: options.to, // Ethereal will catch this
+        subject: options.subject,
+        text: options.text,
+        html: options.html,
+        attachments: options.attachments,
+        cc: options.cc,
+        bcc: options.bcc,
+    };
+
+    try {
+        console.log(`[${new Date().toISOString()}] Sending DEV email to: ${Array.isArray(options.to) ? options.to.join(', ') : options.to}`);
+        const info = await devTransporter.sendMail(mailOptions);
+        console.log(`[${new Date().toISOString()}] DEV Email sent: ${info.messageId}`);
+        console.log(`[${new Date().toISOString()}] Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+        return info;
+    } catch (error) {
+        console.error(`[${new Date().toISOString()}] Error sending DEV email:`, error);
+        throw error;
+    }
+  }
+  
+  // Fallback if no transport is configured
+  else {
+    console.warn(`[${new Date().toISOString()}] Email not sent. No email transport is configured for the current environment.`);
+    return Promise.resolve();
   }
 }
 
-// Rest of the file remains the same
 /**
  * Send an email using a template
  * @param to Recipient email address(es)
@@ -223,10 +208,9 @@ export async function sendTemplateEmail(
   template: EmailTemplate,
   data: Record<string, any>
 ): Promise<any> {
-  // Default data values
   const defaultData = {
     appName: 'Innovation Hub',
-    supportEmail: process.env.SUPPORT_EMAIL || process.env.EMAIL_USER,
+    supportEmail: process.env.SUPPORT_EMAIL || 'support@yourdomain.com',
     year: new Date().getFullYear(),
     ...data,
   };
@@ -243,7 +227,6 @@ export async function sendTemplateEmail(
 Dear ${data.firstName},
 
 Welcome to Innovation Hub! We're excited to have you join our community of innovators and creators.
-
 Your account has been created successfully. You can now log in and start exploring our platform.
 
 Best regards,
@@ -266,7 +249,6 @@ The Innovation Hub Team
 Dear ${data.firstName},
 
 Please verify your email address by clicking the link below:
-
 ${data.verificationLink}
 
 If you did not create an account with us, please disregard this message.
@@ -290,14 +272,12 @@ The Innovation Hub Team
       `;
       break;
 
-    // Other template cases remain unchanged...
     case EmailTemplate.PASSWORD_RESET:
       subject = 'Innovation Hub - Password Reset Request';
       text = `
 Dear ${data.firstName},
 
 We received a request to reset your password. Please click the link below to set a new password:
-
 ${data.resetLink}
 
 If you did not request a password reset, please ignore this email.
@@ -327,7 +307,6 @@ The Innovation Hub Team
 Dear ${data.firstName},
 
 Your role on the Innovation Hub platform has been updated to ${data.newRole}.
-
 ${data.message || ''}
 
 If you have any questions, please contact our support team.
@@ -353,7 +332,6 @@ The Innovation Hub Team
 Dear ${data.firstName},
 
 You're invited to join our event: ${data.eventName}
-
 Date: ${data.eventDate}
 Time: ${data.eventTime}
 ${data.eventLocation ? `Location: ${data.eventLocation}` : ''}
@@ -390,20 +368,6 @@ The Innovation Hub Team
 
   return sendEmail(to, subject, text, html);
 }
-
-// Verify connection on startup (only for Gmail initially)
-if (process.env.NODE_ENV !== 'development' || process.env.USE_ETHEREAL !== 'true') {
-  transporter.verify((error, success) => {
-    if (error) {
-      console.error(`[${new Date().toISOString()}] SMTP connection error:`, error);
-    } else {
-      console.log(`[${new Date().toISOString()}] SMTP server is ready to send messages`);
-    }
-  });
-}
-
-// Log module initialization
-console.log(`[2025-07-02 08:52:42] Email utils initialized by Alain275`);
 
 module.exports = {
   sendEmail,

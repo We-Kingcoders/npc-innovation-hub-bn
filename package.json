@@ -29,6 +29,7 @@
   },
   "homepage": "https://github.com/We-Kingcoders/npc-innovation-hub-bn#readme",
   "dependencies": {
+    "@sendgrid/mail": "^8.1.6",
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",
     "cloudinary": "^1.41.3",
