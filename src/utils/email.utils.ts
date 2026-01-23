@@ -30,34 +30,57 @@ if (process.env.NODE_ENV === 'production') {
 let devTransporter: nodemailer.Transporter<SentMessageInfo, Options> | null = null;
 let transporterInitialized = process.env.NODE_ENV === 'production'; // Initialized if in production
 
-if (process.env.NODE_ENV === 'development' && process.env.USE_ETHEREAL === 'true') {
-  nodemailer.createTestAccount().then(testAccount => {
+if (process.env.NODE_ENV === 'development') {
+  // Use Gmail if credentials are provided
+  if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
     devTransporter = nodemailer.createTransport({
-      host: 'smtp.ethereal.email',
-      port: 587,
-      secure: false,
+      service: 'gmail',
       auth: {
-        user: testAccount.user,
-        pass: testAccount.pass
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
       }
     });
     
     transporterInitialized = true;
-    console.log(`[${new Date().toISOString()}] Ethereal email configured for development`);
+    console.log(`[${new Date().toISOString()}] Gmail email configured for development`);
     
     devTransporter.verify((error) => {
       if (error) {
-        console.error(`[${new Date().toISOString()}] Ethereal SMTP connection error:`, error);
+        console.error(`[${new Date().toISOString()}] Gmail SMTP connection error:`, error);
       } else {
-        console.log(`[${new Date().toISOString()}] Ethereal SMTP server is ready to send messages`);
+        console.log(`[${new Date().toISOString()}] Gmail SMTP server is ready to send messages`);
       }
     });
-  }).catch(err => {
-    console.error(`[${new Date().toISOString()}] Failed to create Ethereal test account:`, err);
-    // Fallback if needed, but for now we just log the error
-  });
-} else if (process.env.NODE_ENV === 'development') {
-    console.warn(`[${new Date().toISOString()}] Development mode without USE_ETHEREAL=true. No email transport configured for dev.`);
+  }
+  // Fallback to Ethereal if USE_ETHEREAL is true
+  else if (process.env.USE_ETHEREAL === 'true') {
+    nodemailer.createTestAccount().then(testAccount => {
+      devTransporter = nodemailer.createTransport({
+        host: 'smtp.ethereal.email',
+        port: 587,
+        secure: false,
+        auth: {
+          user: testAccount.user,
+          pass: testAccount.pass
+        }
+      });
+      
+      transporterInitialized = true;
+      console.log(`[${new Date().toISOString()}] Ethereal email configured for development`);
+      
+      devTransporter.verify((error) => {
+        if (error) {
+          console.error(`[${new Date().toISOString()}] Ethereal SMTP connection error:`, error);
+        } else {
+          console.log(`[${new Date().toISOString()}] Ethereal SMTP server is ready to send messages`);
+        }
+      });
+    }).catch(err => {
+      console.error(`[${new Date().toISOString()}] Failed to create Ethereal test account:`, err);
+    });
+  } else {
+    console.warn(`[${new Date().toISOString()}] Development mode without email credentials. No email transport configured.`);
+  }
 }
 
 
@@ -164,11 +187,12 @@ export async function sendEmailWithAttachments(options: EmailOptions): Promise<a
     }
   }
 
-  // --- DEVELOPMENT: Use Nodemailer with Ethereal ---
+  // --- DEVELOPMENT: Use Nodemailer with Gmail or Ethereal ---
   else if (process.env.NODE_ENV === 'development' && devTransporter) {
+    const fromEmail = process.env.EMAIL_USER || 'no-reply@innovation-hub.dev';
     const mailOptions = {
-        from: `"Innovation Hub (Dev)" <no-reply@innovation-hub.dev>`,
-        to: options.to, // Ethereal will catch this
+        from: `"Innovation Hub (Dev)" <${fromEmail}>`,
+        to: options.to,
         subject: options.subject,
         text: options.text,
         html: options.html,
