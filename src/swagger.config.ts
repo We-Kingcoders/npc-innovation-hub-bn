@@ -24,7 +24,15 @@ const options = {
   servers: [
     {
       url: `http://localhost:${port}`,
-      description: 'Development server',
+      description: 'Development server (localhost)',
+    },
+    {
+      url: `http://192.168.31.38:${port}`,
+      description: 'Development server (LAN IP)',
+    },
+    {
+      url: `http://0.0.0.0:${port}`,
+      description: 'Development server (all interfaces)',
     },
     {
       url: 'https://npc-innovation-hub-bn-3.onrender.com',
