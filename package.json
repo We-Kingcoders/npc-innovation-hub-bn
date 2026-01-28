@@ -4,6 +4,7 @@
   "description": "NPC Innovation Hub branding System API",
   "main": "index.js",
   "scripts": {
+    "start": "ts-node src/index.ts",
     "test": "jest",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "test:watch": "jest --watch",
@@ -80,7 +81,7 @@
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^8.35.1",
     "@typescript-eslint/parser": "^8.35.1",
-    "eslint": "^9.30.0",
+    "eslint": "^8.57.1",
     "eslint-config-prettier": "^10.1.5",
     "husky": "^9.1.7",
     "jest": "^30.0.3",

@@ -83,4 +83,5 @@ userRoutes.post("/verify-otp", verifyOTP);
 // );
 // Initiate Google OAuth authentication (matches /api/users/auth/google)
 userRoutes.post('/auth/google/auth', loginWithGoogleToken);
+
 export default userRoutes;
