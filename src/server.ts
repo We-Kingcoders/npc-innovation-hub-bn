@@ -31,7 +31,11 @@ import userRoutes from './routes/user.route';
 const app: Express = express();
 
 // Security middleware
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable CSP to allow Swagger UI to work
+  hsts: false, // Disable HSTS in development to prevent HTTPS redirects
+  crossOriginOpenerPolicy: false, // Disable COOP for development
+}));
 app.use(cors());
 
 // Body parsing middleware
