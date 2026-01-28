@@ -26,7 +26,7 @@ const cloudinaryUtils = {
   // Standard options for innovation hub uploads
   hubOptions: {
     folder: 'innovation-hub',
-    resource_type: 'auto',
+    resource_type: 'auto' as const,
     overwrite: true
   },
   
