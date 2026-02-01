@@ -66,9 +66,9 @@ userRoutes.patch(
   updatePassword
 );
 userRoutes.get("/profile", protectRoute, getProfile);
-userRoutes.patch("/updateprofile", protectRoute, upload.single("images"), updateProfile);
-userRoutes.post("/requestpasswordreset", requestPasswordReset);
-userRoutes.post("/resetpassword", resetPassword);
+userRoutes.patch("/update-profile", protectRoute, upload.single("images"), updateProfile);
+userRoutes.post("/request-password-reset", requestPasswordReset);
+userRoutes.post("/reset-password", resetPassword);
 userRoutes.get("/verify-email", verifyTokenMiddleware, verifyEmail);
 
 // OTP routes for all users (Member, Admin, etc.)
