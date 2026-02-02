@@ -60,7 +60,7 @@ userRoutes.get(
 )
 
 userRoutes.patch(
-  "/:id/updatepassword",
+  "/:id/update-password",
   protectRoute,
   validateUserUpdatePassword,
   updatePassword
