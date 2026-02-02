@@ -60,7 +60,7 @@ userRoutes.get(
 )
 
 userRoutes.patch(
-  "/:id/updatepassword",
+  "/:id/update-password",
   protectRoute,
   validateUserUpdatePassword,
   updatePassword
@@ -73,7 +73,7 @@ userRoutes.get("/verify-email", verifyTokenMiddleware, verifyEmail);
 
 // OTP routes for all users (Member, Admin, etc.)
 userRoutes.post("/send-otp", sendOTP); // <---- Route to send OTP
-userRoutes.post("/verify-otp", verifyOTP);
+userRoutes.post("/verify-otp", verifyOTP);  
 
 // userRoutes.get('/allow-states', protectRoute, UserController.getAllAllowStates);
 // userRoutes.patch(
