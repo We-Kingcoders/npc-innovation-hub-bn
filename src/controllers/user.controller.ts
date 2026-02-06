@@ -12,6 +12,7 @@ import { addToBlacklist } from '../utils/tokenBlacklist'
 import { passwordEventEmitter } from '../events/password.event'
 import '../utils/cloudinary.utils'
 import User from '../models/user.model'
+import Member from '../models/member.model';
 import { Notification, NotificationType } from '../models/notification.model';
 import { sendOTP } from "../middlewares/otp.middleware"; // adjust path as needed
 
@@ -894,6 +895,45 @@ export const updateProfile = async (
 /**
  * Delete user account
  */
+// export const deleteUserById = async (req: Request, res: Response): Promise<void> => {
+//   try {
+//     const userId = req.params.id;    
+    
+//     const currentUser = req.user as { id: string; role: string };
+//     if (currentUser.role !== 'Admin' && currentUser.id !== userId) {
+//       res.status(403).json({ 
+//         status: 'fail',
+//         message: "Access denied. You can only delete your own account." 
+//       });
+//       return;
+//     }
+    
+//     const user = await User.findByPk(userId);
+//     if (!user) {
+//       res.status(404).json({ 
+//         status: 'fail',
+//         message: "User not found" 
+//       });
+//       return;
+//     }
+    
+//     await User.destroy({ where: { id: userId } });
+    
+//     console.log(`User deleted: ${userId} by ${(req.user as any).email} at ${new Date().toISOString()}`)
+    
+//     res.status(200).json({ 
+//       status: 'success',
+//       message: "User deleted successfully" 
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ 
+//       status: 'error',
+//       message: "Error deleting user" 
+//     });
+//   }
+// };
+
 export const deleteUserById = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.params.id;    
@@ -916,6 +956,13 @@ export const deleteUserById = async (req: Request, res: Response): Promise<void>
       return;
     }
     
+    // Delete all related notifications first
+    await Notification.destroy({ where: { userId: userId } });
+    
+    // Delete related member profile if exists
+    await Member.destroy({ where: { userId: userId } });
+    
+    // Now delete the user
     await User.destroy({ where: { id: userId } });
     
     console.log(`User deleted: ${userId} by ${(req.user as any).email} at ${new Date().toISOString()}`)
