@@ -145,7 +145,7 @@ export const updateProject = async (req: Request, res: Response): Promise<void> 
     
     // Find the project
     const project = await Project.findByPk(id);
-    
+
     if (!project) {
       res.status(404).json({
         status: 'fail',
@@ -153,9 +153,16 @@ export const updateProject = async (req: Request, res: Response): Promise<void> 
       });
       return;
     }
-    
-    // Any logged in user can update the project - no permission check needed
-    
+
+    // Only the project owner or an Admin may update it
+    if (currentUser.role !== 'Admin' && project.userId !== currentUser.id) {
+      res.status(403).json({
+        status: 'fail',
+        message: 'You are not authorized to update this project.',
+      });
+      return;
+    }
+
     // Create an object to hold only the fields that need updating
     const updateData: any = {
       // Always track who last updated the project
@@ -211,11 +218,11 @@ export const updateProject = async (req: Request, res: Response): Promise<void> 
 export const deleteProject = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    // Any logged in user can delete projects
-    
+    const currentUser = req.user as { id: string; role: string };
+
     // Find the project
     const project = await Project.findByPk(id);
-    
+
     if (!project) {
       res.status(404).json({
         status: 'fail',
@@ -223,7 +230,16 @@ export const deleteProject = async (req: Request, res: Response): Promise<void> 
       });
       return;
     }
-    
+
+    // Only the project owner or an Admin may delete it
+    if (currentUser.role !== 'Admin' && project.userId !== currentUser.id) {
+      res.status(403).json({
+        status: 'fail',
+        message: 'You are not authorized to delete this project.',
+      });
+      return;
+    }
+
     // Delete project image if it's not the default
     if (project.image && !project.image.includes('pexels-photo-3861969')) {
       const publicId = project.image.split('/').pop()?.split('.')[0];
