@@ -3,6 +3,18 @@ import Member from '../models/member.model';
 import User from '../models/user.model';
 import cloudinary from "../utils/cloudinary.utils";
 
+// Contacts are allow-listed too: instagram replaced telegram as the accepted
+// key, but old rows saved before this change may still hold a `telegram`
+// value in their JSONB blob (nothing was backfilled). Filtering here, rather
+// than passing `contacts` straight through, guarantees a legacy telegram
+// value is never surfaced by the public endpoints even though it isn't
+// deleted from storage.
+function toPublicContacts(contacts: Member['contacts']) {
+  if (!contacts) return contacts;
+  const { linkedin, github, twitter, instagram } = contacts;
+  return { linkedin, github, twitter, instagram };
+}
+
 // Explicit allow-list for public/unauthenticated member responses.
 // Email, phone, and WhatsApp must NEVER appear here, even if such a field is
 // added to the Member model later - add new safe fields individually, don't spread.
@@ -34,7 +46,7 @@ function toPublicMemberProfile(member: Member) {
     imageUrl,
     bio,
     education,
-    contacts,
+    contacts: toPublicContacts(contacts),
     skillDetails,
     skills,
     createdAt,
@@ -266,7 +278,7 @@ export const createOrUpdateContacts = async (req: Request, res: Response): Promi
     if ('linkedin' in req.body) contacts.linkedin = req.body.linkedin;
     if ('github' in req.body) contacts.github = req.body.github;
     if ('twitter' in req.body) contacts.twitter = req.body.twitter;
-    if ('telegram' in req.body) contacts.telegram = req.body.telegram;
+    if ('instagram' in req.body) contacts.instagram = req.body.instagram;
 
     if (member) {
       await member.update({

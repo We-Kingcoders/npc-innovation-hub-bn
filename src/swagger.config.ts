@@ -118,7 +118,7 @@ const options = {
               linkedin: { type: 'string', format: 'uri' },
               github: { type: 'string', format: 'uri' },
               twitter: { type: 'string', format: 'uri' },
-              telegram: { type: 'string', format: 'uri' }
+              instagram: { type: 'string', format: 'uri' }
             }
           },
           skillDetails: {
@@ -2561,7 +2561,7 @@ delete: {
               "linkedin": { "type": "string", "format": "uri" },
               "github": { "type": "string", "format": "uri" },
               "twitter": { "type": "string", "format": "uri" },
-              "telegram": { "type": "string", "format": "uri" }
+              "instagram": { "type": "string", "format": "uri" }
             }
           }
         }
@@ -2586,7 +2586,7 @@ delete: {
                         "linkedin": { "type": "string" },
                         "github": { "type": "string" },
                         "twitter": { "type": "string" },
-                        "telegram": { "type": "string" }
+                        "instagram": { "type": "string" }
                       }
                     },
                     "userId": { "type": "string" }
@@ -2615,7 +2615,7 @@ delete: {
                         "linkedin": { "type": "string" },
                         "github": { "type": "string" },
                         "twitter": { "type": "string" },
-                        "telegram": { "type": "string" }
+                        "instagram": { "type": "string" }
                       }
                     },
                     "userId": { "type": "string" }
@@ -2659,7 +2659,7 @@ delete: {
               "linkedin": { "type": "string", "format": "uri" },
               "github": { "type": "string", "format": "uri" },
               "twitter": { "type": "string", "format": "uri" },
-              "telegram": { "type": "string", "format": "uri" }
+              "instagram": { "type": "string", "format": "uri" }
             }
           }
         }
@@ -2684,7 +2684,7 @@ delete: {
                         "linkedin": { "type": "string" },
                         "github": { "type": "string" },
                         "twitter": { "type": "string" },
-                        "telegram": { "type": "string" }
+                        "instagram": { "type": "string" }
                       }
                     },
                     "userId": { "type": "string" }
