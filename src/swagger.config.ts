@@ -3129,7 +3129,7 @@ delete: {
 '/api/projects': {
   get: {
     summary: 'Get all projects',
-    description: 'Public endpoint - Retrieves all projects with pagination',
+    description: 'Public endpoint - Retrieves all projects with pagination, including owner display info (name/role/avatar). Never returns owner email.',
     tags: ['Projects'],
     security: [],
     parameters: [
@@ -3273,7 +3273,7 @@ delete: {
 '/api/projects/project/{id}': {
   get: {
     summary: 'Get project by ID',
-    description: 'Public endpoint - Retrieves project information by ID',
+    description: 'Public endpoint - Retrieves project information by ID, including owner display info (name/role/avatar). Never returns owner email.',
     tags: ['Projects'],
     security: [],
     parameters: [
@@ -3316,7 +3316,7 @@ delete: {
 '/api/projects/{id}': {
   patch: {
     summary: 'Update a project',
-    description: 'Partially updates a project. Only provided fields will be updated. Any authenticated user can update any project.',
+    description: 'Partially updates a project. Only provided fields will be updated. Only the project owner or an Admin may update it.',
     tags: ['Projects'],
     security: [
       {
@@ -3406,6 +3406,16 @@ delete: {
           }
         }
       },
+      403: {
+        description: 'Forbidden - not the project owner or an Admin',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      },
       404: {
         description: 'Project not found',
         content: {
@@ -3420,7 +3430,7 @@ delete: {
   },
   delete: {
     summary: 'Delete a project',
-    description: 'Deletes a project. Any authenticated user can delete any project.',
+    description: 'Deletes a project. Only the project owner or an Admin may delete it.',
     tags: ['Projects'],
     security: [
       {
@@ -3462,6 +3472,16 @@ delete: {
       },
       401: {
         description: 'Unauthorized',
+        content: {
+          'application/json': {
+            schema: {
+              $ref: '#/components/schemas/Error'
+            }
+          }
+        }
+      },
+      403: {
+        description: 'Forbidden - not the project owner or an Admin',
         content: {
           'application/json': {
             schema: {
