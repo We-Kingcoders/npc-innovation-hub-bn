@@ -7,6 +7,7 @@
     "start": "ts-node src/index.ts",
     "test": "jest",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "db:sync-member": "ts-node src/scripts/sync-member-model.ts",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "prepare": "husky install",

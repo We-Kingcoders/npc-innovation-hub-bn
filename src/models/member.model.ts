@@ -25,6 +25,12 @@ interface Skill {
   percent: number;
 }
 
+// Define language interface
+interface Language {
+  name: string;
+  level: 'Native' | 'Fluent' | 'Intermediate' | 'Basic';
+}
+
 // Define member attributes
 interface MemberAttributes {
   id: string;
@@ -37,11 +43,18 @@ interface MemberAttributes {
   contacts?: Contacts;
   skillDetails?: Skill[];
   skills: string[];
+  languages?: Language[];
+  cvUrl?: string | null;
+  tagline?: string | null;
+  availability: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
-type MemberCreationAttributes = Optional<MemberAttributes, 'id' | 'education' | 'contacts' | 'skillDetails' | 'bio'>;
+type MemberCreationAttributes = Optional<
+  MemberAttributes,
+  'id' | 'education' | 'contacts' | 'skillDetails' | 'bio' | 'languages' | 'cvUrl' | 'tagline' | 'availability'
+>;
 
 class Member extends Model<MemberAttributes, MemberCreationAttributes> implements MemberAttributes {
   declare id: string;
@@ -54,6 +67,10 @@ class Member extends Model<MemberAttributes, MemberCreationAttributes> implement
   declare contacts: Contacts;
   declare skillDetails: Skill[];
   declare skills: string[];
+  declare languages: Language[];
+  declare cvUrl: string | null;
+  declare tagline: string | null;
+  declare availability: boolean;
   declare createdAt: Date;
   declare updatedAt: Date;
 }
@@ -105,6 +122,26 @@ Member.init(
       type: DataTypes.ARRAY(DataTypes.STRING),
       allowNull: true,
       defaultValue: [],
+    },
+    languages: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      defaultValue: [],
+    },
+    cvUrl: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: null,
+    },
+    tagline: {
+      type: DataTypes.STRING(160),
+      allowNull: true,
+      defaultValue: null,
+    },
+    availability: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
     },
     createdAt: {
       allowNull: false,

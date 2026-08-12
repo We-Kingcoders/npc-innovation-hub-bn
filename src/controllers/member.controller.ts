@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import fs from 'fs';
 import Member from '../models/member.model';
 import User from '../models/user.model';
 import cloudinary from "../utils/cloudinary.utils";
@@ -6,10 +7,9 @@ import cloudinary from "../utils/cloudinary.utils";
 // Explicit allow-list for public/unauthenticated member responses.
 // Email, phone, and WhatsApp must NEVER appear here, even if such a field is
 // added to the Member model later - add new safe fields individually, don't spread.
-// TODO: the frontend also wants "languages", a CV/resume URL, and this profile
-// doesn't have a dedicated tagline/availability field - none of these exist on
-// the Member model today. Needs a product decision + migration before they can
-// be added; do not guess at a schema for them here.
+// languages/cvUrl/tagline/availability may be NULL on rows created before these
+// columns existed (no backfill was run), so default them here rather than
+// trusting the DB defaultValue, which only applies to new inserts.
 function toPublicMemberProfile(member: Member) {
   const {
     id,
@@ -22,6 +22,10 @@ function toPublicMemberProfile(member: Member) {
     contacts,
     skillDetails,
     skills,
+    languages,
+    cvUrl,
+    tagline,
+    availability,
     createdAt,
     updatedAt,
   } = member;
@@ -37,6 +41,10 @@ function toPublicMemberProfile(member: Member) {
     contacts,
     skillDetails,
     skills,
+    languages: languages ?? [],
+    cvUrl: cvUrl ?? null,
+    tagline: tagline ?? null,
+    availability: availability ?? true,
     createdAt,
     updatedAt,
   };
@@ -180,21 +188,45 @@ export const createOrUpdateMember = async (req: Request, res: Response): Promise
     if ('name' in req.body) updateData.name = req.body.name;
     if ('role' in req.body) updateData.role = req.body.role;
     if ('bio' in req.body) updateData.bio = req.body.bio;
+    // tagline/availability/languages arrive already validated and normalized
+    // by validateMemberUpdateBody (JSON-parsed languages, coerced boolean).
+    if ('tagline' in req.body) updateData.tagline = req.body.tagline;
+    if ('availability' in req.body) updateData.availability = req.body.availability;
+    if ('languages' in req.body) updateData.languages = req.body.languages;
 
     let member = await Member.findOne({ where: { userId } });
 
-    if (req.file) {
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+    const imageFile = files?.image?.[0];
+    const cvFile = files?.cv?.[0];
+
+    if (imageFile) {
       if (member?.imageUrl && !member.imageUrl.includes('member-demo.jpg')) {
         const publicId = member.imageUrl.split('/').pop()?.split('.')[0];
         if (publicId) {
           await cloudinary.uploader.destroy(`innovation-hub/members/${publicId}`);
         }
       }
-      const result = await cloudinary.uploader.upload(req.file.path, {
+      const result = await cloudinary.uploader.upload(imageFile.path, {
         folder: 'innovation-hub/members',
         resource_type: 'auto',
       });
       updateData.imageUrl = result.secure_url;
+    }
+
+    if (cvFile) {
+      if (member?.cvUrl) {
+        const publicId = member.cvUrl.split('/').pop()?.split('.')[0];
+        if (publicId) {
+          await cloudinary.uploader.destroy(`innovation-hub/members/cv/${publicId}`, { resource_type: 'raw' });
+        }
+      }
+      const result = await cloudinary.uploader.upload(cvFile.path, {
+        folder: 'innovation-hub/members/cv',
+        resource_type: 'raw',
+      });
+      updateData.cvUrl = result.secure_url;
+      fs.unlinkSync(cvFile.path);
     }
 
     if (member) {
@@ -228,6 +260,10 @@ export const createOrUpdateMember = async (req: Request, res: Response): Promise
         bio: req.body.bio || '',
         imageUrl: updateData.imageUrl || '/members-images/member-demo.jpg',
         skills: [],
+        languages: updateData.languages || [],
+        cvUrl: updateData.cvUrl || null,
+        tagline: updateData.tagline ?? null,
+        availability: 'availability' in updateData ? updateData.availability : true,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
