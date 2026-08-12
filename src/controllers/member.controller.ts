@@ -3,6 +3,45 @@ import Member from '../models/member.model';
 import User from '../models/user.model';
 import cloudinary from "../utils/cloudinary.utils";
 
+// Explicit allow-list for public/unauthenticated member responses.
+// Email, phone, and WhatsApp must NEVER appear here, even if such a field is
+// added to the Member model later - add new safe fields individually, don't spread.
+// TODO: the frontend also wants "languages", a CV/resume URL, and this profile
+// doesn't have a dedicated tagline/availability field - none of these exist on
+// the Member model today. Needs a product decision + migration before they can
+// be added; do not guess at a schema for them here.
+function toPublicMemberProfile(member: Member) {
+  const {
+    id,
+    userId,
+    name,
+    role,
+    imageUrl,
+    bio,
+    education,
+    contacts,
+    skillDetails,
+    skills,
+    createdAt,
+    updatedAt,
+  } = member;
+
+  return {
+    id,
+    userId,
+    name,
+    role,
+    imageUrl,
+    bio,
+    education,
+    contacts,
+    skillDetails,
+    skills,
+    createdAt,
+    updatedAt,
+  };
+}
+
 // Get all members (public) - simplified for card display
 export const getAllMembers = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -69,17 +108,12 @@ export const getAllMembers = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-// Get member by member table PK (id)
+// Get member by member table PK (id) - public, safe fields only
 export const getMemberById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
 
-    const member = await Member.findByPk(id, {
-      include: [{
-        model: User,
-        attributes: ['email']
-      }]
-    });
+    const member = await Member.findByPk(id);
 
     if (!member) {
       res.status(404).json({
@@ -92,10 +126,7 @@ export const getMemberById = async (req: Request, res: Response): Promise<void> 
     res.status(200).json({
       status: 'success',
       data: {
-        member: {
-          ...member.toJSON(),
-          userId: member.userId
-        }
+        member: toPublicMemberProfile(member),
       },
     });
   } catch (error) {
@@ -107,7 +138,7 @@ export const getMemberById = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-// Get member by userId param (public)
+// Get member by userId param (public) - safe fields only
 export const getMemberInfo = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId } = req.params;
@@ -125,7 +156,7 @@ export const getMemberInfo = async (req: Request, res: Response): Promise<void> 
     }
     res.status(200).json({
       status: 'success',
-      data: { member: { ...member.toJSON(), userId: member.userId } }
+      data: { member: toPublicMemberProfile(member) }
     });
   } catch (error) {
     console.error('Error fetching member information:', error);

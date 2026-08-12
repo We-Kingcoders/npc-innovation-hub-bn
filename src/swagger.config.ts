@@ -82,6 +82,62 @@ const options = {
         bearerFormat: 'JWT'
       }
     },
+    schemas: {
+      Error: {
+        type: 'object',
+        properties: {
+          status: { type: 'string', example: 'fail' },
+          message: { type: 'string', example: 'Something went wrong' }
+        }
+      },
+      PublicMemberProfile: {
+        type: 'object',
+        description: 'Safe, public projection of a member profile. Never includes email, phone, or WhatsApp.',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          userId: { type: 'string', format: 'uuid' },
+          name: { type: 'string' },
+          role: { type: 'string' },
+          imageUrl: { type: 'string', format: 'uri' },
+          bio: { type: 'string' },
+          education: {
+            type: 'object',
+            nullable: true,
+            properties: {
+              degree: { type: 'string' },
+              institution: { type: 'string' },
+              description: { type: 'string' },
+              imageUrl: { type: 'string', format: 'uri' }
+            }
+          },
+          contacts: {
+            type: 'object',
+            nullable: true,
+            description: 'Public social links only',
+            properties: {
+              linkedin: { type: 'string', format: 'uri' },
+              github: { type: 'string', format: 'uri' },
+              twitter: { type: 'string', format: 'uri' },
+              telegram: { type: 'string', format: 'uri' }
+            }
+          },
+          skillDetails: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                name: { type: 'string' },
+                technologies: { type: 'array', items: { type: 'string' } },
+                percent: { type: 'number', example: 80 }
+              }
+            }
+          },
+          skills: { type: 'array', items: { type: 'string' } },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' }
+        }
+      }
+    },
   },
   paths: {
 '/health': {
@@ -2041,20 +2097,20 @@ delete: {
 "/api/members": {
   "get": {
     "summary": "Get all members",
-    "description": "Public endpoint - Retrieves all member information in card format",
+    "description": "Public endpoint - Retrieves all member information in card format. Never returns email, phone, or WhatsApp.",
     "tags": ["Members"],
     "security": [],
     "parameters": [
       {
         "in": "query",
         "name": "page",
-        "schema": { "type": "integer", "default": 1 },
+        "schema": { "type": "integer", "default": 1, "minimum": 1 },
         "description": "Page number"
       },
       {
         "in": "query",
         "name": "limit",
-        "schema": { "type": "integer", "default": 12 },
+        "schema": { "type": "integer", "default": 12, "minimum": 1, "maximum": 100 },
         "description": "Number of members per page"
       }
     ],
@@ -2094,6 +2150,14 @@ delete: {
           }
         }
       },
+      "400": {
+        "description": "Invalid page or limit query parameter",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" }
+          }
+        }
+      },
       "500": {
         "description": "Server error",
         "content": {
@@ -2114,7 +2178,7 @@ delete: {
 "/api/members/{userId}": {
   "get": {
     "summary": "Get member by userId",
-    "description": "Retrieves member information by userId (public)",
+    "description": "Public endpoint - Retrieves the full safe member profile (bio, education, skills, public social links) by userId. Never returns email, phone, or WhatsApp.",
     "tags": ["Members"],
     "security": [],
     "parameters": [
@@ -2122,7 +2186,7 @@ delete: {
         "in": "path",
         "name": "userId",
         "required": true,
-        "schema": { "type": "string" },
+        "schema": { "type": "string", "format": "uuid" },
         "description": "User ID to retrieve profile for"
       }
     ],
@@ -2138,11 +2202,19 @@ delete: {
                 "data": {
                   "type": "object",
                   "properties": {
-                    "member": { "$ref": "#/components/schemas/Member" }
+                    "member": { "$ref": "#/components/schemas/PublicMemberProfile" }
                   }
                 }
               }
             }
+          }
+        }
+      },
+      "400": {
+        "description": "userId is not a valid UUID",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" }
           }
         }
       },
@@ -2414,7 +2486,7 @@ delete: {
 "/api/members/member/{id}": {
   "get": {
     "summary": "Get member by ID",
-    "description": "Public endpoint - Retrieves member information by ID",
+    "description": "Public endpoint - Retrieves the full safe member profile by Member ID. Never returns email, phone, or WhatsApp.",
     "tags": ["Members"],
     "security": [],
     "parameters": [
@@ -2438,11 +2510,19 @@ delete: {
                 "data": {
                   "type": "object",
                   "properties": {
-                    "member": { "$ref": "#/components/schemas/Member" }
+                    "member": { "$ref": "#/components/schemas/PublicMemberProfile" }
                   }
                 }
               }
             }
+          }
+        }
+      },
+      "400": {
+        "description": "id is not a valid UUID",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" }
           }
         }
       },
