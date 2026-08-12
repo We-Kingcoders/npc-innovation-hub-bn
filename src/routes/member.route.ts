@@ -2,6 +2,11 @@ import express from 'express';
 import multer from 'multer';
 import { protectRoute, restrictTo } from '../middlewares/auth.middleware';
 import * as memberController from '../controllers/member.controller';
+import {
+  validateMemberIdParam,
+  validateUserIdParam,
+  validatePaginationQuery,
+} from '../validations/member.validation';
 
 const router = express.Router();
 
@@ -25,11 +30,11 @@ const upload = multer({
 });
 
 // Public routes
-router.get('/', memberController.getAllMembers);
-router.get('/member/:id', memberController.getMemberById);
+router.get('/', validatePaginationQuery, memberController.getAllMembers);
+router.get('/member/:id', validateMemberIdParam, memberController.getMemberById);
 
-// Get member info by userId (public or protected as needed)
-router.get('/:userId', memberController.getMemberInfo);
+// Get member info by userId (public)
+router.get('/:userId', validateUserIdParam, memberController.getMemberInfo);
 
 // Protected member profile routes (userId as path param)
 router.post(
