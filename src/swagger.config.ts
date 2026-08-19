@@ -123,12 +123,36 @@ const options = {
           },
           skillDetails: {
             type: 'array',
+            description: 'Raw, ungrouped skill list. Kept for backward compatibility - see skillCategories for the grouped, UI-ready view.',
             items: {
               type: 'object',
               properties: {
                 name: { type: 'string' },
                 technologies: { type: 'array', items: { type: 'string' } },
-                percent: { type: 'number', example: 80 }
+                percent: { type: 'number', example: 80 },
+                category: { type: 'string', enum: ['Frontend Development', 'Backend Development', 'DevOps & Tools', 'Mobile & Other', 'Other'] }
+              }
+            }
+          },
+          skillCategories: {
+            type: 'array',
+            description: 'skillDetails grouped by category, with overall computed server-side as the rounded average of each category\'s skill percentages.',
+            items: {
+              type: 'object',
+              properties: {
+                category: { type: 'string', enum: ['Frontend Development', 'Backend Development', 'DevOps & Tools', 'Mobile & Other', 'Other'] },
+                overall: { type: 'integer', example: 81 },
+                skills: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      name: { type: 'string' },
+                      technologies: { type: 'array', items: { type: 'string' } },
+                      percent: { type: 'number', example: 80 }
+                    }
+                  }
+                }
               }
             }
           },
@@ -3014,7 +3038,8 @@ delete: {
                       "type": "array",
                       "items": { "type": "string" }
                     },
-                    "percent": { "type": "integer", "minimum": 0, "maximum": 100 }
+                    "percent": { "type": "integer", "minimum": 0, "maximum": 100 },
+                    "category": { "type": "string", "enum": ["Frontend Development", "Backend Development", "DevOps & Tools", "Mobile & Other", "Other"] }
                   }
                 }
               }
@@ -3131,7 +3156,8 @@ delete: {
                       "type": "array",
                       "items": { "type": "string" }
                     },
-                    "percent": { "type": "integer", "minimum": 0, "maximum": 100 }
+                    "percent": { "type": "integer", "minimum": 0, "maximum": 100 },
+                    "category": { "type": "string", "enum": ["Frontend Development", "Backend Development", "DevOps & Tools", "Mobile & Other", "Other"] }
                   }
                 }
               }

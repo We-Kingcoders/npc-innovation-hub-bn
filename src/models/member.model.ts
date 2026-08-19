@@ -23,6 +23,7 @@ interface Skill {
   name: string;
   technologies: string[];
   percent: number;
+  category?: 'Frontend Development' | 'Backend Development' | 'DevOps & Tools' | 'Mobile & Other' | 'Other';
 }
 
 // Define language interface
