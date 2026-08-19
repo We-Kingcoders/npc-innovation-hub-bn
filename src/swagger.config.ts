@@ -106,8 +106,12 @@ const options = {
             properties: {
               degree: { type: 'string' },
               institution: { type: 'string' },
+              department: { type: 'string' },
               description: { type: 'string' },
-              imageUrl: { type: 'string', format: 'uri' }
+              imageUrl: { type: 'string', format: 'uri' },
+              startYear: { type: 'integer', example: 2021 },
+              endYear: { type: 'integer', nullable: true, description: 'null means "Present"', example: null },
+              status: { type: 'string', enum: ['Currently Enrolled', 'Graduated', 'On Leave', 'Other'] }
             }
           },
           contacts: {
@@ -2794,7 +2798,11 @@ delete: {
             "properties": {
               "degree": { "type": "string" },
               "institution": { "type": "string" },
+              "department": { "type": "string" },
               "description": { "type": "string" },
+              "startYear": { "type": "integer", "example": 2021 },
+              "endYear": { "type": "integer", "nullable": true, "description": "null means Present" },
+              "status": { "type": "string", "enum": ["Currently Enrolled", "Graduated", "On Leave", "Other"] },
               "educationImage": { "type": "string", "format": "binary" }
             }
           }
@@ -2819,8 +2827,12 @@ delete: {
                       "properties": {
                         "degree": { "type": "string" },
                         "institution": { "type": "string" },
+                        "department": { "type": "string" },
                         "description": { "type": "string" },
-                        "imageUrl": { "type": "string" }
+                        "imageUrl": { "type": "string" },
+                        "startYear": { "type": "integer" },
+                        "endYear": { "type": "integer", "nullable": true },
+                        "status": { "type": "string" }
                       }
                     },
                     "userId": { "type": "string" }
@@ -2848,8 +2860,12 @@ delete: {
                       "properties": {
                         "degree": { "type": "string" },
                         "institution": { "type": "string" },
+                        "department": { "type": "string" },
                         "description": { "type": "string" },
-                        "imageUrl": { "type": "string" }
+                        "imageUrl": { "type": "string" },
+                        "startYear": { "type": "integer" },
+                        "endYear": { "type": "integer", "nullable": true },
+                        "status": { "type": "string" }
                       }
                     },
                     "userId": { "type": "string" }
@@ -2892,7 +2908,11 @@ delete: {
             "properties": {
               "degree": { "type": "string" },
               "institution": { "type": "string" },
+              "department": { "type": "string" },
               "description": { "type": "string" },
+              "startYear": { "type": "integer", "example": 2021 },
+              "endYear": { "type": "integer", "nullable": true, "description": "null means Present" },
+              "status": { "type": "string", "enum": ["Currently Enrolled", "Graduated", "On Leave", "Other"] },
               "educationImage": { "type": "string", "format": "binary" }
             }
           }
@@ -2917,8 +2937,12 @@ delete: {
                       "properties": {
                         "degree": { "type": "string" },
                         "institution": { "type": "string" },
+                        "department": { "type": "string" },
                         "description": { "type": "string" },
-                        "imageUrl": { "type": "string" }
+                        "imageUrl": { "type": "string" },
+                        "startYear": { "type": "integer" },
+                        "endYear": { "type": "integer", "nullable": true },
+                        "status": { "type": "string" }
                       }
                     },
                     "userId": { "type": "string" }
