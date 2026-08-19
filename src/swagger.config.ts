@@ -145,6 +145,7 @@ const options = {
           },
           cvUrl: { type: 'string', format: 'uri', nullable: true },
           tagline: { type: 'string', nullable: true, maxLength: 160 },
+          hashtags: { type: 'array', items: { type: 'string', maxLength: 30 }, maxItems: 6 },
           availability: { type: 'boolean', default: true },
           createdAt: { type: 'string', format: 'date-time' },
           updatedAt: { type: 'string', format: 'date-time' }
@@ -2268,6 +2269,7 @@ delete: {
               "tagline": { "type": "string", "maxLength": 160, "description": "Short profile tagline (max 160 characters)" },
               "availability": { "type": "boolean", "description": "Whether the member is currently available" },
               "languages": { "type": "string", "description": "JSON-encoded array of {name, level}, e.g. [{\"name\":\"English\",\"level\":\"Fluent\"}]. level must be one of Native, Fluent, Intermediate, Basic." },
+              "hashtags": { "type": "string", "description": "JSON-encoded array of up to 6 strings, each at most 30 characters, e.g. [\"Full-StackDev\",\"URStudent\"]" },
               "image": { "type": "string", "format": "binary", "description": "Profile image file" },
               "cv": { "type": "string", "format": "binary", "description": "CV/resume file (PDF or Word document)" }
             }
@@ -2341,6 +2343,7 @@ delete: {
               "tagline": { "type": "string", "maxLength": 160, "description": "Short profile tagline (max 160 characters)" },
               "availability": { "type": "boolean", "description": "Whether the member is currently available" },
               "languages": { "type": "string", "description": "JSON-encoded array of {name, level}, e.g. [{\"name\":\"English\",\"level\":\"Fluent\"}]. level must be one of Native, Fluent, Intermediate, Basic." },
+              "hashtags": { "type": "string", "description": "JSON-encoded array of up to 6 strings, each at most 30 characters, e.g. [\"Full-StackDev\",\"URStudent\"]" },
               "image": { "type": "string", "format": "binary", "description": "Profile image file" },
               "cv": { "type": "string", "format": "binary", "description": "CV/resume file (PDF or Word document)" }
             }
@@ -2413,6 +2416,7 @@ delete: {
               "tagline": { "type": "string", "maxLength": 160, "description": "Short profile tagline (max 160 characters)" },
               "availability": { "type": "boolean", "description": "Whether the member is currently available" },
               "languages": { "type": "string", "description": "JSON-encoded array of {name, level}, e.g. [{\"name\":\"English\",\"level\":\"Fluent\"}]. level must be one of Native, Fluent, Intermediate, Basic." },
+              "hashtags": { "type": "string", "description": "JSON-encoded array of up to 6 strings, each at most 30 characters, e.g. [\"Full-StackDev\",\"URStudent\"]" },
               "image": { "type": "string", "format": "binary", "description": "Profile image file" },
               "cv": { "type": "string", "format": "binary", "description": "CV/resume file (PDF or Word document)" }
             }
