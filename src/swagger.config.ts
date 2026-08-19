@@ -73,6 +73,10 @@ const options = {
       name: 'Resources',
       description: 'Resources information management endpoints'
     },
+    {
+      name: 'Applications',
+      description: 'Membership application submission and admin review endpoints'
+    },
   ],
   components: {
     securitySchemes: {
@@ -88,6 +92,27 @@ const options = {
         properties: {
           status: { type: 'string', example: 'fail' },
           message: { type: 'string', example: 'Something went wrong' }
+        }
+      },
+      Application: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          imageUrl: { type: 'string', format: 'uri', nullable: true },
+          fullName: { type: 'string' },
+          email: { type: 'string', format: 'email' },
+          githubUrl: { type: 'string', format: 'uri' },
+          skills: { type: 'array', items: { type: 'string' } },
+          phoneNumber: { type: 'string' },
+          gender: { type: 'string', enum: ['Male', 'Female', 'Other'] },
+          strengths: { type: 'string' },
+          weaknesses: { type: 'string' },
+          applicationLetterUrl: { type: 'string', format: 'uri' },
+          status: { type: 'string', enum: ['Pending', 'Accepted', 'Rejected'] },
+          reviewedBy: { type: 'string', format: 'uuid', nullable: true },
+          reviewedAt: { type: 'string', format: 'date-time', nullable: true },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' }
         }
       },
       PublicMemberProfile: {
@@ -8663,6 +8688,61 @@ delete: {
               }
             }
           }
+        }
+      }
+    },
+    "/api/applications": {
+      "post": {
+        "summary": "Submit a membership application",
+        "description": "Public endpoint - Submits a new membership application for admin review. applicationLetter (PDF) is required; image is optional. Rejects with 409 if a Pending application already exists for the same email.",
+        "tags": ["Applications"],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["fullName", "email", "githubUrl", "skills", "phoneNumber", "gender", "strengths", "weaknesses", "applicationLetter"],
+                "properties": {
+                  "fullName": { "type": "string" },
+                  "email": { "type": "string", "format": "email" },
+                  "githubUrl": { "type": "string", "format": "uri" },
+                  "skills": { "type": "string", "description": "JSON-encoded array of strings, e.g. [\"Node.js\",\"React\"]" },
+                  "phoneNumber": { "type": "string" },
+                  "gender": { "type": "string", "enum": ["Male", "Female", "Other"] },
+                  "strengths": { "type": "string" },
+                  "weaknesses": { "type": "string" },
+                  "image": { "type": "string", "format": "binary", "description": "Optional photo" },
+                  "applicationLetter": { "type": "string", "format": "binary", "description": "Required - PDF only" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Application submitted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Application submitted successfully. We will review it and get back to you." },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "application": { "$ref": "#/components/schemas/Application" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Missing/invalid field, or applicationLetter PDF not provided" },
+          "409": { "description": "A Pending application already exists for this email" }
         }
       }
     },
