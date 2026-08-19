@@ -45,6 +45,7 @@ interface MemberAttributes {
   skills: string[];
   languages?: Language[];
   cvUrl?: string | null;
+  resumeUrl?: string | null;
   tagline?: string | null;
   availability: boolean;
   createdAt: Date;
@@ -53,7 +54,7 @@ interface MemberAttributes {
 
 type MemberCreationAttributes = Optional<
   MemberAttributes,
-  'id' | 'education' | 'contacts' | 'skillDetails' | 'bio' | 'languages' | 'cvUrl' | 'tagline' | 'availability'
+  'id' | 'education' | 'contacts' | 'skillDetails' | 'bio' | 'languages' | 'cvUrl' | 'resumeUrl' | 'tagline' | 'availability'
 >;
 
 class Member extends Model<MemberAttributes, MemberCreationAttributes> implements MemberAttributes {
@@ -69,6 +70,7 @@ class Member extends Model<MemberAttributes, MemberCreationAttributes> implement
   declare skills: string[];
   declare languages: Language[];
   declare cvUrl: string | null;
+  declare resumeUrl: string | null;
   declare tagline: string | null;
   declare availability: boolean;
   declare createdAt: Date;
@@ -129,6 +131,11 @@ Member.init(
       defaultValue: [],
     },
     cvUrl: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: null,
+    },
+    resumeUrl: {
       type: DataTypes.STRING,
       allowNull: true,
       defaultValue: null,
