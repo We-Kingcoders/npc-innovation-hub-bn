@@ -34,6 +34,91 @@ export const MEMBER_SPECIALIZATIONS = [
   'Other',
 ] as const
 
+export const EDUCATION_STATUSES = ['Currently Enrolled', 'Graduated', 'On Leave', 'Other'] as const
+
+const currentYear = new Date().getFullYear()
+
+const educationUpdateBodySchema = Joi.object({
+  degree: Joi.string().optional(),
+  institution: Joi.string().optional(),
+  department: Joi.string().optional(),
+  description: Joi.string().allow('').optional(),
+  startYear: Joi.number().integer().min(1950).max(currentYear + 1).optional().messages({
+    'number.min': 'startYear must be 1950 or later',
+    'number.max': `startYear cannot be later than ${currentYear + 1}`,
+  }),
+  // null means "Present" (still ongoing)
+  endYear: Joi.number().integer().min(1950).max(currentYear + 10).allow(null).optional().messages({
+    'number.min': 'endYear must be 1950 or later',
+    'number.max': `endYear cannot be later than ${currentYear + 10}`,
+  }),
+  status: Joi.string().valid(...EDUCATION_STATUSES).optional().messages({
+    'any.only': `status must be one of: ${EDUCATION_STATUSES.join(', ')}`,
+  }),
+}).unknown(true)
+
+export const validateEducationUpdateBody = (req: Request, res: Response, next: NextFunction): void => {
+  const { error, value } = educationUpdateBodySchema.validate(req.body, { abortEarly: false })
+  if (error) {
+    res.status(400).json({
+      status: 'fail',
+      message: error.details.map((detail) => detail.message).join(', '),
+    })
+    return
+  }
+
+  // Write back coerced numeric year values.
+  if ('startYear' in value) req.body.startYear = value.startYear
+  if ('endYear' in value) req.body.endYear = value.endYear
+
+  next()
+}
+
+export const SKILL_CATEGORIES = [
+  'Frontend Development',
+  'Backend Development',
+  'DevOps & Tools',
+  'Mobile & Other',
+  'Other',
+] as const
+
+const skillDetailSchema = Joi.object({
+  name: Joi.string().trim().min(1).required().messages({
+    'any.required': 'Each skill entry requires a name',
+    'string.empty': 'Each skill entry requires a name',
+  }),
+  technologies: Joi.array().items(Joi.string()).required().messages({
+    'any.required': 'Each skill entry requires a technologies array',
+  }),
+  percent: Joi.number().min(0).max(100).required().messages({
+    'any.required': 'Each skill entry requires a percent',
+    'number.min': 'percent must be between 0 and 100',
+    'number.max': 'percent must be between 0 and 100',
+  }),
+  category: Joi.string().valid(...SKILL_CATEGORIES).optional().messages({
+    'any.only': `category must be one of: ${SKILL_CATEGORIES.join(', ')}`,
+  }),
+}).unknown(true)
+
+const skillsUpdateBodySchema = Joi.object({
+  skillDetails: Joi.array().items(skillDetailSchema).required().messages({
+    'any.required': 'skillDetails is required',
+    'array.base': 'skillDetails must be an array',
+  }),
+}).unknown(true)
+
+export const validateSkillsUpdateBody = (req: Request, res: Response, next: NextFunction): void => {
+  const { error } = skillsUpdateBodySchema.validate(req.body, { abortEarly: false })
+  if (error) {
+    res.status(400).json({
+      status: 'fail',
+      message: error.details.map((detail) => detail.message).join(', '),
+    })
+    return
+  }
+  next()
+}
+
 const LANGUAGE_LEVELS = ['Native', 'Fluent', 'Intermediate', 'Basic'] as const
 
 const languageSchema = Joi.object({

@@ -6,8 +6,12 @@ import User from './user.model';
 interface Education {
   degree: string;
   institution: string;
+  department?: string;
   description: string;
   imageUrl: string;
+  startYear?: number;
+  endYear?: number | null;
+  status?: string;
 }
 
 // Define contacts interface
@@ -16,6 +20,7 @@ interface Contacts {
   github: string;
   twitter?: string;
   instagram?: string;
+  portfolio?: string;
 }
 
 // Define skill interface
@@ -23,6 +28,7 @@ interface Skill {
   name: string;
   technologies: string[];
   percent: number;
+  category?: 'Frontend Development' | 'Backend Development' | 'DevOps & Tools' | 'Mobile & Other' | 'Other';
 }
 
 // Define language interface
@@ -45,6 +51,7 @@ interface MemberAttributes {
   skills: string[];
   languages?: Language[];
   cvUrl?: string | null;
+  resumeUrl?: string | null;
   tagline?: string | null;
   availability: boolean;
   createdAt: Date;
@@ -53,7 +60,7 @@ interface MemberAttributes {
 
 type MemberCreationAttributes = Optional<
   MemberAttributes,
-  'id' | 'education' | 'contacts' | 'skillDetails' | 'bio' | 'languages' | 'cvUrl' | 'tagline' | 'availability'
+  'id' | 'education' | 'contacts' | 'skillDetails' | 'bio' | 'languages' | 'cvUrl' | 'resumeUrl' | 'tagline' | 'availability'
 >;
 
 class Member extends Model<MemberAttributes, MemberCreationAttributes> implements MemberAttributes {
@@ -69,6 +76,7 @@ class Member extends Model<MemberAttributes, MemberCreationAttributes> implement
   declare skills: string[];
   declare languages: Language[];
   declare cvUrl: string | null;
+  declare resumeUrl: string | null;
   declare tagline: string | null;
   declare availability: boolean;
   declare createdAt: Date;
@@ -129,6 +137,11 @@ Member.init(
       defaultValue: [],
     },
     cvUrl: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: null,
+    },
+    resumeUrl: {
       type: DataTypes.STRING,
       allowNull: true,
       defaultValue: null,

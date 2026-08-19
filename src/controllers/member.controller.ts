@@ -12,8 +12,39 @@ import cloudinary from "../utils/cloudinary.utils";
 // deleted from storage.
 function toPublicContacts(contacts: Member['contacts']) {
   if (!contacts) return contacts;
-  const { linkedin, github, twitter, instagram } = contacts;
-  return { linkedin, github, twitter, instagram };
+  const { linkedin, github, twitter, instagram, portfolio } = contacts;
+  return { linkedin, github, twitter, instagram, portfolio };
+}
+
+const SKILL_CATEGORY_ORDER = [
+  'Frontend Development',
+  'Backend Development',
+  'DevOps & Tools',
+  'Mobile & Other',
+  'Other',
+] as const;
+
+// Groups skillDetails by category and computes each category's overall
+// percentage server-side (average of its skills, rounded to the nearest
+// whole number) so it can never drift out of sync with the individual
+// skills - the frontend doesn't do this grouping/math itself. skillDetails
+// itself is left unchanged in the response for backward compatibility with
+// existing consumers of the flat list.
+function toSkillCategories(skillDetails: Member['skillDetails']) {
+  if (!skillDetails || skillDetails.length === 0) return [];
+
+  const byCategory = new Map<string, NonNullable<Member['skillDetails']>>();
+  for (const skill of skillDetails) {
+    const category = skill.category ?? 'Other';
+    if (!byCategory.has(category)) byCategory.set(category, []);
+    byCategory.get(category)!.push(skill);
+  }
+
+  return SKILL_CATEGORY_ORDER.filter((category) => byCategory.has(category)).map((category) => {
+    const skills = byCategory.get(category)!;
+    const overall = Math.round(skills.reduce((sum, skill) => sum + skill.percent, 0) / skills.length);
+    return { category, overall, skills };
+  });
 }
 
 // Explicit allow-list for public/unauthenticated member responses.
@@ -36,6 +67,7 @@ function toPublicMemberProfile(member: Member) {
     skills,
     languages,
     cvUrl,
+    resumeUrl,
     tagline,
     availability,
     createdAt,
@@ -52,9 +84,11 @@ function toPublicMemberProfile(member: Member) {
     education,
     contacts: toPublicContacts(contacts),
     skillDetails,
+    skillCategories: toSkillCategories(skillDetails),
     skills,
     languages: languages ?? [],
     cvUrl: cvUrl ?? null,
+    resumeUrl: resumeUrl ?? null,
     tagline: tagline ?? null,
     availability: availability ?? true,
     createdAt,
@@ -211,6 +245,7 @@ export const createOrUpdateMember = async (req: Request, res: Response): Promise
     const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
     const imageFile = files?.image?.[0];
     const cvFile = files?.cv?.[0];
+    const resumeFile = files?.resume?.[0];
 
     if (imageFile) {
       if (member?.imageUrl && !member.imageUrl.includes('member-demo.jpg')) {
@@ -239,6 +274,21 @@ export const createOrUpdateMember = async (req: Request, res: Response): Promise
       });
       updateData.cvUrl = result.secure_url;
       fs.unlinkSync(cvFile.path);
+    }
+
+    if (resumeFile) {
+      if (member?.resumeUrl) {
+        const publicId = member.resumeUrl.split('/').pop()?.split('.')[0];
+        if (publicId) {
+          await cloudinary.uploader.destroy(`innovation-hub/members/resume/${publicId}`, { resource_type: 'raw' });
+        }
+      }
+      const result = await cloudinary.uploader.upload(resumeFile.path, {
+        folder: 'innovation-hub/members/resume',
+        resource_type: 'raw',
+      });
+      updateData.resumeUrl = result.secure_url;
+      fs.unlinkSync(resumeFile.path);
     }
 
     if (member) {
@@ -274,6 +324,7 @@ export const createOrUpdateMember = async (req: Request, res: Response): Promise
         skills: [],
         languages: updateData.languages || [],
         cvUrl: updateData.cvUrl || null,
+        resumeUrl: updateData.resumeUrl || null,
         tagline: updateData.tagline ?? null,
         availability: 'availability' in updateData ? updateData.availability : true,
         createdAt: new Date(),
@@ -315,6 +366,7 @@ export const createOrUpdateContacts = async (req: Request, res: Response): Promi
     if ('github' in req.body) contacts.github = req.body.github;
     if ('twitter' in req.body) contacts.twitter = req.body.twitter;
     if ('instagram' in req.body) contacts.instagram = req.body.instagram;
+    if ('portfolio' in req.body) contacts.portfolio = req.body.portfolio;
 
     if (member) {
       await member.update({
@@ -366,7 +418,14 @@ export const createOrUpdateEducation = async (req: Request, res: Response): Prom
 
     if ('degree' in req.body) education.degree = req.body.degree;
     if ('institution' in req.body) education.institution = req.body.institution;
+    if ('department' in req.body) education.department = req.body.department;
     if ('description' in req.body) education.description = req.body.description;
+    // startYear/endYear/status arrive already validated by
+    // validateEducationUpdateBody (endYear may be explicitly null, meaning
+    // "Present" - `in` catches that case, an `||`/`??` fallback would not).
+    if ('startYear' in req.body) education.startYear = req.body.startYear;
+    if ('endYear' in req.body) education.endYear = req.body.endYear;
+    if ('status' in req.body) education.status = req.body.status;
 
     if (!education.imageUrl) {
       education.imageUrl = '/members-images/university.jpg';
