@@ -15,6 +15,46 @@ const userIdParamSchema = Joi.object({
   }),
 })
 
+export const EDUCATION_STATUSES = ['Currently Enrolled', 'Graduated', 'On Leave', 'Other'] as const
+
+const currentYear = new Date().getFullYear()
+
+const educationUpdateBodySchema = Joi.object({
+  degree: Joi.string().optional(),
+  institution: Joi.string().optional(),
+  department: Joi.string().optional(),
+  description: Joi.string().allow('').optional(),
+  startYear: Joi.number().integer().min(1950).max(currentYear + 1).optional().messages({
+    'number.min': 'startYear must be 1950 or later',
+    'number.max': `startYear cannot be later than ${currentYear + 1}`,
+  }),
+  // null means "Present" (still ongoing)
+  endYear: Joi.number().integer().min(1950).max(currentYear + 10).allow(null).optional().messages({
+    'number.min': 'endYear must be 1950 or later',
+    'number.max': `endYear cannot be later than ${currentYear + 10}`,
+  }),
+  status: Joi.string().valid(...EDUCATION_STATUSES).optional().messages({
+    'any.only': `status must be one of: ${EDUCATION_STATUSES.join(', ')}`,
+  }),
+}).unknown(true)
+
+export const validateEducationUpdateBody = (req: Request, res: Response, next: NextFunction): void => {
+  const { error, value } = educationUpdateBodySchema.validate(req.body, { abortEarly: false })
+  if (error) {
+    res.status(400).json({
+      status: 'fail',
+      message: error.details.map((detail) => detail.message).join(', '),
+    })
+    return
+  }
+
+  // Write back coerced numeric year values.
+  if ('startYear' in value) req.body.startYear = value.startYear
+  if ('endYear' in value) req.body.endYear = value.endYear
+
+  next()
+}
+
 const LANGUAGE_LEVELS = ['Native', 'Fluent', 'Intermediate', 'Basic'] as const
 
 const languageSchema = Joi.object({
