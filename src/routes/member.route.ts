@@ -7,6 +7,8 @@ import {
   validateUserIdParam,
   validatePaginationQuery,
   validateMemberUpdateBody,
+  validateEducationUpdateBody,
+  validateSkillsUpdateBody,
 } from '../validations/member.validation';
 
 const router = express.Router();
@@ -18,11 +20,11 @@ const storage = multer.diskStorage({
     cb(null, file.fieldname + '-' + uniqueSuffix + '.' + file.originalname.split('.').pop());
   }
 });
-// image/educationImage fields accept images; cv accepts PDF/Word documents
+// image/educationImage fields accept images; cv/resume accept PDF/Word documents
 const fileFilter = (req: any, file: any, cb: any) => {
-  if (file.fieldname === 'cv') {
+  if (file.fieldname === 'cv' || file.fieldname === 'resume') {
     if (!file.originalname.match(/\.(pdf|doc|docx)$/i)) {
-      return cb(new Error('CV must be a PDF or Word document!'), false);
+      return cb(new Error(`${file.fieldname === 'cv' ? 'CV' : 'Resume'} must be a PDF or Word document!`), false);
     }
     return cb(null, true);
   }
@@ -48,6 +50,7 @@ router.get('/:userId', validateUserIdParam, memberController.getMemberInfo);
 const profileUpload = upload.fields([
   { name: 'image', maxCount: 1 },
   { name: 'cv', maxCount: 1 },
+  { name: 'resume', maxCount: 1 },
 ]);
 
 router.post(
@@ -91,38 +94,44 @@ router.patch(
 
 // Education routes (userId as path param)
 router.post(
-  '/:userId/education', 
+  '/:userId/education',
   protectRoute,
   upload.single('educationImage'),
+  validateEducationUpdateBody,
   memberController.createOrUpdateEducation
 );
 router.put(
-  '/:userId/education', 
+  '/:userId/education',
   protectRoute,
   upload.single('educationImage'),
+  validateEducationUpdateBody,
   memberController.createOrUpdateEducation
 );
 router.patch(
-  '/:userId/education', 
+  '/:userId/education',
   protectRoute,
   upload.single('educationImage'),
+  validateEducationUpdateBody,
   memberController.createOrUpdateEducation
 );
 
 // Skills routes (userId as path param)
 router.post(
-  '/:userId/skills', 
+  '/:userId/skills',
   protectRoute,
+  validateSkillsUpdateBody,
   memberController.createOrUpdateSkills
 );
 router.put(
-  '/:userId/skills', 
+  '/:userId/skills',
   protectRoute,
+  validateSkillsUpdateBody,
   memberController.createOrUpdateSkills
 );
 router.patch(
-  '/:userId/skills', 
+  '/:userId/skills',
   protectRoute,
+  validateSkillsUpdateBody,
   memberController.createOrUpdateSkills
 );
 

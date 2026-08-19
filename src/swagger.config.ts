@@ -97,7 +97,7 @@ const options = {
           id: { type: 'string', format: 'uuid' },
           userId: { type: 'string', format: 'uuid' },
           name: { type: 'string' },
-          role: { type: 'string' },
+          role: { type: 'string', enum: ['Frontend Developer','Backend Developer','Full-Stack Developer','Database Specialist','Cybersecurity Specialist','Network Administrator','DevOps Engineer','Mobile Developer','UI/UX Designer','Other'] },
           imageUrl: { type: 'string', format: 'uri' },
           bio: { type: 'string' },
           education: {
@@ -106,8 +106,12 @@ const options = {
             properties: {
               degree: { type: 'string' },
               institution: { type: 'string' },
+              department: { type: 'string' },
               description: { type: 'string' },
-              imageUrl: { type: 'string', format: 'uri' }
+              imageUrl: { type: 'string', format: 'uri' },
+              startYear: { type: 'integer', example: 2021 },
+              endYear: { type: 'integer', nullable: true, description: 'null means "Present"', example: null },
+              status: { type: 'string', enum: ['Currently Enrolled', 'Graduated', 'On Leave', 'Other'] }
             }
           },
           contacts: {
@@ -118,17 +122,42 @@ const options = {
               linkedin: { type: 'string', format: 'uri' },
               github: { type: 'string', format: 'uri' },
               twitter: { type: 'string', format: 'uri' },
-              instagram: { type: 'string', format: 'uri' }
+              instagram: { type: 'string', format: 'uri' },
+              portfolio: { type: 'string', format: 'uri' }
             }
           },
           skillDetails: {
             type: 'array',
+            description: 'Raw, ungrouped skill list. Kept for backward compatibility - see skillCategories for the grouped, UI-ready view.',
             items: {
               type: 'object',
               properties: {
                 name: { type: 'string' },
                 technologies: { type: 'array', items: { type: 'string' } },
-                percent: { type: 'number', example: 80 }
+                percent: { type: 'number', example: 80 },
+                category: { type: 'string', enum: ['Frontend Development', 'Backend Development', 'DevOps & Tools', 'Mobile & Other', 'Other'] }
+              }
+            }
+          },
+          skillCategories: {
+            type: 'array',
+            description: 'skillDetails grouped by category, with overall computed server-side as the rounded average of each category\'s skill percentages.',
+            items: {
+              type: 'object',
+              properties: {
+                category: { type: 'string', enum: ['Frontend Development', 'Backend Development', 'DevOps & Tools', 'Mobile & Other', 'Other'] },
+                overall: { type: 'integer', example: 81 },
+                skills: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      name: { type: 'string' },
+                      technologies: { type: 'array', items: { type: 'string' } },
+                      percent: { type: 'number', example: 80 }
+                    }
+                  }
+                }
               }
             }
           },
@@ -144,6 +173,7 @@ const options = {
             }
           },
           cvUrl: { type: 'string', format: 'uri', nullable: true },
+          resumeUrl: { type: 'string', format: 'uri', nullable: true },
           tagline: { type: 'string', nullable: true, maxLength: 160 },
           hashtags: { type: 'array', items: { type: 'string', maxLength: 30 }, maxItems: 6 },
           availability: { type: 'boolean', default: true },
@@ -2152,7 +2182,7 @@ delete: {
                           "id": { "type": "string", "format": "uuid" },
                           "userId": { "type": "string", "format": "uuid" },
                           "name": { "type": "string" },
-                          "role": { "type": "string" },
+                          "role": { "type": "string", "enum": ["Frontend Developer","Backend Developer","Full-Stack Developer","Database Specialist","Cybersecurity Specialist","Network Administrator","DevOps Engineer","Mobile Developer","UI/UX Designer","Other"] },
                           "imageUrl": { "type": "string", "format": "uri" }
                         }
                       }
@@ -2264,14 +2294,15 @@ delete: {
             "required": ["name", "role"],
             "properties": {
               "name": { "type": "string" },
-              "role": { "type": "string" },
+              "role": { "type": "string", "enum": ["Frontend Developer","Backend Developer","Full-Stack Developer","Database Specialist","Cybersecurity Specialist","Network Administrator","DevOps Engineer","Mobile Developer","UI/UX Designer","Other"] },
               "bio": { "type": "string" },
               "tagline": { "type": "string", "maxLength": 160, "description": "Short profile tagline (max 160 characters)" },
               "availability": { "type": "boolean", "description": "Whether the member is currently available" },
               "languages": { "type": "string", "description": "JSON-encoded array of {name, level}, e.g. [{\"name\":\"English\",\"level\":\"Fluent\"}]. level must be one of Native, Fluent, Intermediate, Basic." },
               "hashtags": { "type": "string", "description": "JSON-encoded array of up to 6 strings, each at most 30 characters, e.g. [\"Full-StackDev\",\"URStudent\"]" },
               "image": { "type": "string", "format": "binary", "description": "Profile image file" },
-              "cv": { "type": "string", "format": "binary", "description": "CV/resume file (PDF or Word document)" }
+              "cv": { "type": "string", "format": "binary", "description": "CV file (PDF or Word document)" },
+              "resume": { "type": "string", "format": "binary", "description": "Resume file (PDF or Word document), distinct from CV" }
             }
           }
         }
@@ -2338,14 +2369,15 @@ delete: {
             "required": ["name", "role"],
             "properties": {
               "name": { "type": "string" },
-              "role": { "type": "string" },
+              "role": { "type": "string", "enum": ["Frontend Developer","Backend Developer","Full-Stack Developer","Database Specialist","Cybersecurity Specialist","Network Administrator","DevOps Engineer","Mobile Developer","UI/UX Designer","Other"] },
               "bio": { "type": "string" },
               "tagline": { "type": "string", "maxLength": 160, "description": "Short profile tagline (max 160 characters)" },
               "availability": { "type": "boolean", "description": "Whether the member is currently available" },
               "languages": { "type": "string", "description": "JSON-encoded array of {name, level}, e.g. [{\"name\":\"English\",\"level\":\"Fluent\"}]. level must be one of Native, Fluent, Intermediate, Basic." },
               "hashtags": { "type": "string", "description": "JSON-encoded array of up to 6 strings, each at most 30 characters, e.g. [\"Full-StackDev\",\"URStudent\"]" },
               "image": { "type": "string", "format": "binary", "description": "Profile image file" },
-              "cv": { "type": "string", "format": "binary", "description": "CV/resume file (PDF or Word document)" }
+              "cv": { "type": "string", "format": "binary", "description": "CV file (PDF or Word document)" },
+              "resume": { "type": "string", "format": "binary", "description": "Resume file (PDF or Word document), distinct from CV" }
             }
           }
         }
@@ -2411,14 +2443,15 @@ delete: {
             "type": "object",
             "properties": {
               "name": { "type": "string" },
-              "role": { "type": "string" },
+              "role": { "type": "string", "enum": ["Frontend Developer","Backend Developer","Full-Stack Developer","Database Specialist","Cybersecurity Specialist","Network Administrator","DevOps Engineer","Mobile Developer","UI/UX Designer","Other"] },
               "bio": { "type": "string" },
               "tagline": { "type": "string", "maxLength": 160, "description": "Short profile tagline (max 160 characters)" },
               "availability": { "type": "boolean", "description": "Whether the member is currently available" },
               "languages": { "type": "string", "description": "JSON-encoded array of {name, level}, e.g. [{\"name\":\"English\",\"level\":\"Fluent\"}]. level must be one of Native, Fluent, Intermediate, Basic." },
               "hashtags": { "type": "string", "description": "JSON-encoded array of up to 6 strings, each at most 30 characters, e.g. [\"Full-StackDev\",\"URStudent\"]" },
               "image": { "type": "string", "format": "binary", "description": "Profile image file" },
-              "cv": { "type": "string", "format": "binary", "description": "CV/resume file (PDF or Word document)" }
+              "cv": { "type": "string", "format": "binary", "description": "CV file (PDF or Word document)" },
+              "resume": { "type": "string", "format": "binary", "description": "Resume file (PDF or Word document), distinct from CV" }
             }
           }
         }
@@ -2590,7 +2623,8 @@ delete: {
               "linkedin": { "type": "string", "format": "uri" },
               "github": { "type": "string", "format": "uri" },
               "twitter": { "type": "string", "format": "uri" },
-              "instagram": { "type": "string", "format": "uri" }
+              "instagram": { "type": "string", "format": "uri" },
+              "portfolio": { "type": "string", "format": "uri" }
             }
           }
         }
@@ -2615,7 +2649,8 @@ delete: {
                         "linkedin": { "type": "string" },
                         "github": { "type": "string" },
                         "twitter": { "type": "string" },
-                        "instagram": { "type": "string" }
+                        "instagram": { "type": "string" },
+                        "portfolio": { "type": "string" }
                       }
                     },
                     "userId": { "type": "string" }
@@ -2644,7 +2679,8 @@ delete: {
                         "linkedin": { "type": "string" },
                         "github": { "type": "string" },
                         "twitter": { "type": "string" },
-                        "instagram": { "type": "string" }
+                        "instagram": { "type": "string" },
+                        "portfolio": { "type": "string" }
                       }
                     },
                     "userId": { "type": "string" }
@@ -2688,7 +2724,8 @@ delete: {
               "linkedin": { "type": "string", "format": "uri" },
               "github": { "type": "string", "format": "uri" },
               "twitter": { "type": "string", "format": "uri" },
-              "instagram": { "type": "string", "format": "uri" }
+              "instagram": { "type": "string", "format": "uri" },
+              "portfolio": { "type": "string", "format": "uri" }
             }
           }
         }
@@ -2713,7 +2750,8 @@ delete: {
                         "linkedin": { "type": "string" },
                         "github": { "type": "string" },
                         "twitter": { "type": "string" },
-                        "instagram": { "type": "string" }
+                        "instagram": { "type": "string" },
+                        "portfolio": { "type": "string" }
                       }
                     },
                     "userId": { "type": "string" }
@@ -2798,7 +2836,11 @@ delete: {
             "properties": {
               "degree": { "type": "string" },
               "institution": { "type": "string" },
+              "department": { "type": "string" },
               "description": { "type": "string" },
+              "startYear": { "type": "integer", "example": 2021 },
+              "endYear": { "type": "integer", "nullable": true, "description": "null means Present" },
+              "status": { "type": "string", "enum": ["Currently Enrolled", "Graduated", "On Leave", "Other"] },
               "educationImage": { "type": "string", "format": "binary" }
             }
           }
@@ -2823,8 +2865,12 @@ delete: {
                       "properties": {
                         "degree": { "type": "string" },
                         "institution": { "type": "string" },
+                        "department": { "type": "string" },
                         "description": { "type": "string" },
-                        "imageUrl": { "type": "string" }
+                        "imageUrl": { "type": "string" },
+                        "startYear": { "type": "integer" },
+                        "endYear": { "type": "integer", "nullable": true },
+                        "status": { "type": "string" }
                       }
                     },
                     "userId": { "type": "string" }
@@ -2852,8 +2898,12 @@ delete: {
                       "properties": {
                         "degree": { "type": "string" },
                         "institution": { "type": "string" },
+                        "department": { "type": "string" },
                         "description": { "type": "string" },
-                        "imageUrl": { "type": "string" }
+                        "imageUrl": { "type": "string" },
+                        "startYear": { "type": "integer" },
+                        "endYear": { "type": "integer", "nullable": true },
+                        "status": { "type": "string" }
                       }
                     },
                     "userId": { "type": "string" }
@@ -2896,7 +2946,11 @@ delete: {
             "properties": {
               "degree": { "type": "string" },
               "institution": { "type": "string" },
+              "department": { "type": "string" },
               "description": { "type": "string" },
+              "startYear": { "type": "integer", "example": 2021 },
+              "endYear": { "type": "integer", "nullable": true, "description": "null means Present" },
+              "status": { "type": "string", "enum": ["Currently Enrolled", "Graduated", "On Leave", "Other"] },
               "educationImage": { "type": "string", "format": "binary" }
             }
           }
@@ -2921,8 +2975,12 @@ delete: {
                       "properties": {
                         "degree": { "type": "string" },
                         "institution": { "type": "string" },
+                        "department": { "type": "string" },
                         "description": { "type": "string" },
-                        "imageUrl": { "type": "string" }
+                        "imageUrl": { "type": "string" },
+                        "startYear": { "type": "integer" },
+                        "endYear": { "type": "integer", "nullable": true },
+                        "status": { "type": "string" }
                       }
                     },
                     "userId": { "type": "string" }
@@ -3018,7 +3076,8 @@ delete: {
                       "type": "array",
                       "items": { "type": "string" }
                     },
-                    "percent": { "type": "integer", "minimum": 0, "maximum": 100 }
+                    "percent": { "type": "integer", "minimum": 0, "maximum": 100 },
+                    "category": { "type": "string", "enum": ["Frontend Development", "Backend Development", "DevOps & Tools", "Mobile & Other", "Other"] }
                   }
                 }
               }
@@ -3135,7 +3194,8 @@ delete: {
                       "type": "array",
                       "items": { "type": "string" }
                     },
-                    "percent": { "type": "integer", "minimum": 0, "maximum": 100 }
+                    "percent": { "type": "integer", "minimum": 0, "maximum": 100 },
+                    "category": { "type": "string", "enum": ["Frontend Development", "Backend Development", "DevOps & Tools", "Mobile & Other", "Other"] }
                   }
                 }
               }
