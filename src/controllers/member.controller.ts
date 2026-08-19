@@ -36,6 +36,7 @@ function toPublicMemberProfile(member: Member) {
     skills,
     languages,
     cvUrl,
+    resumeUrl,
     tagline,
     availability,
     createdAt,
@@ -55,6 +56,7 @@ function toPublicMemberProfile(member: Member) {
     skills,
     languages: languages ?? [],
     cvUrl: cvUrl ?? null,
+    resumeUrl: resumeUrl ?? null,
     tagline: tagline ?? null,
     availability: availability ?? true,
     createdAt,
@@ -211,6 +213,7 @@ export const createOrUpdateMember = async (req: Request, res: Response): Promise
     const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
     const imageFile = files?.image?.[0];
     const cvFile = files?.cv?.[0];
+    const resumeFile = files?.resume?.[0];
 
     if (imageFile) {
       if (member?.imageUrl && !member.imageUrl.includes('member-demo.jpg')) {
@@ -239,6 +242,21 @@ export const createOrUpdateMember = async (req: Request, res: Response): Promise
       });
       updateData.cvUrl = result.secure_url;
       fs.unlinkSync(cvFile.path);
+    }
+
+    if (resumeFile) {
+      if (member?.resumeUrl) {
+        const publicId = member.resumeUrl.split('/').pop()?.split('.')[0];
+        if (publicId) {
+          await cloudinary.uploader.destroy(`innovation-hub/members/resume/${publicId}`, { resource_type: 'raw' });
+        }
+      }
+      const result = await cloudinary.uploader.upload(resumeFile.path, {
+        folder: 'innovation-hub/members/resume',
+        resource_type: 'raw',
+      });
+      updateData.resumeUrl = result.secure_url;
+      fs.unlinkSync(resumeFile.path);
     }
 
     if (member) {
@@ -274,6 +292,7 @@ export const createOrUpdateMember = async (req: Request, res: Response): Promise
         skills: [],
         languages: updateData.languages || [],
         cvUrl: updateData.cvUrl || null,
+        resumeUrl: updateData.resumeUrl || null,
         tagline: updateData.tagline ?? null,
         availability: 'availability' in updateData ? updateData.availability : true,
         createdAt: new Date(),
