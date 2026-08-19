@@ -15,6 +15,25 @@ const userIdParamSchema = Joi.object({
   }),
 })
 
+// Member.role is a plain string column with no DB-level enum (confirmed by
+// reading member.model.ts before adding this). It is NOT constrained at the
+// database level here: the existing default fallback used to be the literal
+// string 'Member' (not a specialization), so real/existing rows are likely to
+// already hold values outside this list. Validating only at the Joi layer
+// avoids breaking writes for that already-existing data.
+export const MEMBER_SPECIALIZATIONS = [
+  'Frontend Developer',
+  'Backend Developer',
+  'Full-Stack Developer',
+  'Database Specialist',
+  'Cybersecurity Specialist',
+  'Network Administrator',
+  'DevOps Engineer',
+  'Mobile Developer',
+  'UI/UX Designer',
+  'Other',
+] as const
+
 export const EDUCATION_STATUSES = ['Currently Enrolled', 'Graduated', 'On Leave', 'Other'] as const
 
 const currentYear = new Date().getFullYear()
@@ -115,7 +134,9 @@ const languageSchema = Joi.object({
 
 const memberUpdateBodySchema = Joi.object({
   name: Joi.string().optional(),
-  role: Joi.string().optional(),
+  role: Joi.string().valid(...MEMBER_SPECIALIZATIONS).optional().messages({
+    'any.only': `role must be one of: ${MEMBER_SPECIALIZATIONS.join(', ')}`,
+  }),
   bio: Joi.string().allow('').optional(),
   tagline: Joi.string().trim().max(160).allow('', null).optional().messages({
     'string.max': 'tagline must be at most 160 characters',
