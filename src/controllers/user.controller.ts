@@ -302,6 +302,18 @@ Innovation Hub Team
       return;
     }
 
+    if (
+      user.isTemporaryPassword &&
+      user.passwordExpiresAt &&
+      new Date(user.passwordExpiresAt) < new Date()
+    ) {
+      res.status(403).json({
+        status: "fail",
+        message: "Your temporary password has expired. Please use Forgot Password to set a new one.",
+      });
+      return;
+    }
+
     // Proceed to send OTP and generate a temporary login token for the OTP step.
     try {
       await sendOTP(req, res, async () => {
@@ -467,6 +479,8 @@ export const updatePassword = async (
 
     const hashedPassword = await hashPassword(newPassword)
     user.password = hashedPassword
+    user.isTemporaryPassword = false
+    user.passwordExpiresAt = null
     await user.save()
 
     passwordEventEmitter.emit('passwordUpdated', user.id)
@@ -667,6 +681,8 @@ export const resetPassword = async (
 
     const hashedPassword = await hashPassword(newPassword)
     user.password = hashedPassword
+    user.isTemporaryPassword = false
+    user.passwordExpiresAt = null
     await user.save()
 
     await createNotification(
