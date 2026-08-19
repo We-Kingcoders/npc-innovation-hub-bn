@@ -8618,6 +8618,54 @@ delete: {
         }
       }
     },
+    "/api/hero-members": {
+      "get": {
+        "summary": "Get the hero-section featured members",
+        "description": "Public endpoint - Returns the admin-curated featured members in slide order, projected to only name/imageUrl/role (no internal id, no memberId - the frontend hero slider doesn't need them).",
+        "tags": ["Members"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "List of featured members for the hero section",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "results": { "type": "number", "example": 3 },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "heroMembers": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": { "type": "string" },
+                              "imageUrl": { "type": "string", "format": "uri" },
+                              "role": { "type": "string" }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
     }
   },
   apis: [],
