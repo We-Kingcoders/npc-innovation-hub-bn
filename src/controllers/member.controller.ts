@@ -366,7 +366,14 @@ export const createOrUpdateEducation = async (req: Request, res: Response): Prom
 
     if ('degree' in req.body) education.degree = req.body.degree;
     if ('institution' in req.body) education.institution = req.body.institution;
+    if ('department' in req.body) education.department = req.body.department;
     if ('description' in req.body) education.description = req.body.description;
+    // startYear/endYear/status arrive already validated by
+    // validateEducationUpdateBody (endYear may be explicitly null, meaning
+    // "Present" - `in` catches that case, an `||`/`??` fallback would not).
+    if ('startYear' in req.body) education.startYear = req.body.startYear;
+    if ('endYear' in req.body) education.endYear = req.body.endYear;
+    if ('status' in req.body) education.status = req.body.status;
 
     if (!education.imageUrl) {
       education.imageUrl = '/members-images/university.jpg';
