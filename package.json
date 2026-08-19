@@ -11,6 +11,7 @@
     "db:check-resume-column": "ts-node src/scripts/check-resume-column.ts",
     "db:check-stale-roles": "ts-node src/scripts/check-stale-roles.ts",
     "db:fix-stale-role": "ts-node src/scripts/fix-stale-role.ts",
+    "db:sync-hero-members": "ts-node src/scripts/sync-hero-featured-member-model.ts",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "prepare": "husky install",

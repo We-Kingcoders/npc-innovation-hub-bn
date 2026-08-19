@@ -8389,6 +8389,235 @@ delete: {
         }
       }
     },
+    "/api/admin/members/picker": {
+      "get": {
+        "summary": "List members for the hero-section picker",
+        "description": "Admin only - Returns every member projected to only id/name/imageUrl/role, for the hero-section member-picker dropdown. Does not exclude already-featured members server-side; cross-reference against GET /api/admin/hero-members if needed.",
+        "tags": ["Members", "Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "List of members for the picker",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "results": { "type": "number", "example": 10 },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "members": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "string", "format": "uuid" },
+                              "name": { "type": "string" },
+                              "imageUrl": { "type": "string", "format": "uri" },
+                              "role": { "type": "string" }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden, admin access required" }
+        }
+      }
+    },
+    "/api/admin/hero-members": {
+      "get": {
+        "summary": "List hero-section featured members",
+        "description": "Admin only - Returns the currently featured members ordered by their slide order, each projected to id (of the HeroFeaturedMember record)/name/imageUrl/role, always pulled live from the associated Member.",
+        "tags": ["Members", "Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "List of featured members",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "results": { "type": "number", "example": 3 },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "heroMembers": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "string", "format": "uuid" },
+                              "name": { "type": "string" },
+                              "imageUrl": { "type": "string", "format": "uri" },
+                              "role": { "type": "string" }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden, admin access required" }
+        }
+      },
+      "post": {
+        "summary": "Add a member to the hero section",
+        "description": "Admin only - Features an existing member in the hero section. Adds to the end of the current order. Rejects if the member doesn't exist (404) or is already featured (409).",
+        "tags": ["Members", "Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["memberId"],
+                "properties": {
+                  "memberId": { "type": "string", "format": "uuid", "description": "Member.id to feature" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Member added to the hero section",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Member added to the hero section" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "string", "format": "uuid" },
+                        "name": { "type": "string" },
+                        "imageUrl": { "type": "string", "format": "uri" },
+                        "role": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "memberId missing or not a valid UUID" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden, admin access required" },
+          "404": { "description": "Member not found" },
+          "409": { "description": "Member is already featured in the hero section" }
+        }
+      }
+    },
+    "/api/admin/hero-members/reorder": {
+      "patch": {
+        "summary": "Reorder hero-section featured members",
+        "description": "Admin only - Request body is the ordered array of HeroFeaturedMember ids itself (not wrapped in an object). Each row's order is set to match its array position. Rejected with 400 unless the array contains exactly the current set of featured ids - no missing, extra, or duplicate ids.",
+        "tags": ["Members", "Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": { "type": "string", "format": "uuid" },
+                "example": ["3fa85f64-5717-4562-b3fc-2c963f66afa6", "7c9e6679-7425-40de-944b-e07fc1f90ae7"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Hero member order updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Hero member order updated" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "heroMembers": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "string", "format": "uuid" },
+                              "name": { "type": "string" },
+                              "imageUrl": { "type": "string", "format": "uri" },
+                              "role": { "type": "string" }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Array does not exactly match the current set of featured ids" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden, admin access required" }
+        }
+      }
+    },
+    "/api/admin/hero-members/{id}": {
+      "delete": {
+        "summary": "Remove a member from the hero section",
+        "description": "Admin only - Deletes the HeroFeaturedMember row only; never deletes the underlying Member.",
+        "tags": ["Members", "Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" },
+            "description": "HeroFeaturedMember id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Member removed from the hero section",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Member removed from the hero section" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "id is not a valid UUID" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden, admin access required" },
+          "404": { "description": "Hero member not found" }
+        }
+      }
+    },
     }
   },
   apis: [],
