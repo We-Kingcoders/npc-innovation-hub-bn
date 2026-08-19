@@ -19,6 +19,7 @@ import notificationRoutes from './routes/notification.routes';
 import hireRoutes from './routes/hire.route';
 import adminHireRoutes from './routes/admin/hire.routes';
 import adminHeroMembersRoutes from './routes/admin/heroMembers.routes';
+import heroMembersRoutes from './routes/heroMembers.routes';
 import taskRoutes from './routes/task.routes';
 
 // Load environment variables
@@ -62,6 +63,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/tasks', taskRoutes)   
 // Public route
 app.use('/api/hire-us', hireRoutes);
+app.use('/api/hero-members', heroMembersRoutes);
 
 // Admin routes - already protected by middleware in the router
 app.use('/api/admin/hire-inquiries', adminHireRoutes);
