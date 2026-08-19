@@ -132,6 +132,12 @@ const languageSchema = Joi.object({
   }),
 })
 
+const MAX_HASHTAGS = 6
+
+const hashtagSchema = Joi.string().trim().min(1).max(30).messages({
+  'string.max': 'each hashtag must be at most 30 characters',
+})
+
 const memberUpdateBodySchema = Joi.object({
   name: Joi.string().optional(),
   role: Joi.string().valid(...MEMBER_SPECIALIZATIONS).optional().messages({
@@ -147,9 +153,15 @@ const memberUpdateBodySchema = Joi.object({
   languages: Joi.array().items(languageSchema).optional().messages({
     'array.base': 'languages must be an array',
   }),
+  hashtags: Joi.array().items(hashtagSchema).max(MAX_HASHTAGS).optional().messages({
+    'array.base': 'hashtags must be an array',
+    'array.max': `hashtags cannot have more than ${MAX_HASHTAGS} entries`,
+  }),
 }).unknown(true)
 
-function parseLanguagesInput(value: unknown): unknown {
+// Multipart form-data always sends array/object fields as JSON-encoded
+// strings; parse them back before Joi validates their shape.
+function parseJsonArrayInput(value: unknown): unknown {
   if (typeof value === 'string') {
     try {
       return JSON.parse(value)
@@ -163,7 +175,10 @@ function parseLanguagesInput(value: unknown): unknown {
 export const validateMemberUpdateBody = (req: Request, res: Response, next: NextFunction): void => {
   const candidate: Record<string, unknown> = { ...req.body }
   if ('languages' in candidate) {
-    candidate.languages = parseLanguagesInput(candidate.languages)
+    candidate.languages = parseJsonArrayInput(candidate.languages)
+  }
+  if ('hashtags' in candidate) {
+    candidate.hashtags = parseJsonArrayInput(candidate.hashtags)
   }
 
   const { error, value } = memberUpdateBodySchema.validate(candidate, { abortEarly: false })
@@ -175,9 +190,11 @@ export const validateMemberUpdateBody = (req: Request, res: Response, next: Next
     return
   }
 
-  // Write back normalized/coerced values (parsed languages, coerced availability boolean)
-  // so the controller can read req.body directly without re-parsing.
+  // Write back normalized/coerced values (parsed languages/hashtags, coerced
+  // availability boolean) so the controller can read req.body directly
+  // without re-parsing.
   if ('languages' in value) req.body.languages = value.languages
+  if ('hashtags' in value) req.body.hashtags = value.hashtags
   if ('availability' in value) req.body.availability = value.availability
   if ('tagline' in value) req.body.tagline = value.tagline
 

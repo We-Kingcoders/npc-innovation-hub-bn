@@ -53,6 +53,7 @@ interface MemberAttributes {
   cvUrl?: string | null;
   resumeUrl?: string | null;
   tagline?: string | null;
+  hashtags?: string[];
   availability: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -60,7 +61,7 @@ interface MemberAttributes {
 
 type MemberCreationAttributes = Optional<
   MemberAttributes,
-  'id' | 'education' | 'contacts' | 'skillDetails' | 'bio' | 'languages' | 'cvUrl' | 'resumeUrl' | 'tagline' | 'availability'
+  'id' | 'education' | 'contacts' | 'skillDetails' | 'bio' | 'languages' | 'cvUrl' | 'resumeUrl' | 'tagline' | 'hashtags' | 'availability'
 >;
 
 class Member extends Model<MemberAttributes, MemberCreationAttributes> implements MemberAttributes {
@@ -78,6 +79,7 @@ class Member extends Model<MemberAttributes, MemberCreationAttributes> implement
   declare cvUrl: string | null;
   declare resumeUrl: string | null;
   declare tagline: string | null;
+  declare hashtags: string[];
   declare availability: boolean;
   declare createdAt: Date;
   declare updatedAt: Date;
@@ -150,6 +152,11 @@ Member.init(
       type: DataTypes.STRING(160),
       allowNull: true,
       defaultValue: null,
+    },
+    hashtags: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      defaultValue: [],
     },
     availability: {
       type: DataTypes.BOOLEAN,
