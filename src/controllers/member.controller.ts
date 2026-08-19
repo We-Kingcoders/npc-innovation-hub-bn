@@ -16,6 +16,37 @@ function toPublicContacts(contacts: Member['contacts']) {
   return { linkedin, github, twitter, instagram };
 }
 
+const SKILL_CATEGORY_ORDER = [
+  'Frontend Development',
+  'Backend Development',
+  'DevOps & Tools',
+  'Mobile & Other',
+  'Other',
+] as const;
+
+// Groups skillDetails by category and computes each category's overall
+// percentage server-side (average of its skills, rounded to the nearest
+// whole number) so it can never drift out of sync with the individual
+// skills - the frontend doesn't do this grouping/math itself. skillDetails
+// itself is left unchanged in the response for backward compatibility with
+// existing consumers of the flat list.
+function toSkillCategories(skillDetails: Member['skillDetails']) {
+  if (!skillDetails || skillDetails.length === 0) return [];
+
+  const byCategory = new Map<string, NonNullable<Member['skillDetails']>>();
+  for (const skill of skillDetails) {
+    const category = skill.category ?? 'Other';
+    if (!byCategory.has(category)) byCategory.set(category, []);
+    byCategory.get(category)!.push(skill);
+  }
+
+  return SKILL_CATEGORY_ORDER.filter((category) => byCategory.has(category)).map((category) => {
+    const skills = byCategory.get(category)!;
+    const overall = Math.round(skills.reduce((sum, skill) => sum + skill.percent, 0) / skills.length);
+    return { category, overall, skills };
+  });
+}
+
 // Explicit allow-list for public/unauthenticated member responses.
 // Email, phone, and WhatsApp must NEVER appear here, even if such a field is
 // added to the Member model later - add new safe fields individually, don't spread.
@@ -52,6 +83,7 @@ function toPublicMemberProfile(member: Member) {
     education,
     contacts: toPublicContacts(contacts),
     skillDetails,
+    skillCategories: toSkillCategories(skillDetails),
     skills,
     languages: languages ?? [],
     cvUrl: cvUrl ?? null,
