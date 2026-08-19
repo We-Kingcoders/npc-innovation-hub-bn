@@ -100,7 +100,7 @@ export const getAllMembers = async (req: Request, res: Response): Promise<void> 
           id: user.id,
           userId: user.id,
           name: `${user.firstName} ${user.lastName}`,
-          role: 'Member',
+          role: 'Other',
           imageUrl: '/members-images/member-demo.jpg'
         };
       }
@@ -268,7 +268,7 @@ export const createOrUpdateMember = async (req: Request, res: Response): Promise
       member = await Member.create({
         userId,
         name,
-        role: role || 'Member',
+        role: role || 'Other',
         bio: req.body.bio || '',
         imageUrl: updateData.imageUrl || '/members-images/member-demo.jpg',
         skills: [],
@@ -330,7 +330,7 @@ export const createOrUpdateContacts = async (req: Request, res: Response): Promi
       member = await Member.create({
         userId,
         name: req.body.name || `User${userId.substr(0, 5)}`,
-        role: req.body.role || 'Member',
+        role: req.body.role || 'Other',
         bio: req.body.bio || '',
         imageUrl: '/members-images/member-demo.jpg',
         skills: [],
@@ -399,7 +399,7 @@ export const createOrUpdateEducation = async (req: Request, res: Response): Prom
       member = await Member.create({
         userId,
         name: req.body.name || `User${userId.substr(0, 5)}`,
-        role: req.body.role || 'Member',
+        role: req.body.role || 'Other',
         bio: req.body.bio || '',
         imageUrl: '/members-images/member-demo.jpg',
         skills: [],
@@ -463,7 +463,7 @@ export const createOrUpdateSkills = async (req: Request, res: Response): Promise
       member = await Member.create({
         userId,
         name: req.body.name || `User${userId.substr(0, 5)}`,
-        role: req.body.role || 'Member',
+        role: req.body.role || 'Other',
         bio: req.body.bio || '',
         imageUrl: '/members-images/member-demo.jpg',
         skillDetails,
