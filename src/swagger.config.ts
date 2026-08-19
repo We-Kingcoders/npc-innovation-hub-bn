@@ -8746,6 +8746,57 @@ delete: {
         }
       }
     },
+    "/api/admin/applications/{id}/accept": {
+      "patch": {
+        "summary": "Accept a pending membership application",
+        "description": "Admin only. Creates a User + Member account for the applicant, generates a temporary password valid for 2 days, and sends a styled acceptance email with the login details. All steps (account creation, application status update, email send) run in a single transaction - if any step fails, everything rolls back and the application stays Pending. Fails with 409 if the application has already been decided.",
+        "tags": ["Applications", "Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Application accepted; account created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Application accepted" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "application": { "$ref": "#/components/schemas/Application" },
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "id": { "type": "string", "format": "uuid" },
+                            "email": { "type": "string", "format": "email" },
+                            "firstName": { "type": "string" },
+                            "lastName": { "type": "string" }
+                          }
+                        },
+                        "member": {
+                          "type": "object",
+                          "properties": { "id": { "type": "string", "format": "uuid" } }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Missing or invalid token" },
+          "403": { "description": "Not an Admin" },
+          "404": { "description": "Application not found" },
+          "409": { "description": "Application has already been decided" },
+          "500": { "description": "Failed to accept application - no changes were saved" }
+        }
+      }
+    }
     }
   },
   apis: [],
