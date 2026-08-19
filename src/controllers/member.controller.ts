@@ -12,8 +12,8 @@ import cloudinary from "../utils/cloudinary.utils";
 // deleted from storage.
 function toPublicContacts(contacts: Member['contacts']) {
   if (!contacts) return contacts;
-  const { linkedin, github, twitter, instagram } = contacts;
-  return { linkedin, github, twitter, instagram };
+  const { linkedin, github, twitter, instagram, portfolio } = contacts;
+  return { linkedin, github, twitter, instagram, portfolio };
 }
 
 const SKILL_CATEGORY_ORDER = [
@@ -347,6 +347,7 @@ export const createOrUpdateContacts = async (req: Request, res: Response): Promi
     if ('github' in req.body) contacts.github = req.body.github;
     if ('twitter' in req.body) contacts.twitter = req.body.twitter;
     if ('instagram' in req.body) contacts.instagram = req.body.instagram;
+    if ('portfolio' in req.body) contacts.portfolio = req.body.portfolio;
 
     if (member) {
       await member.update({

@@ -122,7 +122,8 @@ const options = {
               linkedin: { type: 'string', format: 'uri' },
               github: { type: 'string', format: 'uri' },
               twitter: { type: 'string', format: 'uri' },
-              instagram: { type: 'string', format: 'uri' }
+              instagram: { type: 'string', format: 'uri' },
+              portfolio: { type: 'string', format: 'uri' }
             }
           },
           skillDetails: {
@@ -2614,7 +2615,8 @@ delete: {
               "linkedin": { "type": "string", "format": "uri" },
               "github": { "type": "string", "format": "uri" },
               "twitter": { "type": "string", "format": "uri" },
-              "instagram": { "type": "string", "format": "uri" }
+              "instagram": { "type": "string", "format": "uri" },
+              "portfolio": { "type": "string", "format": "uri" }
             }
           }
         }
@@ -2639,7 +2641,8 @@ delete: {
                         "linkedin": { "type": "string" },
                         "github": { "type": "string" },
                         "twitter": { "type": "string" },
-                        "instagram": { "type": "string" }
+                        "instagram": { "type": "string" },
+                        "portfolio": { "type": "string" }
                       }
                     },
                     "userId": { "type": "string" }
@@ -2668,7 +2671,8 @@ delete: {
                         "linkedin": { "type": "string" },
                         "github": { "type": "string" },
                         "twitter": { "type": "string" },
-                        "instagram": { "type": "string" }
+                        "instagram": { "type": "string" },
+                        "portfolio": { "type": "string" }
                       }
                     },
                     "userId": { "type": "string" }
@@ -2712,7 +2716,8 @@ delete: {
               "linkedin": { "type": "string", "format": "uri" },
               "github": { "type": "string", "format": "uri" },
               "twitter": { "type": "string", "format": "uri" },
-              "instagram": { "type": "string", "format": "uri" }
+              "instagram": { "type": "string", "format": "uri" },
+              "portfolio": { "type": "string", "format": "uri" }
             }
           }
         }
@@ -2737,7 +2742,8 @@ delete: {
                         "linkedin": { "type": "string" },
                         "github": { "type": "string" },
                         "twitter": { "type": "string" },
-                        "instagram": { "type": "string" }
+                        "instagram": { "type": "string" },
+                        "portfolio": { "type": "string" }
                       }
                     },
                     "userId": { "type": "string" }
