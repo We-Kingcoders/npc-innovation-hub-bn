@@ -6,6 +6,7 @@ import {
   validateMemberIdParam,
   validateUserIdParam,
   validatePaginationQuery,
+  validateMemberUpdateBody,
 } from '../validations/member.validation';
 
 const router = express.Router();
@@ -17,13 +18,20 @@ const storage = multer.diskStorage({
     cb(null, file.fieldname + '-' + uniqueSuffix + '.' + file.originalname.split('.').pop());
   }
 });
+// image/educationImage fields accept images; cv accepts PDF/Word documents
 const fileFilter = (req: any, file: any, cb: any) => {
-  if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
+  if (file.fieldname === 'cv') {
+    if (!file.originalname.match(/\.(pdf|doc|docx)$/i)) {
+      return cb(new Error('CV must be a PDF or Word document!'), false);
+    }
+    return cb(null, true);
+  }
+  if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/i)) {
     return cb(new Error('Only image files are allowed!'), false);
   }
   cb(null, true);
 };
-const upload = multer({ 
+const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB
@@ -37,22 +45,30 @@ router.get('/member/:id', validateMemberIdParam, memberController.getMemberById)
 router.get('/:userId', validateUserIdParam, memberController.getMemberInfo);
 
 // Protected member profile routes (userId as path param)
+const profileUpload = upload.fields([
+  { name: 'image', maxCount: 1 },
+  { name: 'cv', maxCount: 1 },
+]);
+
 router.post(
-  '/:userId', 
-  protectRoute, 
-  upload.single('image'),
+  '/:userId',
+  protectRoute,
+  profileUpload,
+  validateMemberUpdateBody,
   memberController.createOrUpdateMember
 );
 router.put(
-  '/:userId', 
-  protectRoute, 
-  upload.single('image'),
+  '/:userId',
+  protectRoute,
+  profileUpload,
+  validateMemberUpdateBody,
   memberController.createOrUpdateMember
 );
 router.patch(
-  '/:userId', 
-  protectRoute, 
-  upload.single('image'),
+  '/:userId',
+  protectRoute,
+  profileUpload,
+  validateMemberUpdateBody,
   memberController.createOrUpdateMember
 );
 

@@ -133,6 +133,19 @@ const options = {
             }
           },
           skills: { type: 'array', items: { type: 'string' } },
+          languages: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                name: { type: 'string', example: 'English' },
+                level: { type: 'string', enum: ['Native', 'Fluent', 'Intermediate', 'Basic'] }
+              }
+            }
+          },
+          cvUrl: { type: 'string', format: 'uri', nullable: true },
+          tagline: { type: 'string', nullable: true, maxLength: 160 },
+          availability: { type: 'boolean', default: true },
           createdAt: { type: 'string', format: 'date-time' },
           updatedAt: { type: 'string', format: 'date-time' }
         }
@@ -2252,7 +2265,11 @@ delete: {
               "name": { "type": "string" },
               "role": { "type": "string" },
               "bio": { "type": "string" },
-              "image": { "type": "string", "format": "binary" }
+              "tagline": { "type": "string", "maxLength": 160, "description": "Short profile tagline (max 160 characters)" },
+              "availability": { "type": "boolean", "description": "Whether the member is currently available" },
+              "languages": { "type": "string", "description": "JSON-encoded array of {name, level}, e.g. [{\"name\":\"English\",\"level\":\"Fluent\"}]. level must be one of Native, Fluent, Intermediate, Basic." },
+              "image": { "type": "string", "format": "binary", "description": "Profile image file" },
+              "cv": { "type": "string", "format": "binary", "description": "CV/resume file (PDF or Word document)" }
             }
           }
         }
@@ -2321,7 +2338,11 @@ delete: {
               "name": { "type": "string" },
               "role": { "type": "string" },
               "bio": { "type": "string" },
-              "image": { "type": "string", "format": "binary" }
+              "tagline": { "type": "string", "maxLength": 160, "description": "Short profile tagline (max 160 characters)" },
+              "availability": { "type": "boolean", "description": "Whether the member is currently available" },
+              "languages": { "type": "string", "description": "JSON-encoded array of {name, level}, e.g. [{\"name\":\"English\",\"level\":\"Fluent\"}]. level must be one of Native, Fluent, Intermediate, Basic." },
+              "image": { "type": "string", "format": "binary", "description": "Profile image file" },
+              "cv": { "type": "string", "format": "binary", "description": "CV/resume file (PDF or Word document)" }
             }
           }
         }
@@ -2389,7 +2410,11 @@ delete: {
               "name": { "type": "string" },
               "role": { "type": "string" },
               "bio": { "type": "string" },
-              "image": { "type": "string", "format": "binary" }
+              "tagline": { "type": "string", "maxLength": 160, "description": "Short profile tagline (max 160 characters)" },
+              "availability": { "type": "boolean", "description": "Whether the member is currently available" },
+              "languages": { "type": "string", "description": "JSON-encoded array of {name, level}, e.g. [{\"name\":\"English\",\"level\":\"Fluent\"}]. level must be one of Native, Fluent, Intermediate, Basic." },
+              "image": { "type": "string", "format": "binary", "description": "Profile image file" },
+              "cv": { "type": "string", "format": "binary", "description": "CV/resume file (PDF or Word document)" }
             }
           }
         }
