@@ -16,6 +16,7 @@ interface Contacts {
   github: string;
   twitter?: string;
   instagram?: string;
+  portfolio?: string;
 }
 
 // Define skill interface
