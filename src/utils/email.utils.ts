@@ -108,6 +108,7 @@ export enum EmailTemplate {
   ACCOUNT_DEACTIVATION = 'account-deactivation',
   EVENT_INVITATION = 'event-invitation',
   ROLE_UPDATE = 'role-update',
+  APPLICATION_ACCEPTED = 'application-accepted',
 }
 
 // Rate limiting logic can remain the same if desired
@@ -381,6 +382,48 @@ The Innovation Hub Team
   </div>
   ${data.eventDescription ? `<p>${data.eventDescription}</p>` : ''}
   <p>We hope to see you there!</p>
+  <p>Best regards,<br>The Innovation Hub Team</p>
+</div>
+      `;
+      break;
+
+    case EmailTemplate.APPLICATION_ACCEPTED:
+      subject = 'Innovation Hub - Welcome! Your Membership Application Was Accepted';
+      text = `
+Dear ${data.firstName},
+
+Congratulations! Your membership application to Innovation Hub has been accepted.
+
+We've created your account. Here are your temporary login details:
+
+Email: ${data.email}
+Temporary Password: ${data.tempPassword}
+
+Log in here: ${data.loginLink}
+
+This temporary password expires in ${data.expiresInDays} days. Please log in and change your password before then. If it expires first, use the Forgot Password option to set a new one.
+
+Welcome aboard!
+
+Best regards,
+The Innovation Hub Team
+      `;
+      html = `
+<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+  <h2 style="color: #2c3e50;">Welcome to Innovation Hub!</h2>
+  <p>Dear ${data.firstName},</p>
+  <p>Congratulations! Your membership application has been accepted.</p>
+  <div style="background-color: #f8f9fa; padding: 15px; border-radius: 4px; margin: 15px 0;">
+    <p><strong>Email:</strong> ${data.email}</p>
+    <p><strong>Temporary Password:</strong> ${data.tempPassword}</p>
+  </div>
+  <p>
+    <a href="${data.loginLink}" style="display: inline-block; padding: 10px 20px; background-color: #2ecc71; color: #ffffff; text-decoration: none; border-radius: 4px;">
+      Log In
+    </a>
+  </p>
+  <p>This temporary password expires in <strong>${data.expiresInDays} days</strong>. Please log in and change your password before then. If it expires first, use the Forgot Password option to set a new one.</p>
+  <p>Welcome aboard!</p>
   <p>Best regards,<br>The Innovation Hub Team</p>
 </div>
       `;
