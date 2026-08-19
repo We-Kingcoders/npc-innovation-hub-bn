@@ -20,6 +20,8 @@ class User
   declare verified: boolean
   declare role: 'Admin' | 'Member' // Modified to only allow these two values
   declare isActive: boolean
+  declare isTemporaryPassword: boolean
+  declare passwordExpiresAt: Date | null
   declare createdAt: Date
   declare updatedAt: Date
 }
@@ -91,6 +93,16 @@ User.init(
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: true,
+    },
+    isTemporaryPassword: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+    passwordExpiresAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: null,
     },
     createdAt: {
       allowNull: false,
