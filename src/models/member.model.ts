@@ -6,8 +6,12 @@ import User from './user.model';
 interface Education {
   degree: string;
   institution: string;
+  department?: string;
   description: string;
   imageUrl: string;
+  startYear?: number;
+  endYear?: number | null;
+  status?: string;
 }
 
 // Define contacts interface
