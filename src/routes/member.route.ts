@@ -7,6 +7,7 @@ import {
   validateUserIdParam,
   validatePaginationQuery,
   validateMemberUpdateBody,
+  validateSkillsUpdateBody,
 } from '../validations/member.validation';
 
 const router = express.Router();
@@ -111,18 +112,21 @@ router.patch(
 
 // Skills routes (userId as path param)
 router.post(
-  '/:userId/skills', 
+  '/:userId/skills',
   protectRoute,
+  validateSkillsUpdateBody,
   memberController.createOrUpdateSkills
 );
 router.put(
-  '/:userId/skills', 
+  '/:userId/skills',
   protectRoute,
+  validateSkillsUpdateBody,
   memberController.createOrUpdateSkills
 );
 router.patch(
-  '/:userId/skills', 
+  '/:userId/skills',
   protectRoute,
+  validateSkillsUpdateBody,
   memberController.createOrUpdateSkills
 );
 
