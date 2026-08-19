@@ -18,6 +18,7 @@ import chatRoutes from './routes/chat.routes';
 import notificationRoutes from './routes/notification.routes';
 import hireRoutes from './routes/hire.route';
 import adminHireRoutes from './routes/admin/hire.routes';
+import adminHeroMembersRoutes from './routes/admin/heroMembers.routes';
 import taskRoutes from './routes/task.routes';
 
 // Load environment variables
@@ -64,7 +65,12 @@ app.use('/api/hire-us', hireRoutes);
 
 // Admin routes - already protected by middleware in the router
 app.use('/api/admin/hire-inquiries', adminHireRoutes);
- 
+// Mounted broadly at /api/admin since this router covers two related
+// admin-only concerns (the member picker and hero-member CRUD) under their
+// own more specific sub-paths (/members/picker, /hero-members*) - it only
+// intercepts requests matching those, everything else falls through.
+app.use('/api/admin', adminHeroMembersRoutes);
+
 // Add Swagger UI middleware
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
