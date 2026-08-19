@@ -97,7 +97,7 @@ const options = {
           id: { type: 'string', format: 'uuid' },
           userId: { type: 'string', format: 'uuid' },
           name: { type: 'string' },
-          role: { type: 'string' },
+          role: { type: 'string', enum: ['Frontend Developer','Backend Developer','Full-Stack Developer','Database Specialist','Cybersecurity Specialist','Network Administrator','DevOps Engineer','Mobile Developer','UI/UX Designer','Other'] },
           imageUrl: { type: 'string', format: 'uri' },
           bio: { type: 'string' },
           education: {
@@ -2151,7 +2151,7 @@ delete: {
                           "id": { "type": "string", "format": "uuid" },
                           "userId": { "type": "string", "format": "uuid" },
                           "name": { "type": "string" },
-                          "role": { "type": "string" },
+                          "role": { "type": "string", "enum": ["Frontend Developer","Backend Developer","Full-Stack Developer","Database Specialist","Cybersecurity Specialist","Network Administrator","DevOps Engineer","Mobile Developer","UI/UX Designer","Other"] },
                           "imageUrl": { "type": "string", "format": "uri" }
                         }
                       }
@@ -2263,7 +2263,7 @@ delete: {
             "required": ["name", "role"],
             "properties": {
               "name": { "type": "string" },
-              "role": { "type": "string" },
+              "role": { "type": "string", "enum": ["Frontend Developer","Backend Developer","Full-Stack Developer","Database Specialist","Cybersecurity Specialist","Network Administrator","DevOps Engineer","Mobile Developer","UI/UX Designer","Other"] },
               "bio": { "type": "string" },
               "tagline": { "type": "string", "maxLength": 160, "description": "Short profile tagline (max 160 characters)" },
               "availability": { "type": "boolean", "description": "Whether the member is currently available" },
@@ -2336,7 +2336,7 @@ delete: {
             "required": ["name", "role"],
             "properties": {
               "name": { "type": "string" },
-              "role": { "type": "string" },
+              "role": { "type": "string", "enum": ["Frontend Developer","Backend Developer","Full-Stack Developer","Database Specialist","Cybersecurity Specialist","Network Administrator","DevOps Engineer","Mobile Developer","UI/UX Designer","Other"] },
               "bio": { "type": "string" },
               "tagline": { "type": "string", "maxLength": 160, "description": "Short profile tagline (max 160 characters)" },
               "availability": { "type": "boolean", "description": "Whether the member is currently available" },
@@ -2408,7 +2408,7 @@ delete: {
             "type": "object",
             "properties": {
               "name": { "type": "string" },
-              "role": { "type": "string" },
+              "role": { "type": "string", "enum": ["Frontend Developer","Backend Developer","Full-Stack Developer","Database Specialist","Cybersecurity Specialist","Network Administrator","DevOps Engineer","Mobile Developer","UI/UX Designer","Other"] },
               "bio": { "type": "string" },
               "tagline": { "type": "string", "maxLength": 160, "description": "Short profile tagline (max 160 characters)" },
               "availability": { "type": "boolean", "description": "Whether the member is currently available" },
