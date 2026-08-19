@@ -7,6 +7,7 @@ import {
   validateUserIdParam,
   validatePaginationQuery,
   validateMemberUpdateBody,
+  validateEducationUpdateBody,
 } from '../validations/member.validation';
 
 const router = express.Router();
@@ -91,21 +92,24 @@ router.patch(
 
 // Education routes (userId as path param)
 router.post(
-  '/:userId/education', 
+  '/:userId/education',
   protectRoute,
   upload.single('educationImage'),
+  validateEducationUpdateBody,
   memberController.createOrUpdateEducation
 );
 router.put(
-  '/:userId/education', 
+  '/:userId/education',
   protectRoute,
   upload.single('educationImage'),
+  validateEducationUpdateBody,
   memberController.createOrUpdateEducation
 );
 router.patch(
-  '/:userId/education', 
+  '/:userId/education',
   protectRoute,
   upload.single('educationImage'),
+  validateEducationUpdateBody,
   memberController.createOrUpdateEducation
 );
 
