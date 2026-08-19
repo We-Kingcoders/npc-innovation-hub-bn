@@ -37,6 +37,7 @@ function toPublicMemberProfile(member: Member) {
     languages,
     cvUrl,
     tagline,
+    hashtags,
     availability,
     createdAt,
     updatedAt,
@@ -56,6 +57,7 @@ function toPublicMemberProfile(member: Member) {
     languages: languages ?? [],
     cvUrl: cvUrl ?? null,
     tagline: tagline ?? null,
+    hashtags: hashtags ?? [],
     availability: availability ?? true,
     createdAt,
     updatedAt,
@@ -205,6 +207,7 @@ export const createOrUpdateMember = async (req: Request, res: Response): Promise
     if ('tagline' in req.body) updateData.tagline = req.body.tagline;
     if ('availability' in req.body) updateData.availability = req.body.availability;
     if ('languages' in req.body) updateData.languages = req.body.languages;
+    if ('hashtags' in req.body) updateData.hashtags = req.body.hashtags;
 
     let member = await Member.findOne({ where: { userId } });
 
@@ -273,6 +276,7 @@ export const createOrUpdateMember = async (req: Request, res: Response): Promise
         imageUrl: updateData.imageUrl || '/members-images/member-demo.jpg',
         skills: [],
         languages: updateData.languages || [],
+        hashtags: updateData.hashtags || [],
         cvUrl: updateData.cvUrl || null,
         tagline: updateData.tagline ?? null,
         availability: 'availability' in updateData ? updateData.availability : true,
