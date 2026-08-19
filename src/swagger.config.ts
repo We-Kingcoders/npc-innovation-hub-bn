@@ -173,6 +173,7 @@ const options = {
             }
           },
           cvUrl: { type: 'string', format: 'uri', nullable: true },
+          resumeUrl: { type: 'string', format: 'uri', nullable: true },
           tagline: { type: 'string', nullable: true, maxLength: 160 },
           availability: { type: 'boolean', default: true },
           createdAt: { type: 'string', format: 'date-time' },
@@ -2298,7 +2299,8 @@ delete: {
               "availability": { "type": "boolean", "description": "Whether the member is currently available" },
               "languages": { "type": "string", "description": "JSON-encoded array of {name, level}, e.g. [{\"name\":\"English\",\"level\":\"Fluent\"}]. level must be one of Native, Fluent, Intermediate, Basic." },
               "image": { "type": "string", "format": "binary", "description": "Profile image file" },
-              "cv": { "type": "string", "format": "binary", "description": "CV/resume file (PDF or Word document)" }
+              "cv": { "type": "string", "format": "binary", "description": "CV file (PDF or Word document)" },
+              "resume": { "type": "string", "format": "binary", "description": "Resume file (PDF or Word document), distinct from CV" }
             }
           }
         }
@@ -2371,7 +2373,8 @@ delete: {
               "availability": { "type": "boolean", "description": "Whether the member is currently available" },
               "languages": { "type": "string", "description": "JSON-encoded array of {name, level}, e.g. [{\"name\":\"English\",\"level\":\"Fluent\"}]. level must be one of Native, Fluent, Intermediate, Basic." },
               "image": { "type": "string", "format": "binary", "description": "Profile image file" },
-              "cv": { "type": "string", "format": "binary", "description": "CV/resume file (PDF or Word document)" }
+              "cv": { "type": "string", "format": "binary", "description": "CV file (PDF or Word document)" },
+              "resume": { "type": "string", "format": "binary", "description": "Resume file (PDF or Word document), distinct from CV" }
             }
           }
         }
@@ -2443,7 +2446,8 @@ delete: {
               "availability": { "type": "boolean", "description": "Whether the member is currently available" },
               "languages": { "type": "string", "description": "JSON-encoded array of {name, level}, e.g. [{\"name\":\"English\",\"level\":\"Fluent\"}]. level must be one of Native, Fluent, Intermediate, Basic." },
               "image": { "type": "string", "format": "binary", "description": "Profile image file" },
-              "cv": { "type": "string", "format": "binary", "description": "CV/resume file (PDF or Word document)" }
+              "cv": { "type": "string", "format": "binary", "description": "CV file (PDF or Word document)" },
+              "resume": { "type": "string", "format": "binary", "description": "Resume file (PDF or Word document), distinct from CV" }
             }
           }
         }

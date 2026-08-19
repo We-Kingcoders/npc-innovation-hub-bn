@@ -20,11 +20,11 @@ const storage = multer.diskStorage({
     cb(null, file.fieldname + '-' + uniqueSuffix + '.' + file.originalname.split('.').pop());
   }
 });
-// image/educationImage fields accept images; cv accepts PDF/Word documents
+// image/educationImage fields accept images; cv/resume accept PDF/Word documents
 const fileFilter = (req: any, file: any, cb: any) => {
-  if (file.fieldname === 'cv') {
+  if (file.fieldname === 'cv' || file.fieldname === 'resume') {
     if (!file.originalname.match(/\.(pdf|doc|docx)$/i)) {
-      return cb(new Error('CV must be a PDF or Word document!'), false);
+      return cb(new Error(`${file.fieldname === 'cv' ? 'CV' : 'Resume'} must be a PDF or Word document!`), false);
     }
     return cb(null, true);
   }
@@ -50,6 +50,7 @@ router.get('/:userId', validateUserIdParam, memberController.getMemberInfo);
 const profileUpload = upload.fields([
   { name: 'image', maxCount: 1 },
   { name: 'cv', maxCount: 1 },
+  { name: 'resume', maxCount: 1 },
 ]);
 
 router.post(
