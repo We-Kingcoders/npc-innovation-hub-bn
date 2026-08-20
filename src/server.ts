@@ -21,6 +21,7 @@ import adminHireRoutes from './routes/admin/hire.routes';
 import adminHeroMembersRoutes from './routes/admin/heroMembers.routes';
 import heroMembersRoutes from './routes/heroMembers.routes';
 import applicationRoutes from './routes/application.routes';
+import adminApplicationRoutes from './routes/admin/application.routes';
 import taskRoutes from './routes/task.routes';
 
 // Load environment variables
@@ -69,6 +70,7 @@ app.use('/api/applications', applicationRoutes);
 
 // Admin routes - already protected by middleware in the router
 app.use('/api/admin/hire-inquiries', adminHireRoutes);
+app.use('/api/admin/applications', adminApplicationRoutes);
 // Mounted broadly at /api/admin since this router covers two related
 // admin-only concerns (the member picker and hero-member CRUD) under their
 // own more specific sub-paths (/members/picker, /hero-members*) - it only

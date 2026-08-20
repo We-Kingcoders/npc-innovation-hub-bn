@@ -108,6 +108,7 @@ export enum EmailTemplate {
   ACCOUNT_DEACTIVATION = 'account-deactivation',
   EVENT_INVITATION = 'event-invitation',
   ROLE_UPDATE = 'role-update',
+  APPLICATION_REJECTED = 'application-rejected',
 }
 
 // Rate limiting logic can remain the same if desired
@@ -381,6 +382,33 @@ The Innovation Hub Team
   </div>
   ${data.eventDescription ? `<p>${data.eventDescription}</p>` : ''}
   <p>We hope to see you there!</p>
+  <p>Best regards,<br>The Innovation Hub Team</p>
+</div>
+      `;
+      break;
+
+    case EmailTemplate.APPLICATION_REJECTED:
+      subject = 'Innovation Hub - Update on Your Membership Application';
+      text = `
+Dear ${data.firstName},
+
+Thank you for taking the time to apply for membership with Innovation Hub and for sharing your background and experience with us.
+
+After careful review, we are unable to move forward with your application at this time.
+${data.reason ? `\nAdditional feedback: ${data.reason}\n` : ''}
+We truly appreciate your interest in our community and encourage you to apply again in the future.
+
+Best regards,
+The Innovation Hub Team
+      `;
+      html = `
+<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+  <h2 style="color: #2c3e50;">Update on Your Membership Application</h2>
+  <p>Dear ${data.firstName},</p>
+  <p>Thank you for taking the time to apply for membership with Innovation Hub and for sharing your background and experience with us.</p>
+  <p>After careful review, we are unable to move forward with your application at this time.</p>
+  ${data.reason ? `<div style="background-color: #f8f9fa; padding: 15px; border-radius: 4px; margin: 15px 0;"><strong>Additional feedback:</strong> ${data.reason}</div>` : ''}
+  <p>We truly appreciate your interest in our community and encourage you to apply again in the future.</p>
   <p>Best regards,<br>The Innovation Hub Team</p>
 </div>
       `;
