@@ -23,6 +23,8 @@ export interface UserAttributes {
   phone?: string;
   verified?: boolean;
   isActive?: boolean;
+  isTemporaryPassword?: boolean;
+  passwordExpiresAt?: Date | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
