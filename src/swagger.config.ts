@@ -8746,6 +8746,132 @@ delete: {
         }
       }
     },
+    "/api/admin/applications": {
+      "get": {
+        "summary": "List membership applications",
+        "description": "Admin only. Optionally filter by status.",
+        "tags": ["Applications", "Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "enum": ["Pending", "Accepted", "Rejected"] }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of applications",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "results": { "type": "integer" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "applications": { "type": "array", "items": { "$ref": "#/components/schemas/Application" } }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Missing or invalid token" },
+          "403": { "description": "Not an Admin" }
+        }
+      }
+    },
+    "/api/admin/applications/{id}": {
+      "get": {
+        "summary": "Get a single membership application",
+        "description": "Admin only.",
+        "tags": ["Applications", "Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "The application",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "application": { "$ref": "#/components/schemas/Application" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Missing or invalid token" },
+          "403": { "description": "Not an Admin" },
+          "404": { "description": "Application not found" }
+        }
+      }
+    },
+    "/api/admin/applications/{id}/reject": {
+      "patch": {
+        "summary": "Reject a pending membership application",
+        "description": "Admin only. Sends a styled rejection email to the applicant, then sets status to Rejected and records reviewedBy/reviewedAt. Fails with 409 if the application has already been decided. If the email fails to send, the application is left unchanged.",
+        "tags": ["Applications", "Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": { "type": "string", "description": "Optional feedback shared with the applicant in the rejection email" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Application rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Application rejected" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "application": { "$ref": "#/components/schemas/Application" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Missing or invalid token" },
+          "403": { "description": "Not an Admin" },
+          "404": { "description": "Application not found" },
+          "409": { "description": "Application has already been decided" },
+          "500": { "description": "Failed to send rejection email" }
+        }
+      }
+    },
     "/api/admin/applications/{id}/accept": {
       "patch": {
         "summary": "Accept a pending membership application",
