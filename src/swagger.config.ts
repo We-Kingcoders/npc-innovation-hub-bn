@@ -77,6 +77,10 @@ const options = {
       name: 'Applications',
       description: 'Membership application submission and admin review endpoints'
     },
+    {
+      name: 'Hub Video',
+      description: 'Admin-managed hub intro video and its public endpoint'
+    },
   ],
   components: {
     securitySchemes: {
@@ -111,6 +115,19 @@ const options = {
           status: { type: 'string', enum: ['Pending', 'Accepted', 'Rejected'] },
           reviewedBy: { type: 'string', format: 'uuid', nullable: true },
           reviewedAt: { type: 'string', format: 'date-time', nullable: true },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' }
+        }
+      },
+      HubIntroVideo: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          videoUrl: { type: 'string', format: 'uri' },
+          cloudinaryPublicId: { type: 'string', description: 'Internal - never exposed on the public endpoint' },
+          title: { type: 'string', nullable: true },
+          description: { type: 'string', nullable: true },
+          uploadedBy: { type: 'string', format: 'uuid', description: 'Internal - never exposed on the public endpoint' },
           createdAt: { type: 'string', format: 'date-time' },
           updatedAt: { type: 'string', format: 'date-time' }
         }
@@ -8920,6 +8937,96 @@ delete: {
           "404": { "description": "Application not found" },
           "409": { "description": "Application has already been decided" },
           "500": { "description": "Failed to accept application - no changes were saved" }
+        }
+      }
+    },
+    "/api/admin/hub-video": {
+      "post": {
+        "summary": "Upload or replace the hub intro video",
+        "description": "Admin only. This is a singleton - if a video already exists, it is replaced: the old Cloudinary asset is deleted (best-effort) and the same row is updated. Accepts mp4, mov, and webm only, up to 100MB.",
+        "tags": ["Hub Video", "Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["video"],
+                "properties": {
+                  "video": { "type": "string", "format": "binary", "description": "Required - mp4, mov, or webm, max 100MB" },
+                  "title": { "type": "string", "description": "Optional caption/heading" },
+                  "description": { "type": "string", "description": "Optional short description" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Video uploaded or replaced",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Hub intro video uploaded" },
+                    "data": {
+                      "type": "object",
+                      "properties": { "video": { "$ref": "#/components/schemas/HubIntroVideo" } }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Missing video file, wrong format, or file exceeds 100MB" },
+          "401": { "description": "Missing or invalid token" },
+          "403": { "description": "Not an Admin" }
+        }
+      },
+      "get": {
+        "summary": "Get the current hub intro video (admin view)",
+        "description": "Admin only. Returns the full record, including cloudinaryPublicId and uploadedBy. Returns { video: null } if none has been uploaded yet.",
+        "tags": ["Hub Video", "Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "The current video, or null if none exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "video": {
+                          "oneOf": [{ "$ref": "#/components/schemas/HubIntroVideo" }, { "type": "null" }]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Missing or invalid token" },
+          "403": { "description": "Not an Admin" }
+        }
+      },
+      "delete": {
+        "summary": "Delete the hub intro video",
+        "description": "Admin only. Deletes the Cloudinary asset (best-effort) and the DB row.",
+        "tags": ["Hub Video", "Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Video deleted" },
+          "401": { "description": "Missing or invalid token" },
+          "403": { "description": "Not an Admin" },
+          "404": { "description": "No video to delete" }
         }
       }
     }
