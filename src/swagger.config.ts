@@ -132,6 +132,15 @@ const options = {
           updatedAt: { type: 'string', format: 'date-time' }
         }
       },
+      PublicHubIntroVideo: {
+        type: 'object',
+        description: 'Safe, public projection of the hub intro video. Never includes cloudinaryPublicId or uploadedBy.',
+        properties: {
+          videoUrl: { type: 'string', format: 'uri' },
+          title: { type: 'string', nullable: true },
+          description: { type: 'string', nullable: true }
+        }
+      },
       PublicMemberProfile: {
         type: 'object',
         description: 'Safe, public projection of a member profile. Never includes email, phone, or WhatsApp.',
@@ -9027,6 +9036,37 @@ delete: {
           "401": { "description": "Missing or invalid token" },
           "403": { "description": "Not an Admin" },
           "404": { "description": "No video to delete" }
+        }
+      }
+    },
+    "/api/hub-video": {
+      "get": {
+        "summary": "Get the hub intro video",
+        "description": "Public endpoint - no auth required. Returns { video: null } rather than a 404 when no video has been uploaded yet.",
+        "tags": ["Hub Video"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "The current video, or null if none exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "video": {
+                          "oneOf": [{ "$ref": "#/components/schemas/PublicHubIntroVideo" }, { "type": "null" }]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }
