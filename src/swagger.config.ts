@@ -9069,6 +9069,61 @@ delete: {
           }
         }
       }
+    },
+    "/api/admin/members/{id}/alumni-status": {
+      "patch": {
+        "summary": "Promote or demote a member's alumni display status",
+        "description": "Admin only. Does not touch the member's User account, role, or login capability - purely a display flag. Setting isAlumni to true sets alumniSince to now if not already set (re-promoting an already-alumni member is idempotent and keeps the original alumniSince). Setting it to false clears alumniSince.",
+        "tags": ["Members", "Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["isAlumni"],
+                "properties": { "isAlumni": { "type": "boolean" } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Alumni status updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Member marked as alumni" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "member": {
+                          "type": "object",
+                          "properties": {
+                            "isAlumni": { "type": "boolean" },
+                            "alumniSince": { "type": "string", "format": "date-time", "nullable": true }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "isAlumni missing or not a boolean" },
+          "401": { "description": "Missing or invalid token" },
+          "403": { "description": "Not an Admin" },
+          "404": { "description": "Member not found" }
+        }
+      }
     }
     }
   },
