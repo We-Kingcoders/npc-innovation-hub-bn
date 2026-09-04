@@ -55,13 +55,15 @@ interface MemberAttributes {
   tagline?: string | null;
   hashtags?: string[];
   availability: boolean;
+  isAlumni: boolean;
+  alumniSince: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
 
 type MemberCreationAttributes = Optional<
   MemberAttributes,
-  'id' | 'education' | 'contacts' | 'skillDetails' | 'bio' | 'languages' | 'cvUrl' | 'resumeUrl' | 'tagline' | 'hashtags' | 'availability'
+  'id' | 'education' | 'contacts' | 'skillDetails' | 'bio' | 'languages' | 'cvUrl' | 'resumeUrl' | 'tagline' | 'hashtags' | 'availability' | 'isAlumni' | 'alumniSince'
 >;
 
 class Member extends Model<MemberAttributes, MemberCreationAttributes> implements MemberAttributes {
@@ -81,6 +83,8 @@ class Member extends Model<MemberAttributes, MemberCreationAttributes> implement
   declare tagline: string | null;
   declare hashtags: string[];
   declare availability: boolean;
+  declare isAlumni: boolean;
+  declare alumniSince: Date | null;
   declare createdAt: Date;
   declare updatedAt: Date;
 }
@@ -162,6 +166,16 @@ Member.init(
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: true,
+    },
+    isAlumni: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+    alumniSince: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: null,
     },
     createdAt: {
       allowNull: false,
