@@ -24,6 +24,7 @@ import applicationRoutes from './routes/application.routes';
 import adminApplicationRoutes from './routes/admin/application.routes';
 import adminHubVideoRoutes from './routes/admin/hubVideo.routes';
 import hubVideoRoutes from './routes/hubVideo.routes';
+import adminMemberRoutes from './routes/admin/member.routes';
 import taskRoutes from './routes/task.routes';
 
 // Load environment variables
@@ -75,6 +76,7 @@ app.use('/api/hub-video', hubVideoRoutes);
 app.use('/api/admin/hire-inquiries', adminHireRoutes);
 app.use('/api/admin/applications', adminApplicationRoutes);
 app.use('/api/admin/hub-video', adminHubVideoRoutes);
+app.use('/api/admin/members', adminMemberRoutes);
 // Mounted broadly at /api/admin since this router covers two related
 // admin-only concerns (the member picker and hero-member CRUD) under their
 // own more specific sub-paths (/members/picker, /hero-members*) - it only
