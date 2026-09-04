@@ -81,6 +81,10 @@ const options = {
       name: 'Hub Video',
       description: 'Admin-managed hub intro video and its public endpoint'
     },
+    {
+      name: 'Alumni',
+      description: 'Standalone alumni registration (no platform account)'
+    },
   ],
   components: {
     securitySchemes: {
@@ -139,6 +143,20 @@ const options = {
           videoUrl: { type: 'string', format: 'uri' },
           title: { type: 'string', nullable: true },
           description: { type: 'string', nullable: true }
+        }
+      },
+      Alumnus: {
+        type: 'object',
+        description: 'A standalone alumnus - display-only, no platform account.',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          imageUrl: { type: 'string', format: 'uri', nullable: true },
+          cloudinaryPublicId: { type: 'string', nullable: true, description: 'Internal - never exposed on the public endpoint' },
+          fullName: { type: 'string' },
+          role: { type: 'string', enum: ['Frontend Developer','Backend Developer','Full-Stack Developer','Database Specialist','Cybersecurity Specialist','Network Administrator','DevOps Engineer','Mobile Developer','UI/UX Designer','Other'] },
+          createdBy: { type: 'string', format: 'uuid', description: 'Internal - never exposed on the public endpoint' },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' }
         }
       },
       PublicMemberProfile: {
@@ -9067,6 +9085,140 @@ delete: {
               }
             }
           }
+        }
+      }
+    },
+    "/api/admin/alumni": {
+      "post": {
+        "summary": "Register a standalone alumnus",
+        "description": "Admin only. For someone with no existing platform account (e.g. a graduate who predates the platform). Photo is optional.",
+        "tags": ["Alumni", "Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["fullName", "role"],
+                "properties": {
+                  "fullName": { "type": "string" },
+                  "role": { "type": "string", "enum": ["Frontend Developer","Backend Developer","Full-Stack Developer","Database Specialist","Cybersecurity Specialist","Network Administrator","DevOps Engineer","Mobile Developer","UI/UX Designer","Other"] },
+                  "image": { "type": "string", "format": "binary", "description": "Optional photo" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Alumnus registered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Alumnus registered" },
+                    "data": { "type": "object", "properties": { "alumnus": { "$ref": "#/components/schemas/Alumnus" } } }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Missing/invalid field" },
+          "401": { "description": "Missing or invalid token" },
+          "403": { "description": "Not an Admin" }
+        }
+      },
+      "get": {
+        "summary": "List standalone alumni",
+        "description": "Admin only. Management view of all registered standalone alumni.",
+        "tags": ["Alumni", "Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "List of standalone alumni",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "results": { "type": "integer" },
+                    "data": {
+                      "type": "object",
+                      "properties": { "alumni": { "type": "array", "items": { "$ref": "#/components/schemas/Alumnus" } } }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Missing or invalid token" },
+          "403": { "description": "Not an Admin" }
+        }
+      }
+    },
+    "/api/admin/alumni/{id}": {
+      "patch": {
+        "summary": "Edit a standalone alumnus",
+        "description": "Admin only. Replacing the photo deletes the old Cloudinary asset (best-effort).",
+        "tags": ["Alumni", "Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fullName": { "type": "string" },
+                  "role": { "type": "string", "enum": ["Frontend Developer","Backend Developer","Full-Stack Developer","Database Specialist","Cybersecurity Specialist","Network Administrator","DevOps Engineer","Mobile Developer","UI/UX Designer","Other"] },
+                  "image": { "type": "string", "format": "binary", "description": "Optional replacement photo" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Alumnus updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Alumnus updated" },
+                    "data": { "type": "object", "properties": { "alumnus": { "$ref": "#/components/schemas/Alumnus" } } }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid field" },
+          "401": { "description": "Missing or invalid token" },
+          "403": { "description": "Not an Admin" },
+          "404": { "description": "Alumnus not found" }
+        }
+      },
+      "delete": {
+        "summary": "Delete a standalone alumnus",
+        "description": "Admin only. Deletes the Cloudinary asset too, if one exists.",
+        "tags": ["Alumni", "Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Alumnus deleted" },
+          "401": { "description": "Missing or invalid token" },
+          "403": { "description": "Not an Admin" },
+          "404": { "description": "Alumnus not found" }
         }
       }
     }
