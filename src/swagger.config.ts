@@ -159,6 +159,15 @@ const options = {
           updatedAt: { type: 'string', format: 'date-time' }
         }
       },
+      PublicAlumniEntry: {
+        type: 'object',
+        description: 'Safe, public projection of an alumnus, merged from either the Member (isAlumni) or Alumnus source. Never indicates which source it came from.',
+        properties: {
+          name: { type: 'string' },
+          imageUrl: { type: 'string', format: 'uri', nullable: true },
+          role: { type: 'string' }
+        }
+      },
       PublicMemberProfile: {
         type: 'object',
         description: 'Safe, public projection of a member profile. Never includes email, phone, or WhatsApp.',
@@ -9274,6 +9283,36 @@ delete: {
           "401": { "description": "Missing or invalid token" },
           "403": { "description": "Not an Admin" },
           "404": { "description": "Member not found" }
+        }
+      }
+    },
+    "/api/alumni": {
+      "get": {
+        "summary": "List public alumni",
+        "description": "Public endpoint - no auth required. Merges promoted Members (isAlumni: true) and standalone Alumnus records into one list, sorted by most recently added first (alumniSince for promoted members, createdAt for standalone alumni). No field on the response indicates which source an entry came from.",
+        "tags": ["Alumni"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Combined list of alumni",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "results": { "type": "integer" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "alumni": { "type": "array", "items": { "$ref": "#/components/schemas/PublicAlumniEntry" } }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }
