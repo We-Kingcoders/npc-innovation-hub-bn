@@ -26,6 +26,7 @@ import adminHubVideoRoutes from './routes/admin/hubVideo.routes';
 import hubVideoRoutes from './routes/hubVideo.routes';
 import adminMemberRoutes from './routes/admin/member.routes';
 import adminAlumnusRoutes from './routes/admin/alumnus.routes';
+import alumniRoutes from './routes/alumni.routes';
 import taskRoutes from './routes/task.routes';
 
 // Load environment variables
@@ -72,6 +73,7 @@ app.use('/api/hire-us', hireRoutes);
 app.use('/api/hero-members', heroMembersRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/hub-video', hubVideoRoutes);
+app.use('/api/alumni', alumniRoutes);
 
 // Admin routes - already protected by middleware in the router
 app.use('/api/admin/hire-inquiries', adminHireRoutes);
