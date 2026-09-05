@@ -7,6 +7,7 @@
  */
 
 import User from "../models/user.model";
+import Member from "../models/member.model";
 import { UserSignupAttributes, UserRole } from "../types/user.type";
 import { Op } from "sequelize";
 
@@ -56,11 +57,14 @@ export class UserService {
   }
 
   /**
-   * Get all users in the system
+   * Get all users in the system, with each user's associated Member id (if
+   * any) included via a single query - not a per-user follow-up query.
    * @returns Array of all users
    */
   static async getAllUsers() {
-    return await User.findAll();
+    return await User.findAll({
+      include: [{ model: Member, attributes: ['id'] }],
+    });
   }
 
   /**
