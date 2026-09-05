@@ -726,8 +726,11 @@ export const getAllUsers = async (
     
     const users = await UserService.getAllUsers()
     const usersWithoutPasswords = users.map((user) => {
-      const userWithoutPassword = { ...user.dataValues }
+      const userWithoutPassword: Record<string, any> = { ...user.dataValues }
       delete userWithoutPassword.password
+      const member = userWithoutPassword.Member as { id?: string } | null | undefined
+      userWithoutPassword.memberId = member?.id ?? null
+      delete userWithoutPassword.Member
       return userWithoutPassword
     })
     

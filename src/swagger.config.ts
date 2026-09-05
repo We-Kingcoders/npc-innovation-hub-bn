@@ -1236,7 +1236,7 @@ post: {
 '/api/users/users': {
 get: {
   summary: 'Get all users',
-  description: 'Admin only - Retrieves a list of all users',
+  description: 'Admin only - Retrieves a list of all users, each including memberId: the id of the user\'s associated Member profile, or null if none exists (e.g. Admins, or a Member account somehow missing its profile row).',
   tags: ['Admin'],
   security: [
     {
@@ -1262,7 +1262,20 @@ get: {
               data: {
                 type: 'array',
                 items: {
-                  $ref: '#/components/schemas/User'
+                  allOf: [
+                    { $ref: '#/components/schemas/User' },
+                    {
+                      type: 'object',
+                      properties: {
+                        memberId: {
+                          type: 'string',
+                          format: 'uuid',
+                          nullable: true,
+                          description: "The associated Member's id, or null if this user has no Member profile"
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
