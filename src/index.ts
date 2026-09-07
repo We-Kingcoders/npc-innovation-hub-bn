@@ -1,12 +1,11 @@
 import { app } from './server';
 import http from 'http';
 import config from './config/app.config';
-import swaggerUi from 'swagger-ui-express';
-import swaggerSpec from './swagger.config';
 import sequelize from './config/database';  // Import your sequelize instance
 
-// Set up Swagger UI
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// Note: Swagger UI is already mounted at /api-docs inside server.ts, before
+// its catch-all 404 handler. Re-mounting it here would land after that 404
+// handler in the middleware stack and never be reached, so it isn't repeated.
 
 // Create HTTP server
 const server = http.createServer(app);

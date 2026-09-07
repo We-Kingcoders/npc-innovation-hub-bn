@@ -258,6 +258,270 @@ const options = {
           createdAt: { type: 'string', format: 'date-time' },
           updatedAt: { type: 'string', format: 'date-time' }
         }
+      },
+      ErrorResponse: {
+        type: 'object',
+        properties: {
+          status: { type: 'string', enum: ['fail', 'error'], example: 'fail' },
+          message: { type: 'string', example: 'Something went wrong' }
+        }
+      },
+      User: {
+        type: 'object',
+        description: 'A platform user account (never includes the password hash).',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          firstName: { type: 'string' },
+          lastName: { type: 'string' },
+          email: { type: 'string', format: 'email' },
+          phone: { type: 'string', nullable: true },
+          image: { type: 'string', format: 'uri', nullable: true },
+          gender: { type: 'string', nullable: true },
+          verified: { type: 'boolean', default: false },
+          role: { type: 'string', enum: ['Admin', 'Member'], default: 'Member' },
+          isActive: { type: 'boolean', default: true },
+          isTemporaryPassword: { type: 'boolean', default: false },
+          passwordExpiresAt: { type: 'string', format: 'date-time', nullable: true },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' }
+        }
+      },
+      UserBasic: {
+        type: 'object',
+        description: 'Trimmed user projection embedded in other resources (chat, events, attendance).',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          firstName: { type: 'string' },
+          lastName: { type: 'string' },
+          email: { type: 'string', format: 'email' },
+          image: { type: 'string', format: 'uri', nullable: true },
+          role: { type: 'string', enum: ['Admin', 'Member'] }
+        }
+      },
+      Blog: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          title: { type: 'string' },
+          content: { type: 'string' },
+          summary: { type: 'string', maxLength: 500 },
+          image: { type: 'string', format: 'uri', nullable: true },
+          category: { type: 'string', enum: ['Cyber security', 'Front-end', 'Back-end'] },
+          authorId: { type: 'string', format: 'uuid' },
+          author: { '$ref': '#/components/schemas/UserBasic' },
+          isPublished: { type: 'boolean', default: true },
+          viewCount: { type: 'integer', default: 0 },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' }
+        }
+      },
+      Member: {
+        type: 'object',
+        description: 'Full member profile record (admin/authenticated view). See PublicMemberProfile for the public-safe projection.',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          userId: { type: 'string', format: 'uuid' },
+          name: { type: 'string' },
+          role: { type: 'string' },
+          imageUrl: { type: 'string', format: 'uri' },
+          bio: { type: 'string' },
+          education: { type: 'object', nullable: true },
+          contacts: { type: 'object', nullable: true },
+          skillDetails: { type: 'array', items: { type: 'object' } },
+          skills: { type: 'array', items: { type: 'string' } },
+          languages: { type: 'array', items: { type: 'object' } },
+          cvUrl: { type: 'string', format: 'uri', nullable: true },
+          resumeUrl: { type: 'string', format: 'uri', nullable: true },
+          tagline: { type: 'string', nullable: true, maxLength: 160 },
+          hashtags: { type: 'array', items: { type: 'string' } },
+          availability: { type: 'boolean', default: true },
+          isAlumni: { type: 'boolean', default: false },
+          alumniSince: { type: 'string', format: 'date-time', nullable: true },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' }
+        }
+      },
+      Project: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          userId: { type: 'string', format: 'uuid' },
+          title: { type: 'string' },
+          description: { type: 'string' },
+          owner: { type: 'string' },
+          ownerRole: { type: 'string', default: 'Project owner' },
+          ownerAvatar: { type: 'string', format: 'uri' },
+          image: { type: 'string', format: 'uri' },
+          link: { type: 'string', format: 'uri', nullable: true },
+          demo: { type: 'string', format: 'uri', nullable: true },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' }
+        }
+      },
+      ProjectResponse: {
+        type: 'object',
+        properties: {
+          status: { type: 'string', example: 'success' },
+          data: {
+            type: 'object',
+            properties: { project: { '$ref': '#/components/schemas/Project' } }
+          }
+        }
+      },
+      ProjectsListResponse: {
+        type: 'object',
+        properties: {
+          status: { type: 'string', example: 'success' },
+          results: { type: 'integer' },
+          totalItems: { type: 'integer' },
+          totalPages: { type: 'integer' },
+          currentPage: { type: 'integer' },
+          data: {
+            type: 'object',
+            properties: { projects: { type: 'array', items: { '$ref': '#/components/schemas/Project' } } }
+          }
+        }
+      },
+      Resource: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          userId: { type: 'string', format: 'uuid' },
+          title: { type: 'string' },
+          description: { type: 'string' },
+          category: { type: 'string', enum: ['Backend', 'Frontend', 'Cybersecurity'] },
+          type: { type: 'string', enum: ['Video', 'Documentation', 'Book', 'Other'] },
+          difficulty: { type: 'string', enum: ['Beginner', 'Intermediate', 'Advanced'] },
+          url: { type: 'string', format: 'uri', nullable: true },
+          imageUrl: { type: 'string', format: 'uri' },
+          videoUrl: { type: 'string', format: 'uri', nullable: true },
+          author: { type: 'string' },
+          isPaid: { type: 'boolean' },
+          price: { type: 'number', format: 'float' },
+          purchaseDate: { type: 'string', format: 'date-time', nullable: true },
+          platform: { type: 'string', nullable: true },
+          tags: { type: 'array', items: { type: 'string' } },
+          isFeatured: { type: 'boolean', default: false },
+          isHosted: { type: 'boolean', default: false },
+          duration: { type: 'integer', description: 'Seconds for videos, estimated reading minutes otherwise' },
+          upvotes: { type: 'integer', default: 0 },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' }
+        }
+      },
+      ResourceResponse: {
+        type: 'object',
+        properties: {
+          status: { type: 'string', example: 'success' },
+          data: {
+            type: 'object',
+            properties: { resource: { '$ref': '#/components/schemas/Resource' } }
+          }
+        }
+      },
+      ResourcesListResponse: {
+        type: 'object',
+        properties: {
+          status: { type: 'string', example: 'success' },
+          results: { type: 'integer' },
+          totalItems: { type: 'integer' },
+          totalPages: { type: 'integer' },
+          currentPage: { type: 'integer' },
+          data: {
+            type: 'object',
+            properties: { resources: { type: 'array', items: { '$ref': '#/components/schemas/Resource' } } }
+          }
+        }
+      },
+      Event: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          title: { type: 'string' },
+          location: { type: 'string' },
+          description: { type: 'string' },
+          startTime: { type: 'string', format: 'date-time' },
+          endTime: { type: 'string', format: 'date-time' },
+          imageUrl: { type: 'string', format: 'uri', nullable: true },
+          createdBy: { type: 'string', format: 'uuid' },
+          creator: { '$ref': '#/components/schemas/UserBasic' },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' }
+        }
+      },
+      Attendance: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          userId: { type: 'string', format: 'uuid' },
+          eventId: { type: 'string', format: 'uuid' },
+          status: { type: 'string', enum: ['going', 'attended', 'cancelled'], default: 'going' },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' }
+        }
+      },
+      AttendanceWithUser: {
+        type: 'object',
+        description: 'Attendance record with the attending user embedded (as returned to event organizers).',
+        allOf: [
+          { '$ref': '#/components/schemas/Attendance' },
+          { type: 'object', properties: { attendee: { '$ref': '#/components/schemas/UserBasic' } } }
+        ]
+      },
+      AttendanceWithEvent: {
+        type: 'object',
+        description: 'Attendance record with the related event embedded (as returned to a user viewing their own RSVPs).',
+        allOf: [
+          { '$ref': '#/components/schemas/Attendance' },
+          { type: 'object', properties: { event: { '$ref': '#/components/schemas/Event' } } }
+        ]
+      },
+      DirectMessage: {
+        type: 'object',
+        description: 'A 1:1 direct message between two users.',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          senderId: { type: 'string', format: 'uuid' },
+          receiverId: { type: 'string', format: 'uuid' },
+          content: { type: 'string' },
+          timestamp: { type: 'string', format: 'date-time' },
+          isRead: { type: 'boolean', default: false },
+          isDeleted: { type: 'boolean', default: false },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' }
+        }
+      },
+      HubMessage: {
+        type: 'object',
+        description: 'A message posted in a hub chat room (group chat), as opposed to a 1:1 DirectMessage.',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          senderId: { type: 'string', format: 'uuid' },
+          roomId: { type: 'string', format: 'uuid' },
+          content: { type: 'string' },
+          timestamp: { type: 'string', format: 'date-time' },
+          isDeleted: { type: 'boolean', default: false },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' }
+        }
+      },
+      HireInquiry: {
+        type: 'object',
+        description: 'A "Hire Us" contact-form submission.',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          email: { type: 'string', format: 'email' },
+          first_name: { type: 'string' },
+          last_name: { type: 'string' },
+          company_name: { type: 'string' },
+          job_title: { type: 'string' },
+          country: { type: 'string' },
+          message: { type: 'string' },
+          consent: { type: 'boolean' },
+          status: { type: 'string', enum: ['Pending', 'Contacted', 'Closed'], default: 'Pending' },
+          created_at: { type: 'string', format: 'date-time' },
+          updated_at: { type: 'string', format: 'date-time' }
+        }
       }
     },
   },
