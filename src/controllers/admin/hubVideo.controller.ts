@@ -2,13 +2,35 @@ import { Request, Response } from 'express';
 import fs from 'fs';
 import HubIntroVideo from '../../models/hubIntroVideo.model';
 import cloudinary from '../../utils/cloudinary.utils';
+import sequelize from '../../config/database';
 
 const VIDEO_FOLDER = 'innovation-hub/hub-video';
 
+// All findOne() lookups on this "singleton" table order by createdAt so that
+// IF duplicate rows ever exist (see the advisory-lock note below - this is
+// meant to be impossible going forward, but wasn't always guarded), every
+// endpoint (public GET, admin GET, delete) consistently treats the oldest
+// row as *the* hub video instead of an arbitrary one. Without this, admin
+// and public views could each show a different row, and delete could remove
+// the "wrong" one while the video kept appearing to still exist.
+const SINGLETON_ORDER: [string, 'ASC'][] = [['createdAt', 'ASC']];
+
+// Postgres advisory lock key serializing all uploads. findOne()-then-create
+// is a check-then-act race: two concurrent uploads (most likely the very
+// first upload ever, before any row exists) can both see "no row yet" and
+// both insert, silently breaking the singleton invariant since there's no
+// unique constraint backing it at the DB level. A transaction-scoped
+// advisory lock (auto-released on commit/rollback) fully serializes this
+// code path so the second request always observes the first request's row.
+const HUB_VIDEO_LOCK_KEY = 851_001; // arbitrary, just needs to be stable
+
 // POST /api/admin/hub-video - uploads the hub intro video. If one already
-// exists, replaces it: deletes the old Cloudinary asset (best-effort - a
-// cleanup failure never blocks the new upload) and updates the same row,
-// since this table is a singleton enforced here in the application layer.
+// exists, replaces it and updates the same row, since this table is a
+// singleton enforced here in the application layer (see SINGLETON_ORDER and
+// HUB_VIDEO_LOCK_KEY above). The old Cloudinary asset is only deleted AFTER
+// the new one is safely committed to the database - if we deleted it first
+// (the previous order) and the new upload then failed, the hub would end up
+// with no video at all instead of just keeping the old one.
 export const uploadHubVideo = async (req: Request, res: Response): Promise<void> => {
   try {
     const currentUser = req.user as { id: string; role: string };
@@ -23,15 +45,6 @@ export const uploadHubVideo = async (req: Request, res: Response): Promise<void>
     }
 
     const { title, description } = req.body;
-    const existing = await HubIntroVideo.findOne();
-
-    if (existing) {
-      try {
-        await cloudinary.uploader.destroy(existing.cloudinaryPublicId, { resource_type: 'video' });
-      } catch (cleanupError) {
-        console.warn('Failed to delete previous hub intro video from Cloudinary:', cleanupError);
-      }
-    }
 
     const uploadResult = await cloudinary.uploader.upload(videoFile.path, {
       folder: VIDEO_FOLDER,
@@ -47,21 +60,43 @@ export const uploadHubVideo = async (req: Request, res: Response): Promise<void>
       uploadedBy: currentUser.id,
     };
 
-    let video;
-    if (existing) {
-      await existing.update(videoData);
-      video = existing;
-    } else {
-      video = await HubIntroVideo.create({
-        ...videoData,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
+    const { video, replaced, oldCloudinaryPublicId } = await sequelize.transaction(
+      async (t) => {
+        await sequelize.query('SELECT pg_advisory_xact_lock($1)', {
+          bind: [HUB_VIDEO_LOCK_KEY],
+          transaction: t,
+        });
+
+        const existing = await HubIntroVideo.findOne({
+          order: SINGLETON_ORDER,
+          transaction: t,
+        });
+
+        if (existing) {
+          const oldPublicId = existing.cloudinaryPublicId;
+          await existing.update(videoData, { transaction: t });
+          return { video: existing, replaced: true, oldCloudinaryPublicId: oldPublicId };
+        }
+
+        const created = await HubIntroVideo.create(
+          { ...videoData, createdAt: new Date(), updatedAt: new Date() },
+          { transaction: t },
+        );
+        return { video: created, replaced: false, oldCloudinaryPublicId: null as string | null };
+      },
+    );
+
+    if (oldCloudinaryPublicId) {
+      try {
+        await cloudinary.uploader.destroy(oldCloudinaryPublicId, { resource_type: 'video' });
+      } catch (cleanupError) {
+        console.warn('Failed to delete previous hub intro video from Cloudinary:', cleanupError);
+      }
     }
 
     res.status(200).json({
       status: 'success',
-      message: existing ? 'Hub intro video replaced' : 'Hub intro video uploaded',
+      message: replaced ? 'Hub intro video replaced' : 'Hub intro video uploaded',
       data: { video },
     });
   } catch (error) {
@@ -77,7 +112,7 @@ export const uploadHubVideo = async (req: Request, res: Response): Promise<void>
 // cloudinaryPublicId and uploadedBy (internal fields never exposed publicly).
 export const getHubVideoAdmin = async (req: Request, res: Response): Promise<void> => {
   try {
-    const video = await HubIntroVideo.findOne();
+    const video = await HubIntroVideo.findOne({ order: SINGLETON_ORDER });
 
     if (!video) {
       res.status(200).json({
@@ -102,13 +137,17 @@ export const getHubVideoAdmin = async (req: Request, res: Response): Promise<voi
 };
 
 // DELETE /api/admin/hub-video - removes the video entirely (Cloudinary asset
-// + DB row). Cloudinary cleanup is best-effort - the row is still deleted
-// even if the asset deletion fails.
+// + DB row). Cloudinary cleanup is best-effort - rows are still deleted even
+// if an asset deletion fails. Deletes every row, not just the first match:
+// since nothing at the DB level actually prevents more than one row (see the
+// singleton note on the model), this doubles as a self-heal - if a stray
+// duplicate ever existed, "delete" now genuinely means no video, instead of
+// silently leaving an orphan row that keeps appearing for the next request.
 export const deleteHubVideo = async (req: Request, res: Response): Promise<void> => {
   try {
-    const video = await HubIntroVideo.findOne();
+    const videos = await HubIntroVideo.findAll({ order: SINGLETON_ORDER });
 
-    if (!video) {
+    if (videos.length === 0) {
       res.status(404).json({
         status: 'fail',
         message: 'No hub intro video to delete',
@@ -116,13 +155,15 @@ export const deleteHubVideo = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    try {
-      await cloudinary.uploader.destroy(video.cloudinaryPublicId, { resource_type: 'video' });
-    } catch (cleanupError) {
-      console.warn('Failed to delete hub intro video from Cloudinary:', cleanupError);
+    for (const video of videos) {
+      try {
+        await cloudinary.uploader.destroy(video.cloudinaryPublicId, { resource_type: 'video' });
+      } catch (cleanupError) {
+        console.warn('Failed to delete hub intro video from Cloudinary:', cleanupError);
+      }
     }
 
-    await video.destroy();
+    await HubIntroVideo.destroy({ where: { id: videos.map((v) => v.id) } });
 
     res.status(200).json({
       status: 'success',
