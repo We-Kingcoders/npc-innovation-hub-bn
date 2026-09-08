@@ -116,7 +116,10 @@ describe('POST /api/admin/hub-video', () => {
 
     expect(res.status).toBe(200);
     expect(cloudinary.uploader.destroy).not.toHaveBeenCalled();
-    expect(HubIntroVideo.create).toHaveBeenCalledWith(
+    // First arg is the row data; second is the transaction options object
+    // (a real transaction, since only the model is mocked here) - only the
+    // data half is worth asserting on.
+    expect((HubIntroVideo.create as jest.Mock).mock.calls[0][0]).toEqual(
       expect.objectContaining({
         videoUrl: 'https://res.cloudinary.com/demo/video/upload/v1/innovation-hub/hub-video/new.mp4',
         cloudinaryPublicId: 'innovation-hub/hub-video/new',
@@ -143,7 +146,8 @@ describe('POST /api/admin/hub-video', () => {
     expect(res.status).toBe(200);
     expect(cloudinary.uploader.destroy).toHaveBeenCalledWith('innovation-hub/hub-video/old', { resource_type: 'video' });
     expect(HubIntroVideo.create).not.toHaveBeenCalled();
-    expect((existing as { update: jest.Mock }).update).toHaveBeenCalledWith(
+    // First arg is the row data; second is the transaction options object.
+    expect((existing as { update: jest.Mock }).update.mock.calls[0][0]).toEqual(
       expect.objectContaining({
         videoUrl: 'https://res.cloudinary.com/demo/video/upload/v1/innovation-hub/hub-video/new.mp4',
         cloudinaryPublicId: 'innovation-hub/hub-video/new',
@@ -221,7 +225,7 @@ describe('DELETE /api/admin/hub-video', () => {
   });
 
   it('returns 404 when there is no video to delete', async () => {
-    (HubIntroVideo.findOne as jest.Mock).mockResolvedValue(null);
+    (HubIntroVideo.findAll as jest.Mock).mockResolvedValue([]);
 
     const res = await request(buildApp())
       .delete('/api/admin/hub-video')
@@ -232,7 +236,8 @@ describe('DELETE /api/admin/hub-video', () => {
 
   it('deletes the Cloudinary asset and the row when a video exists', async () => {
     const existing = mockVideoRow();
-    (HubIntroVideo.findOne as jest.Mock).mockResolvedValue(existing);
+    (HubIntroVideo.findAll as jest.Mock).mockResolvedValue([existing]);
+    (HubIntroVideo.destroy as jest.Mock).mockResolvedValue(1);
     (cloudinary.uploader.destroy as jest.Mock).mockResolvedValue({ result: 'ok' });
 
     const res = await request(buildApp())
@@ -241,12 +246,17 @@ describe('DELETE /api/admin/hub-video', () => {
 
     expect(res.status).toBe(200);
     expect(cloudinary.uploader.destroy).toHaveBeenCalledWith('innovation-hub/hub-video/old', { resource_type: 'video' });
-    expect((existing as { destroy: jest.Mock }).destroy).toHaveBeenCalled();
+    // Deletes every matching row in one bulk call, not the found instance
+    // itself - a self-heal against duplicate rows (see SINGLETON_ORDER note
+    // in the controller), so this asserts the static call, not an instance
+    // .destroy().
+    expect(HubIntroVideo.destroy).toHaveBeenCalledWith({ where: { id: [EXISTING_VIDEO_ID] } });
   });
 
   it('still deletes the row even when the Cloudinary asset deletion fails', async () => {
     const existing = mockVideoRow();
-    (HubIntroVideo.findOne as jest.Mock).mockResolvedValue(existing);
+    (HubIntroVideo.findAll as jest.Mock).mockResolvedValue([existing]);
+    (HubIntroVideo.destroy as jest.Mock).mockResolvedValue(1);
     (cloudinary.uploader.destroy as jest.Mock).mockRejectedValue(new Error('Cloudinary is down'));
 
     const res = await request(buildApp())
@@ -254,6 +264,24 @@ describe('DELETE /api/admin/hub-video', () => {
       .set('Authorization', `Bearer ${adminToken()}`);
 
     expect(res.status).toBe(200);
-    expect((existing as { destroy: jest.Mock }).destroy).toHaveBeenCalled();
+    expect(HubIntroVideo.destroy).toHaveBeenCalledWith({ where: { id: [EXISTING_VIDEO_ID] } });
+  });
+
+  it('deletes every row when more than one exists (self-heal against a duplicate)', async () => {
+    const first = mockVideoRow({ id: EXISTING_VIDEO_ID, cloudinaryPublicId: 'innovation-hub/hub-video/old' });
+    const second = mockVideoRow({ id: 'd4444444-4444-4444-8444-444444444444', cloudinaryPublicId: 'innovation-hub/hub-video/stray' });
+    (HubIntroVideo.findAll as jest.Mock).mockResolvedValue([first, second]);
+    (HubIntroVideo.destroy as jest.Mock).mockResolvedValue(2);
+    (cloudinary.uploader.destroy as jest.Mock).mockResolvedValue({ result: 'ok' });
+
+    const res = await request(buildApp())
+      .delete('/api/admin/hub-video')
+      .set('Authorization', `Bearer ${adminToken()}`);
+
+    expect(res.status).toBe(200);
+    expect(cloudinary.uploader.destroy).toHaveBeenCalledTimes(2);
+    expect(HubIntroVideo.destroy).toHaveBeenCalledWith({
+      where: { id: [EXISTING_VIDEO_ID, 'd4444444-4444-4444-8444-444444444444'] },
+    });
   });
 });

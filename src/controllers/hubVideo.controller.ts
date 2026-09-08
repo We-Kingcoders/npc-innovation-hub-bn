@@ -11,12 +11,17 @@ function toPublicHubVideo(video: HubIntroVideo) {
   };
 }
 
+// Ordered the same way as the admin controller's lookups (oldest row wins)
+// so public and admin views can never disagree about which row is "the"
+// hub video if the singleton invariant were ever violated.
+const SINGLETON_ORDER: [string, 'ASC'][] = [['createdAt', 'ASC']];
+
 // GET /api/hub-video - public, no auth required. Returns { video: null }
 // rather than a 404/error when none has been uploaded yet - "no video yet"
 // is a normal state, not an error state.
 export const getPublicHubVideo = async (req: Request, res: Response): Promise<void> => {
   try {
-    const video = await HubIntroVideo.findOne();
+    const video = await HubIntroVideo.findOne({ order: SINGLETON_ORDER });
 
     res.status(200).json({
       status: 'success',
