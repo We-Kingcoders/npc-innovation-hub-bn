@@ -1,5 +1,6 @@
 import express from 'express';
 import multer from 'multer';
+import '../utils/ensureUploadsDir';
 import { protectRoute } from '../middlewares/auth.middleware';
 import * as projectController from '../controllers/project.controller';
 

@@ -1,5 +1,6 @@
 import express from 'express';
 import multer from 'multer';
+import '../utils/ensureUploadsDir';
 import { submitApplication } from '../controllers/application.controller';
 import { validateApplicationSubmission } from '../validations/application.validation';
 
