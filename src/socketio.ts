@@ -1,6 +1,7 @@
 import { Server, Socket } from "socket.io";
 import http from "http";
-import Message from "./models/message.model"; 
+import jwt from "jsonwebtoken";
+import Message from "./models/message.model";
 import DirectMessage from "./models/directMessage.model";
 import User from "./models/user.model";
 import { NotificationService } from "./services/notification.service";
@@ -8,6 +9,8 @@ import { NotificationType } from "./models/notification.model";
 import { MessageService } from "./services/message.service";
 import { RoomService } from "./services/room.service";
 import { ChatNotificationService } from "./services/chat-notification.service";
+import { isBlacklisted } from "./utils/tokenBlacklist";
+import type { TokenPayload } from "./utils/tokenGenerator.utils";
 
 let io: Server;
 
@@ -19,16 +22,37 @@ export const initSocket = (server: http.Server) => {
     },
   });
 
-  io.on("connection", async (socket: Socket) => {
-    // Expect the client to pass userId as a query parameter on connect
-    const { userId } = socket.handshake.query as { userId?: string };
-    if (!userId) {
-      console.warn("Socket connection without userId, disconnecting.");
-      return socket.disconnect();
+  // Authenticate every connection against the same JWT used by REST routes,
+  // instead of trusting a client-supplied userId. Without this, any client
+  // could connect as `{ auth: { ... } }` claiming to be any other user and
+  // receive their private notifications/DMs.
+  io.use((socket, next) => {
+    const token = socket.handshake.auth?.token as string | undefined;
+    if (!token) {
+      return next(new Error("Authentication token required"));
     }
+    if (isBlacklisted(token)) {
+      return next(new Error("Token has been invalidated"));
+    }
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      return next(new Error("Server configuration error"));
+    }
+    try {
+      const decoded = jwt.verify(token, jwtSecret) as TokenPayload;
+      socket.data.userId = decoded.id;
+      socket.data.role = decoded.role;
+      next();
+    } catch {
+      next(new Error("Invalid or expired token"));
+    }
+  });
+
+  io.on("connection", async (socket: Socket) => {
+    const userId = socket.data.userId as string;
 
     console.log(`User connected: ${userId}`);
-    
+
     // Join the user-specific room so we can target messages
     socket.join(userId);
     
@@ -234,7 +258,7 @@ export const initSocket = (server: http.Server) => {
 
     // Notifications handler
     socket.on("mark_read", async (notificationId: string) => {
-      await NotificationService.markAsRead(notificationId);
+      await NotificationService.markAsRead(notificationId, userId);
       const { notifications } = await NotificationService.getUserNotifications(userId);
       socket.emit("notifications_update", notifications);
     });

@@ -2,6 +2,7 @@ import { app } from './server';
 import http from 'http';
 import config from './config/app.config';
 import sequelize from './config/database';  // Import your sequelize instance
+import { initSocket } from './socketio';
 
 // Note: Swagger UI is already mounted at /api-docs inside server.ts, before
 // its catch-all 404 handler. Re-mounting it here would land after that 404
@@ -9,6 +10,9 @@ import sequelize from './config/database';  // Import your sequelize instance
 
 // Create HTTP server
 const server = http.createServer(app);
+
+// Attach Socket.IO (chat + real-time notifications) to the same HTTP server
+initSocket(server);
 
 // Port
 const PORT = config.app.port;
