@@ -1,4 +1,4 @@
-import { Server, Socket } from "socket.io";
+import { Server, Socket, DefaultEventsMap } from "socket.io";
 import http from "http";
 import jwt from "jsonwebtoken";
 import Message from "./models/message.model";
@@ -12,10 +12,38 @@ import { ChatNotificationService } from "./services/chat-notification.service";
 import { isBlacklisted } from "./utils/tokenBlacklist";
 import type { TokenPayload } from "./utils/tokenGenerator.utils";
 
-let io: Server;
+// socket.io types `Socket.data` as `any` by default (it's the fourth,
+// SocketData generic param, defaulting to `any`). Filling it in here gives
+// the userId/role set in the auth middleware below, and read in the
+// connection handler, a real type instead of triggering
+// @typescript-eslint/no-unsafe-member-access on every access.
+interface AuthedSocketData {
+  userId: string;
+  role: string;
+}
+
+type AppServer = Server<
+  DefaultEventsMap,
+  DefaultEventsMap,
+  DefaultEventsMap,
+  AuthedSocketData
+>;
+type AppSocket = Socket<
+  DefaultEventsMap,
+  DefaultEventsMap,
+  DefaultEventsMap,
+  AuthedSocketData
+>;
+
+let io: AppServer;
 
 export const initSocket = (server: http.Server) => {
-  io = new Server(server, {
+  io = new Server<
+    DefaultEventsMap,
+    DefaultEventsMap,
+    DefaultEventsMap,
+    AuthedSocketData
+  >(server, {
     cors: {
       origin: "*",
       methods: ["GET", "POST"],
@@ -48,8 +76,8 @@ export const initSocket = (server: http.Server) => {
     }
   });
 
-  io.on("connection", async (socket: Socket) => {
-    const userId = socket.data.userId as string;
+  io.on("connection", async (socket: AppSocket) => {
+    const userId = socket.data.userId;
 
     console.log(`User connected: ${userId}`);
 
