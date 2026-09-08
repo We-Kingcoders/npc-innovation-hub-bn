@@ -26,10 +26,10 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v2
-      
+      - uses: actions/checkout@v7
+
       - name: Setup Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v7
         with:
           node-version: '22'
           
@@ -54,7 +54,19 @@ jobs:
         uses: codecov/codecov-action@v1
         
       - name: Upload coverage to Code Climate
-        uses: paambaati/codeclimate-action@v2.7.5
+        uses: paambaati/codeclimate-action@v9.0.0
+        # A broken/unconfigured third-party reporting integration shouldn't
+        # fail the whole build - Lint and Test above are the real gates, and
+        # Codecov already reports coverage. v2.7.5's pinned reporter-binary
+        # download was returning an HTML error page instead of the actual
+        # binary (surfaced as a cryptic "Syntax error: redirection
+        # unexpected" - the shell trying to execute HTML as a script); v9
+        # points at current infra and verifies the download's checksum/GPG
+        # signature by default, so this should now either work or fail with
+        # an actual diagnosable error - but keep this non-blocking regardless,
+        # since CC_TEST_REPORTER_ID being unset/invalid is still possible and
+        # still not a reason to redden Lint+Test.
+        continue-on-error: true
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
         with:
