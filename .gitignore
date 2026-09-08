@@ -72,12 +72,31 @@ web_modules/
 # Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variable files
-.env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
+# --- Security: credentials, keys, certs ---
+# Never commit private keys, certs, or credential/service-account files.
+*.pem
+*.key
+*.crt
+*.cer
+*.p12
+*.pfx
+*.der
+*serviceAccountKey*.json
+*firebase-adminsdk*.json
+*credentials*.json
+.aws/
+.ssh/
+*.sqlite
+*.sqlite3
+
+# --- User-uploaded content (may contain PII) ---
+# Local multer disk storage target — never commit real user uploads.
+uploads/
+!uploads/.gitkeep
+
+# dotenv environment variable files (all variants; keep a real .env.example tracked as a template)
+.env*
+!.env.example
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache

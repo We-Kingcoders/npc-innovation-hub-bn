@@ -7,12 +7,13 @@
  * Updated by: shemaalain2025-cloud
  */
 
-import nodemailer from "nodemailer";
+import nodemailer, { Transporter } from "nodemailer";
 import sgMail from "@sendgrid/mail";
 import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
-import { SentMessageInfo, Options } from "nodemailer/lib/smtp-transport";
+import { SMTPSentMessageInfo } from "nodemailer/lib/smtp-transport";
+import type { NodemailerError } from "nodemailer";
 
 dotenv.config();
 
@@ -27,7 +28,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // --- Development: Nodemailer with Ethereal Setup ---
-let devTransporter: nodemailer.Transporter<SentMessageInfo, Options> | null = null;
+let devTransporter: Transporter<SMTPSentMessageInfo> | null = null;
 let transporterInitialized = process.env.NODE_ENV === 'production'; // Initialized if in production
 
 if (process.env.NODE_ENV === 'development') {
@@ -44,7 +45,7 @@ if (process.env.NODE_ENV === 'development') {
     transporterInitialized = true;
     console.log(`[${new Date().toISOString()}] Gmail email configured for development`);
     
-    devTransporter.verify((error) => {
+    devTransporter.verify((error: NodemailerError | null) => {
       if (error) {
         console.error(`[${new Date().toISOString()}] Gmail SMTP connection error:`, error);
       } else {
@@ -68,7 +69,7 @@ if (process.env.NODE_ENV === 'development') {
       transporterInitialized = true;
       console.log(`[${new Date().toISOString()}] Ethereal email configured for development`);
       
-      devTransporter.verify((error) => {
+      devTransporter.verify((error: NodemailerError | null) => {
         if (error) {
           console.error(`[${new Date().toISOString()}] Ethereal SMTP connection error:`, error);
         } else {
