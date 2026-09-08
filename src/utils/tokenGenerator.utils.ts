@@ -28,11 +28,13 @@ interface TokenPayload extends JwtPayload {
 /**
  * Generate a JWT token for a user
  */
+/* eslint-disable @typescript-eslint/require-await -- jwt.sign() here is synchronous so there's no real await, but this stays async intentionally to keep its Promise<string> contract: several controllers already call it with `await generateToken(...)`, and switching to sync would just push an await-thenable error to each of those call sites instead. */
 const generateToken = async (
   user: UserAttributes,
   expiresIn: string = TOKEN_DURATIONS.ACCESS,
   tokenType: string = "access"
 ): Promise<string> => {
+  /* eslint-enable @typescript-eslint/require-await */
   if (!user.id) throw new Error("User ID is required to generate a token");
 
   console.log(`[${new Date().toISOString()}] Generating ${tokenType} token for user: ${user.email || user.id}, expires in: ${expiresIn}`);
@@ -53,6 +55,7 @@ const generateToken = async (
 /**
  * Generate a refresh token for a user
  */
+// eslint-disable-next-line @typescript-eslint/require-await -- see note on generateToken above
 const generateRefreshToken = async (user: UserAttributes): Promise<string> => {
   console.log(`[${new Date().toISOString()}] Generating refresh token for user: ${user.email || user.id}, expires in: ${TOKEN_DURATIONS.REFRESH}`);
   

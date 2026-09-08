@@ -116,12 +116,6 @@ This is an automated message. Please do not reply to this email.
 © ${new Date().getFullYear()} Innovation Hub. All rights reserved.
   `;
 
-  // Set email priority headers if needed
-  const emailOptions = options.highPriority ? { 
-    priority: 'high',
-    headers: { 'X-Priority': '1', 'Importance': 'high' }
-  } : {};
-
   try {
     console.log(`[${new Date().toISOString()}] Sending account ${statusText} email to: ${user.email}`);
     

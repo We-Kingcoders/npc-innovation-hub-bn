@@ -1,9 +1,6 @@
 import Notification, { NotificationType, NotificationPriority } from '../models/notification.model';
 import User from '../models/user.model';
-import DirectMessage from '../models/directMessage.model';
-import Message from '../models/message.model';
-import { Op, QueryTypes } from 'sequelize';
-import sequelize from '../config/database';
+import { Op } from 'sequelize';
 
 export class ChatNotificationService {
   /**

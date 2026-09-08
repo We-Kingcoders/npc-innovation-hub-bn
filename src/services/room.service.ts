@@ -1,7 +1,6 @@
 import Room from '../models/room.model';
 import RoomParticipant from '../models/roomParticipant.model';
 import User from '../models/user.model';
-import { Op } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
 
 export class RoomService {

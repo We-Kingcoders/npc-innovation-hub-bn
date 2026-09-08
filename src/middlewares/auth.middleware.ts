@@ -14,32 +14,35 @@ import { UserAttributes } from '../types/user.type'
 // Keep the global namespace declaration
 declare global {
   namespace Express {
-    // Merge with the existing user property type
+    // Merge with the existing user property type. Must stay an `interface`
+    // (not `type`) even though it declares no members of its own -
+    // @types/passport separately declares its own `Express.User` interface,
+    // and only `interface` declarations can merge across those two sites;
+    // a `type` alias here collides with passport's as a duplicate identifier.
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     interface User extends UserAttributes {}
   }
 }
 
-export const protectRoute = async (
+export const protectRoute = (
   req: Request,
   res: Response,
   next: NextFunction,
-): Promise<void> => {
+): void => {
   try {
-    let token
     if (!req.headers.authorization) {
       res.status(401).json({ message: 'Authorization header missing' })
       return // Stop execution after sending the response
     }
 
-    token = req.headers.authorization.split(' ')[1]
+    const token = req.headers.authorization.split(' ')[1]
     const jwt_secret: string | undefined = process.env.JWT_SECRET
     if (!jwt_secret) {
       res.status(500).json({ message: 'JWT_SECRET is missing' })
       return
     }
 
-    if (await isBlacklisted(token)) {
-      // Assuming isBlacklisted is async
+    if (isBlacklisted(token)) {
       res.status(401).json({
         status: 'error',
         message: 'Token has been invalidated.',

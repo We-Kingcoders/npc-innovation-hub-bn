@@ -4,7 +4,6 @@ import helmet from 'helmet';
 import path from 'path';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './swagger.config';
-import { Sequelize } from 'sequelize'; // Add this import
 import * as dotenv from 'dotenv';
 import blogRoutes from './routes/blog.routes'
 import memberRoutes from './routes/member.route'; // Import member routes

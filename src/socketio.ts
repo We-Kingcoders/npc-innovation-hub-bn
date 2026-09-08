@@ -82,12 +82,12 @@ export const initSocket = (server: http.Server) => {
     console.log(`User connected: ${userId}`);
 
     // Join the user-specific room so we can target messages
-    socket.join(userId);
-    
+    await socket.join(userId);
+
     // Get the Hub room and join it
     try {
       const hubRoom = await RoomService.getHubRoom();
-      socket.join(hubRoom.id);
+      await socket.join(hubRoom.id);
       
       // Add the user to the hub room if they're not already in it
       await RoomService.addUserToRoom(userId, hubRoom.id);
@@ -98,7 +98,7 @@ export const initSocket = (server: http.Server) => {
     // Handle joining private DM rooms
     socket.on("join_dm", (targetUserId: string) => {
       const roomId = [userId, targetUserId].sort().join('-');
-      socket.join(roomId);
+      void socket.join(roomId);
       console.log(`User ${userId} joined DM room with ${targetUserId}`);
     });
 
@@ -293,7 +293,7 @@ export const initSocket = (server: http.Server) => {
 
     socket.on("disconnect", () => {
       console.log(`User disconnected: ${userId}`);
-      socket.leave(userId);
+      void socket.leave(userId);
     });
   });
 
@@ -305,6 +305,9 @@ export const sendNotification = (userId: string, type: NotificationType, message
   NotificationService.createNotification(userId, type, message, relatedEntityId)
     .then(notification => {
       io.to(userId).emit("new_notification", notification);
+    })
+    .catch((err) => {
+      console.error("Error creating/sending notification:", err);
     });
 };
 

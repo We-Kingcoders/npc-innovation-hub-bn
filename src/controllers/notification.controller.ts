@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import Notification from '../models/notification.model';
-import { Op } from 'sequelize';
 
 export const getUserNotifications = async (req: Request, res: Response): Promise<void> => {
   try {

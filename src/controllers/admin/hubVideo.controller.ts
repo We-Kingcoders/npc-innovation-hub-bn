@@ -12,7 +12,7 @@ const VIDEO_FOLDER = 'innovation-hub/hub-video';
 export const uploadHubVideo = async (req: Request, res: Response): Promise<void> => {
   try {
     const currentUser = req.user as { id: string; role: string };
-    const videoFile = req.file as Express.Multer.File | undefined;
+    const videoFile = req.file;
 
     if (!videoFile) {
       res.status(400).json({

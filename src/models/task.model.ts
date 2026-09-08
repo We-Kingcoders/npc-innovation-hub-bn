@@ -16,7 +16,7 @@ export interface TaskAttributes {
   updatedAt?: Date
 }
 
-export interface TaskCreationAttributes extends Optional<TaskAttributes, 'id' | 'githubIssueLink' | 'assignedTo'> {}
+export type TaskCreationAttributes = Optional<TaskAttributes, 'id' | 'githubIssueLink' | 'assignedTo'>
 
 class Task extends Model<TaskAttributes, TaskCreationAttributes> implements TaskAttributes {
   declare id: string

@@ -102,7 +102,7 @@ export async function getAllTasks(req: Request, res: Response): Promise<void> {
       order: [['createdAt', 'DESC']],
     })
     res.json(tasks)
-  } catch (error) {
+  } catch {
     res.status(500).json({ message: 'Failed to retrieve tasks.' })
   }
 }
@@ -121,7 +121,7 @@ export async function getAssignedTasks(req: Request, res: Response): Promise<voi
       order: [['createdAt', 'DESC']],
     })
     res.json(tasks)
-  } catch (error) {
+  } catch {
     res.status(500).json({ message: 'Failed to retrieve assigned tasks.' })
   }
 }
@@ -150,7 +150,7 @@ export async function getTaskById(req: Request, res: Response): Promise<void> {
     }
 
     res.json(task)
-  } catch (error) {
+  } catch {
     res.status(500).json({ message: 'Failed to retrieve task.' })
   }
 }
@@ -230,7 +230,7 @@ Please check your dashboard for more details.
     }
 
     res.json(task)
-  } catch (error) {
+  } catch {
     res.status(500).json({ message: 'Failed to update task.' })
   }
 }
@@ -247,7 +247,7 @@ export async function deleteTask(req: Request, res: Response): Promise<void> {
     }
     await task.destroy()
     res.json({ message: 'Task deleted successfully.' })
-  } catch (error) {
+  } catch {
     res.status(500).json({ message: 'Failed to delete task.' })
   }
 }
@@ -309,7 +309,7 @@ Please check your dashboard for more details.
     await sendEmail(user.email, subject, text, html)
 
     res.json(task)
-  } catch (error) {
+  } catch {
     res.status(500).json({ message: 'Failed to assign task.' })
   }
 }

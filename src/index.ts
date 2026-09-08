@@ -9,6 +9,7 @@ import { initSocket } from './socketio';
 // handler in the middleware stack and never be reached, so it isn't repeated.
 
 // Create HTTP server
+// eslint-disable-next-line @typescript-eslint/no-misused-promises -- standard Express+http bootstrap; Express 5's handler types admit a Promise return, which trips this rule even though http.createServer never awaits its listener's result either way.
 const server = http.createServer(app);
 
 // Attach Socket.IO (chat + real-time notifications) to the same HTTP server
@@ -31,17 +32,18 @@ const startServer = async () => {
     console.log('All database tables created successfully.');
     
     // Start server after database is ready
-  server.listen(5000, '0.0.0.0', () => {
-    console.log('Server is running on port 5000');
-});
+    server.listen(PORT, '0.0.0.0', () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
   } catch (error) {
     console.error('Database initialization failed:', error);
     process.exit(1);
   }
 };
 
-// Start the server
-startServer();
+// Start the server (startServer's own try/catch handles all failures, incl.
+// process.exit(1), so it can never actually reject here)
+void startServer();
 
 // Handle unhandled rejections
 process.on('unhandledRejection', (err: Error) => {

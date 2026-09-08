@@ -1,7 +1,6 @@
 import Message from '../models/message.model';
 import DirectMessage from '../models/directMessage.model';
 import User from '../models/user.model';
-import Room from '../models/room.model';
 import { Op, QueryTypes } from 'sequelize';
 import RoomService from './room.service';
 import sequelize from '../config/database'; // Adjust the path as needed

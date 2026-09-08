@@ -101,7 +101,7 @@ export interface NotificationAttributes {
 /**
  * Interface for creating a new notification (optional attributes)
  */
-export interface NotificationCreationAttributes extends Optional<NotificationAttributes, 'id' | 'isRead' | 'priority' | 'expiresAt' | 'createdAt' | 'updatedAt' | 'senderId' | 'messageId' | 'roomId'> {}
+export type NotificationCreationAttributes = Optional<NotificationAttributes, 'id' | 'isRead' | 'priority' | 'expiresAt' | 'createdAt' | 'updatedAt' | 'senderId' | 'messageId' | 'roomId'>
 
 /**
  * Notification model definition

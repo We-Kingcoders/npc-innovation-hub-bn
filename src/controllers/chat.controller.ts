@@ -214,7 +214,6 @@ export const sendDirectMessage = async (req: Request, res: Response): Promise<vo
 export const editDirectMessage = async (req: Request, res: Response): Promise<void> => {
   try {
     const currentUser = req.user as { id: string; role: string };
-    const userId = req.params.userId;
     const messageId = req.params.messageId;
     const { content } = req.body;
 
@@ -325,7 +324,6 @@ export const editDirectMessage = async (req: Request, res: Response): Promise<vo
 export const deleteDirectMessage = async (req: Request, res: Response): Promise<void> => {
   try {
     const currentUser = req.user as { id: string; role: string };
-    const userId = req.params.userId;
     const messageId = req.params.messageId;
 
     try {
