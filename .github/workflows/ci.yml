@@ -48,6 +48,7 @@ jobs:
           DB_NAME: test_db
           DB_USER: postgres
           DB_PASSWORD: postgres
+          JWT_SECRET: ci-test-secret-not-for-production
           
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
