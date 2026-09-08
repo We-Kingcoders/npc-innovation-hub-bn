@@ -47,6 +47,7 @@ const FAILED_ATTEMPT_WINDOW = 30 * 60 * 1000;
  * Event Handler: Password Updated
  * Updates the user's updatedAt timestamp when password is changed
  */
+// eslint-disable-next-line @typescript-eslint/no-misused-promises -- EventEmitter.on expects a void-returning listener, but this one is async; every path inside is caught internally, so it can never produce an unhandled rejection despite the type mismatch.
 passwordEventEmitter.on(PASSWORD_EVENTS.UPDATED, async (userId: string) => {
   try {
     console.log(`[2025-07-01 15:38:10] Password update event for user ${userId} handled by Alain275`);
@@ -74,6 +75,7 @@ passwordEventEmitter.on(PASSWORD_EVENTS.UPDATED, async (userId: string) => {
  * Event Handler: Password Reset Requested
  * Sends a password reset email to the user
  */
+// eslint-disable-next-line @typescript-eslint/no-misused-promises -- see note above
 passwordEventEmitter.on(PASSWORD_EVENTS.RESET_REQUESTED, async (userId: string, resetToken: string, resetLink: string) => {
   try {
     console.log(`[2025-07-01 15:38:10] Password reset requested for user ${userId}`);
@@ -102,6 +104,7 @@ passwordEventEmitter.on(PASSWORD_EVENTS.RESET_REQUESTED, async (userId: string, 
  * Event Handler: Password Reset Completed
  * Updates user record and sends confirmation email
  */
+// eslint-disable-next-line @typescript-eslint/no-misused-promises -- see note above
 passwordEventEmitter.on(PASSWORD_EVENTS.RESET_COMPLETED, async (userId: string) => {
   try {
     console.log(`[2025-07-01 15:38:10] Password reset completed for user ${userId}`);
@@ -132,7 +135,7 @@ passwordEventEmitter.on(PASSWORD_EVENTS.RESET_COMPLETED, async (userId: string) 
  * Event Handler: Failed Password Attempt
  * Tracks failed attempts and may trigger account lock
  */
-passwordEventEmitter.on(PASSWORD_EVENTS.FAILED_ATTEMPT, async (userId: string, ipAddress: string = 'unknown') => {
+passwordEventEmitter.on(PASSWORD_EVENTS.FAILED_ATTEMPT, (userId: string, ipAddress: string = 'unknown') => {
   try {
     console.log(`[2025-07-01 15:38:10] Failed password attempt for user ${userId} from IP ${ipAddress}`);
     
@@ -172,6 +175,7 @@ passwordEventEmitter.on(PASSWORD_EVENTS.FAILED_ATTEMPT, async (userId: string, i
  * Event Handler: Account Locked
  * Temporarily locks an account after too many failed attempts
  */
+// eslint-disable-next-line @typescript-eslint/no-misused-promises -- see note above
 passwordEventEmitter.on(PASSWORD_EVENTS.LOCKED, async (userId: string, ipAddress: string = 'unknown') => {
   try {
     console.log(`[2025-07-01 15:38:10] Account locked for user ${userId} due to multiple failed attempts from IP ${ipAddress}`);

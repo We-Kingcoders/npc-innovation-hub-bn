@@ -1,6 +1,7 @@
-import { Server, Socket } from "socket.io";
+import { Server, Socket, DefaultEventsMap } from "socket.io";
 import http from "http";
-import Message from "./models/message.model"; 
+import jwt from "jsonwebtoken";
+import Message from "./models/message.model";
 import DirectMessage from "./models/directMessage.model";
 import User from "./models/user.model";
 import { NotificationService } from "./services/notification.service";
@@ -8,34 +9,85 @@ import { NotificationType } from "./models/notification.model";
 import { MessageService } from "./services/message.service";
 import { RoomService } from "./services/room.service";
 import { ChatNotificationService } from "./services/chat-notification.service";
+import { isBlacklisted } from "./utils/tokenBlacklist";
+import type { TokenPayload } from "./utils/tokenGenerator.utils";
 
-let io: Server;
+// socket.io types `Socket.data` as `any` by default (it's the fourth,
+// SocketData generic param, defaulting to `any`). Filling it in here gives
+// the userId/role set in the auth middleware below, and read in the
+// connection handler, a real type instead of triggering
+// @typescript-eslint/no-unsafe-member-access on every access.
+interface AuthedSocketData {
+  userId: string;
+  role: string;
+}
+
+type AppServer = Server<
+  DefaultEventsMap,
+  DefaultEventsMap,
+  DefaultEventsMap,
+  AuthedSocketData
+>;
+type AppSocket = Socket<
+  DefaultEventsMap,
+  DefaultEventsMap,
+  DefaultEventsMap,
+  AuthedSocketData
+>;
+
+let io: AppServer;
 
 export const initSocket = (server: http.Server) => {
-  io = new Server(server, {
+  io = new Server<
+    DefaultEventsMap,
+    DefaultEventsMap,
+    DefaultEventsMap,
+    AuthedSocketData
+  >(server, {
     cors: {
       origin: "*",
       methods: ["GET", "POST"],
     },
   });
 
-  io.on("connection", async (socket: Socket) => {
-    // Expect the client to pass userId as a query parameter on connect
-    const { userId } = socket.handshake.query as { userId?: string };
-    if (!userId) {
-      console.warn("Socket connection without userId, disconnecting.");
-      return socket.disconnect();
+  // Authenticate every connection against the same JWT used by REST routes,
+  // instead of trusting a client-supplied userId. Without this, any client
+  // could connect as `{ auth: { ... } }` claiming to be any other user and
+  // receive their private notifications/DMs.
+  io.use((socket, next) => {
+    const token = socket.handshake.auth?.token as string | undefined;
+    if (!token) {
+      return next(new Error("Authentication token required"));
     }
+    if (isBlacklisted(token)) {
+      return next(new Error("Token has been invalidated"));
+    }
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      return next(new Error("Server configuration error"));
+    }
+    try {
+      const decoded = jwt.verify(token, jwtSecret) as TokenPayload;
+      socket.data.userId = decoded.id;
+      socket.data.role = decoded.role;
+      next();
+    } catch {
+      next(new Error("Invalid or expired token"));
+    }
+  });
+
+  io.on("connection", async (socket: AppSocket) => {
+    const userId = socket.data.userId;
 
     console.log(`User connected: ${userId}`);
-    
+
     // Join the user-specific room so we can target messages
-    socket.join(userId);
-    
+    await socket.join(userId);
+
     // Get the Hub room and join it
     try {
       const hubRoom = await RoomService.getHubRoom();
-      socket.join(hubRoom.id);
+      await socket.join(hubRoom.id);
       
       // Add the user to the hub room if they're not already in it
       await RoomService.addUserToRoom(userId, hubRoom.id);
@@ -46,7 +98,7 @@ export const initSocket = (server: http.Server) => {
     // Handle joining private DM rooms
     socket.on("join_dm", (targetUserId: string) => {
       const roomId = [userId, targetUserId].sort().join('-');
-      socket.join(roomId);
+      void socket.join(roomId);
       console.log(`User ${userId} joined DM room with ${targetUserId}`);
     });
 
@@ -234,14 +286,14 @@ export const initSocket = (server: http.Server) => {
 
     // Notifications handler
     socket.on("mark_read", async (notificationId: string) => {
-      await NotificationService.markAsRead(notificationId);
+      await NotificationService.markAsRead(notificationId, userId);
       const { notifications } = await NotificationService.getUserNotifications(userId);
       socket.emit("notifications_update", notifications);
     });
 
     socket.on("disconnect", () => {
       console.log(`User disconnected: ${userId}`);
-      socket.leave(userId);
+      void socket.leave(userId);
     });
   });
 
@@ -253,6 +305,9 @@ export const sendNotification = (userId: string, type: NotificationType, message
   NotificationService.createNotification(userId, type, message, relatedEntityId)
     .then(notification => {
       io.to(userId).emit("new_notification", notification);
+    })
+    .catch((err) => {
+      console.error("Error creating/sending notification:", err);
     });
 };
 

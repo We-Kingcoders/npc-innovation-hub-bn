@@ -1,5 +1,5 @@
 import express from 'express';
-import { protectRoute, restrictTo } from '../middlewares/auth.middleware';
+import { protectRoute } from '../middlewares/auth.middleware';
 import { verifyEmail } from '../controllers/user.controller';
 import { verifyTokenMiddleware } from '../middlewares/verifyToken.middleware';
 import upload from '../utils/multerConfig';
@@ -18,7 +18,6 @@ import {
   getProfile,
   updateProfile,
 } from '../controllers/user.controller';
-import * as UserController from '../controllers/user.controller';
 import {
   validateUser,
   validateUserLogin,

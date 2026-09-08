@@ -418,7 +418,7 @@ export const createOrUpdateEducation = async (req: Request, res: Response): Prom
       return;
     }
     let member = await Member.findOne({ where: { userId } });
-    let education: any = member?.education || {};
+    const education: any = member?.education || {};
 
     if ('degree' in req.body) education.degree = req.body.degree;
     if ('institution' in req.body) education.institution = req.body.institution;

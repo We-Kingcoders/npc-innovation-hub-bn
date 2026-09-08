@@ -39,7 +39,7 @@ function mockMemberInstance(overrides: Partial<Record<string, unknown>> = {}) {
     ...overrides,
   };
   const instance: any = { ...fields, toJSON: () => fields };
-  instance.update = jest.fn().mockImplementation(async (data: Record<string, unknown>) => {
+  instance.update = jest.fn().mockImplementation((data: Record<string, unknown>) => {
     Object.assign(fields, data);
     Object.assign(instance, data);
     return instance;
@@ -81,7 +81,7 @@ describe('POST /api/members/:userId - new profile role default', () => {
 
   it('defaults a new profile created without a role to "Other", not the literal "Member"', async () => {
     (Member.findOne as jest.Mock).mockResolvedValue(null);
-    (Member.create as jest.Mock).mockImplementation(async (data) => mockMemberInstance(data));
+    (Member.create as jest.Mock).mockImplementation((data) => mockMemberInstance(data));
 
     const res = await request(buildApp())
       .post(`/api/members/${USER_ID}`)

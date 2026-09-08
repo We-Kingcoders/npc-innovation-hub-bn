@@ -85,7 +85,7 @@ export const addHeroMember = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    const maxOrder = (await HeroFeaturedMember.max('order')) as number | null;
+    const maxOrder = (await HeroFeaturedMember.max('order'));
     const nextOrder = typeof maxOrder === 'number' ? maxOrder + 1 : 0;
 
     const heroMember = await HeroFeaturedMember.create({ memberId, order: nextOrder });

@@ -102,13 +102,15 @@ export class NotificationService {
   }
 
   /**
-   * Mark a notification as read
+   * Mark a notification as read. Scoped to userId so a caller can only ever
+   * mark their own notifications - the id alone isn't sufficient proof of
+   * ownership.
    */
-  static async markAsRead(notificationId: string): Promise<boolean> {
+  static async markAsRead(notificationId: string, userId: string): Promise<boolean> {
     const [updatedRows] = await Notification.update(
       { isRead: true },
       {
-        where: { id: notificationId }
+        where: { id: notificationId, userId }
       }
     );
 

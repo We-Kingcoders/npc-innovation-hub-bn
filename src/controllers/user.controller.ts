@@ -4,9 +4,7 @@ import { UserSignupAttributes } from '../types/user.type'
 import { UserService } from '../services/user.services';
 import { generateToken, decodeToken } from '../utils/tokenGenerator.utils'
 import { hashPassword, comparePassword } from '../utils/password.utils'
-import { sendEmail, sendTemplateEmail, EmailTemplate } from '../utils/email.utils';
-import passport from 'passport'
-import { AccountStatusMessages } from '../utils/variable.utils'
+import { sendEmail } from '../utils/email.utils';
 import { sendReasonEmail } from '../utils/sendReson.util'
 import { addToBlacklist } from '../utils/tokenBlacklist'
 import { passwordEventEmitter } from '../events/password.event'
@@ -34,7 +32,7 @@ const createNotification = async (
   userId: string,
   message: string,
   type: NotificationType,
-  createdBy: string
+  _createdBy: string
 ): Promise<void> => {
   try {
     await Notification.create({
@@ -316,24 +314,36 @@ Innovation Hub Team
 
     // Proceed to send OTP and generate a temporary login token for the OTP step.
     try {
-      await sendOTP(req, res, async () => {
-        // Make sure to await generateToken!
-        const tempLoginToken = await generateToken(
-          { id: user.id, email: user.email, role: user.role },
-          "1d"
-        );
+      // sendOTP calls `next()` synchronously without awaiting/catching it,
+      // so `next` itself must stay a plain void-returning function - the
+      // async work runs in an inner IIFE with its own .catch, otherwise a
+      // throw in here would be an unhandled rejection and leave the client
+      // hanging with no response at all.
+      await sendOTP(req, res, () => {
+        (async () => {
+          // Make sure to await generateToken!
+          const tempLoginToken = await generateToken(
+            { id: user.id, email: user.email, role: user.role },
+            "1d"
+          );
 
-        const userWithoutPassword = { ...user.dataValues };
-        delete userWithoutPassword.password;
+          const userWithoutPassword = { ...user.dataValues };
+          delete userWithoutPassword.password;
 
-        res.status(200).json({
-          status: "pending",
-          message: "OTP sent to your email. Please verify to complete login.",
-          token: tempLoginToken, // This should now be a string, not {}
-          data: { user: userWithoutPassword },
+          res.status(200).json({
+            status: "pending",
+            message: "OTP sent to your email. Please verify to complete login.",
+            token: tempLoginToken, // This should now be a string, not {}
+            data: { user: userWithoutPassword },
+          });
+        })().catch((err) => {
+          console.error("Error completing OTP login flow:", err);
+          if (!res.headersSent) {
+            res.status(500).json({ status: "error", message: "Could not complete login." });
+          }
         });
       });
-    } catch (err) {
+    } catch {
       res.status(500).json({ status: "error", message: "Could not send OTP." });
     }
   } catch (error) {
@@ -348,15 +358,15 @@ Innovation Hub Team
 /**
  * User logout
  */
-export const userLogout = async (
+export const userLogout = (
   req: Request,
   res: Response,
   next: NextFunction,
-): Promise<void> => {
+): void => {
   try {
     const token = req.headers.authorization?.split(' ')[1]
     if (token) {
-      await addToBlacklist(token)
+      addToBlacklist(token)
       console.log(`User logged out: ${(req.user as any)?.email} at ${new Date().toISOString()}`);
     }
 
@@ -415,7 +425,9 @@ export const changeAccountStatus = async (
       ? 'Your account has been activated. You can now access all Innovation Hub features.'
       : req.body.activationReason
 
-    sendReasonEmail(user, subject, activationReason, user.isActive)
+    sendReasonEmail(user, subject, activationReason, user.isActive).catch((err) => {
+      console.error('Error sending account status email:', err);
+    })
 
     user.isActive = !user.isActive
     await user.save()
@@ -508,11 +520,12 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // google login
 
-export const loginWithGoogleToken = async (req: Request, res: Response) => {
+export const loginWithGoogleToken = async (req: Request, res: Response): Promise<void> => {
   const { tokenId } = req.body;
 
   if (!tokenId) {
-    return res.status(400).json({ message: 'Missing tokenId' });
+    res.status(400).json({ message: 'Missing tokenId' });
+    return;
   }
 
   try {
@@ -530,7 +543,8 @@ export const loginWithGoogleToken = async (req: Request, res: Response) => {
     if (!payload || !payload.email) {
       // Extra logging to help debugging
       console.error("Email is missing in Google payload:", payload);
-      return res.status(401).json({ message: 'Google token does not contain email' });
+      res.status(401).json({ message: 'Google token does not contain email' });
+      return;
     }
 
     // Find or create user in your DB
@@ -561,20 +575,29 @@ export const loginWithGoogleToken = async (req: Request, res: Response) => {
     // Ensure req.body.email is set for sendOTP middleware
     req.body.email = user.email;
 
-    // Use your existing OTP sending middleware just like for classic login
-    await sendOTP(req, res, async () => {
-      const tempLoginToken = await generateToken(
-        { id: user.id, email: user.email, role: user.role },
-        "10m"
-      );
-      const userWithoutPassword = { ...user.dataValues };
-      delete userWithoutPassword.password;
+    // Use your existing OTP sending middleware just like for classic login.
+    // See the note on the equivalent block in `login` above: `next` must
+    // stay void-returning since sendOTP calls it without awaiting/catching.
+    await sendOTP(req, res, () => {
+      (async () => {
+        const tempLoginToken = await generateToken(
+          { id: user.id, email: user.email, role: user.role },
+          "10m"
+        );
+        const userWithoutPassword = { ...user.dataValues };
+        delete userWithoutPassword.password;
 
-      res.status(200).json({
-        status: "pending",
-        message: "OTP sent to your email. Please verify to complete login.",
-        token: tempLoginToken,
-        data: { user: userWithoutPassword },
+        res.status(200).json({
+          status: "pending",
+          message: "OTP sent to your email. Please verify to complete login.",
+          token: tempLoginToken,
+          data: { user: userWithoutPassword },
+        });
+      })().catch((err) => {
+        console.error("Error completing Google OTP login flow:", err);
+        if (!res.headersSent) {
+          res.status(500).json({ status: "error", message: "Could not complete login." });
+        }
       });
     });
   } catch (err) {
@@ -1122,10 +1145,4 @@ export const getDashboardStats = async (req: Request, res: Response): Promise<vo
   }
 };
 
-export function getAllAllowStates(arg0: string, protectRoute: (req: Request, res: Response, next: NextFunction) => Promise<void>, getAllAllowStates: any) {
-  throw new Error("Function not implemented.");
-}
-export function updateAllowState(arg0: string, protectRoute: (req: Request, res: Response, next: NextFunction) => Promise<void>, updateAllowState: any) {
-  throw new Error("Function not implemented.");
-}
 

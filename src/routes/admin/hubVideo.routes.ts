@@ -1,5 +1,6 @@
 import express from 'express';
 import multer from 'multer';
+import '../../utils/ensureUploadsDir';
 import { protectRoute, restrictTo } from '../../middlewares/auth.middleware';
 import { uploadHubVideo, getHubVideoAdmin, deleteHubVideo } from '../../controllers/admin/hubVideo.controller';
 import { validateHubVideoUpload } from '../../validations/hubVideo.validation';

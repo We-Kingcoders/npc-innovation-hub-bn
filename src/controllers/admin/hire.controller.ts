@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import HireUsInquiry from '../../models/hireUsInquiry.model';
 import { sendEmail } from '../../utils/emailService';
 import { Op } from 'sequelize';
-import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Get all hire inquiries
@@ -106,8 +105,7 @@ export const getInquiry = async (req: Request, res: Response): Promise<void> => 
 export const updateInquiry = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { status, notes } = req.body;
-    
+
     // Using req.user from your auth middleware
     const currentUser = req.user as { id: string; role: string; firstName: string; lastName: string };
     

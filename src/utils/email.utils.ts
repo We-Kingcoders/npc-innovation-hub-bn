@@ -10,7 +10,6 @@
 import nodemailer, { Transporter } from "nodemailer";
 import sgMail from "@sendgrid/mail";
 import fs from "fs";
-import path from "path";
 import dotenv from "dotenv";
 import { SMTPSentMessageInfo } from "nodemailer/lib/smtp-transport";
 import type { NodemailerError } from "nodemailer";
@@ -112,10 +111,6 @@ export enum EmailTemplate {
   APPLICATION_ACCEPTED = 'application-accepted',
   APPLICATION_REJECTED = 'application-rejected',
 }
-
-// Rate limiting logic can remain the same if desired
-const emailSendLog: Record<string, number[]> = {};
-const MAX_EMAILS_PER_HOUR = 20;
 
 /**
  * Send an email. Uses SendGrid for production, Nodemailer/Ethereal for development.
@@ -235,13 +230,6 @@ export async function sendTemplateEmail(
   template: EmailTemplate,
   data: Record<string, any>
 ): Promise<any> {
-  const defaultData = {
-    appName: 'Innovation Hub',
-    supportEmail: process.env.SUPPORT_EMAIL || 'support@yourdomain.com',
-    year: new Date().getFullYear(),
-    ...data,
-  };
-
   let subject = '';
   let text = '';
   let html = '';

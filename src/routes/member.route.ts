@@ -1,6 +1,7 @@
 import express from 'express';
 import multer from 'multer';
-import { protectRoute, restrictTo } from '../middlewares/auth.middleware';
+import '../utils/ensureUploadsDir';
+import { protectRoute } from '../middlewares/auth.middleware';
 import * as memberController from '../controllers/member.controller';
 import {
   validateMemberIdParam,

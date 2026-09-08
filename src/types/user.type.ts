@@ -33,8 +33,8 @@ export interface UserAttributes {
  * Attributes required for user signup
  * Makes most fields optional during the signup process
  */
-export interface UserSignupAttributes
-  extends Optional<
+export type UserSignupAttributes =
+  Optional<
     UserAttributes,
     | "id"
     | "firstName"
@@ -46,13 +46,13 @@ export interface UserSignupAttributes
     | "role"  // Optional during signup, will default to 'Member'
     | "phone"
     | "updatedAt"
-  > {}
+  >
 
 /**
  * Full user output with all fields required
  * Used for returning complete user data
  */
-export interface UserOutputs extends Required<UserAttributes> {}
+export type UserOutputs = Required<UserAttributes>
 
 /**
  * User with sensitive data removed for public API responses

@@ -105,9 +105,6 @@ export const cleanupExpiredTokens = (): number => {
   return removedCount;
 };
 
-// Backward compatibility for original interface
-const blacklist: Set<string> = new Set();
-
 // Set up automatic cleanup of expired tokens
 setInterval(cleanupExpiredTokens, CLEANUP_INTERVAL);
 

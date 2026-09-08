@@ -1,10 +1,8 @@
 import { Request, Response } from 'express';
 import fs from 'fs';
-import path from 'path';
 import { Resource, ResourceUpvote, SavedResource, ResourceType } from '../models/resource.model';
 import User from '../models/user.model';
 import cloudinary from "../utils/cloudinary.utils";
-import sequelize from '../config/database';
 import { Op } from 'sequelize';
 
 // Get all resources (for authenticated users)

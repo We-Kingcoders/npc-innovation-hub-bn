@@ -37,7 +37,7 @@ function mockMemberInstance(overrides: Partial<Record<string, unknown>> = {}) {
     ...overrides,
   };
   const instance: any = { ...fields, toJSON: () => fields };
-  instance.update = jest.fn().mockImplementation(async (data: Record<string, unknown>) => {
+  instance.update = jest.fn().mockImplementation((data: Record<string, unknown>) => {
     Object.assign(fields, data);
     Object.assign(instance, data);
     return instance;

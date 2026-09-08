@@ -223,7 +223,7 @@ export const getMyEvents = async (req: Request, res: Response): Promise<void> =>
     
     // Support for filtering by status
     const status = req.query.status as 'going' | 'attended' | 'cancelled' | undefined;
-    let whereClause: any = { 
+    const whereClause: any = { 
       userId: currentUser.id
     };
     if (status) {

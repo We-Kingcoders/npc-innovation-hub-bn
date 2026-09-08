@@ -11,7 +11,7 @@ export const createAlumnus = async (req: Request, res: Response): Promise<void> 
   try {
     const currentUser = req.user as { id: string; role: string };
     const { fullName, role } = req.body;
-    const imageFile = req.file as Express.Multer.File | undefined;
+    const imageFile = req.file;
 
     let imageUrl: string | null = null;
     let cloudinaryPublicId: string | null = null;
@@ -85,7 +85,7 @@ export const updateAlumnus = async (req: Request, res: Response): Promise<void> 
     }
 
     const { fullName, role } = req.body;
-    const imageFile = req.file as Express.Multer.File | undefined;
+    const imageFile = req.file;
 
     const updateData: Record<string, unknown> = { updatedAt: new Date() };
     if (fullName !== undefined) updateData.fullName = fullName;

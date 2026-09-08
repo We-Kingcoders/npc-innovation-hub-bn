@@ -9,6 +9,7 @@ dotenv.config();
 const app = express();
 
 // Create HTTP server
+// eslint-disable-next-line @typescript-eslint/no-misused-promises -- standard Express+http bootstrap; Express 5's handler types admit a Promise return, which trips this rule even though http.createServer never awaits its listener's result either way.
 const server = http.createServer(app);
 
 // Basic middleware

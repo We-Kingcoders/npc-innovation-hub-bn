@@ -137,11 +137,11 @@ export const isPartOfConversation = async (
 };
 
 // Middleware to ensure the user is an admin
-export const isAdmin = async (
+export const isAdmin = (
   req: Request,
-  res: Response, 
+  res: Response,
   next: NextFunction
-): Promise<void> => {
+): void => {
   try {
     const currentUser = req.user as { id: string; role: string };
     

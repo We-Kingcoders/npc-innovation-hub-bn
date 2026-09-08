@@ -27,8 +27,8 @@ export interface MemberAttributes {
   updatedAt?: Date;
 }
 
-export interface MemberSignupAttributes
-  extends Optional<
+export type MemberSignupAttributes =
+  Optional<
     MemberAttributes,
     | "id"
     | "membershipLevel"
@@ -53,6 +53,6 @@ export interface MemberSignupAttributes
     | "availabilityHours"
     | "createdAt"
     | "updatedAt"
-  > {}
+  >
 
-export interface MemberOutputs extends Required<MemberAttributes> {}
+export type MemberOutputs = Required<MemberAttributes>

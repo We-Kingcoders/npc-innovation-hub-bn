@@ -1,5 +1,6 @@
 import express from 'express';
 import multer from 'multer';
+import '../../utils/ensureUploadsDir';
 import { protectRoute, restrictTo } from '../../middlewares/auth.middleware';
 import { createAlumnus, getAlumniAdmin, updateAlumnus, deleteAlumnus } from '../../controllers/admin/alumnus.controller';
 import { validateAlumnusCreate, validateAlumnusUpdate } from '../../validations/alumnus.validation';
