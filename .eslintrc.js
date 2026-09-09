@@ -17,7 +17,11 @@ module.exports = {
     node: true,
     jest: true,
   },
-  ignorePatterns: ['.eslintrc.js', 'jest.config.js', 'node_modules/', 'dist/'],
+  // src/migrations/*.js: plain, un-typed Sequelize CLI migration files, not
+  // part of the tsconfig "project" the type-aware parser needs - included
+  // in the app's TS build but out of scope for type-aware linting, same as
+  // .eslintrc.js/jest.config.js below.
+  ignorePatterns: ['.eslintrc.js', 'jest.config.js', 'node_modules/', 'dist/', 'src/migrations/'],
   rules: {
     '@typescript-eslint/interface-name-prefix': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
