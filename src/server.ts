@@ -39,12 +39,49 @@ import userRoutes from './routes/user.route';
 const app: Express = express();
 
 // Security middleware
+const isProduction = process.env.NODE_ENV === 'production';
 app.use(helmet({
   contentSecurityPolicy: false, // Disable CSP to allow Swagger UI to work
-  hsts: false, // Disable HSTS in development to prevent HTTPS redirects
-  crossOriginOpenerPolicy: false, // Disable COOP for development
+  // HSTS and COOP were previously disabled unconditionally "for
+  // development", which also silently weakened them in production - a
+  // deployed API should tell browsers to always use HTTPS for this origin
+  // (HSTS) and isolate its browsing context (COOP). Only actually disabled
+  // outside production now, where they'd otherwise fight local HTTP dev
+  // servers.
+  hsts: isProduction,
+  crossOriginOpenerPolicy: isProduction,
 }));
-app.use(cors());
+// No CORS origin was configured at all before this, so the cors package's
+// default reflects any requesting origin - any website could make
+// authenticated cross-origin requests to this API from a browser holding a
+// valid token. Restricted to the real frontend origin(s); FRONTEND_URL is
+// already the app's own convention for "the deployed frontend" (used to
+// build email links elsewhere) - CORS_ORIGINS can add more, comma-
+// separated, for cases like a preview deployment alongside the main one.
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  ...(process.env.CORS_ORIGINS?.split(',').map((origin) => origin.trim()) ?? []),
+  ...(isProduction ? [] : ['http://localhost:5173', 'http://127.0.0.1:5173']),
+].filter((origin): origin is string => Boolean(origin));
+
+if (allowedOrigins.length === 0) {
+  // Almost certainly a missing FRONTEND_URL in this environment's config,
+  // not an intentional "block everything" - warn loudly rather than fail
+  // silently, since the symptom (every browser request blocked by CORS)
+  // gives no indication server-side that this is the cause.
+  console.warn(
+    '[cors] No allowed origins configured (FRONTEND_URL/CORS_ORIGINS are unset) - ' +
+    'every cross-origin browser request to this API will be rejected.'
+  );
+}
+
+// Not using { credentials: true } - the app authenticates via a Bearer
+// token (Authorization header, never cookies; confirmed no res.cookie/
+// cookie-parser usage anywhere), so there's no session cookie that needs
+// cross-origin credential support.
+app.use(cors({
+  origin: allowedOrigins,
+}));
 
 // Body parsing middleware
 app.use(express.json());
@@ -54,15 +91,23 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Mount API routes
+//
+// userRoutes used to also be mounted whole again at '/auth/google' and
+// '/users' - every route inside it (including admin-only user management:
+// delete a user, change a user's role, deactivate an account) was reachable
+// a second and third time under those prefixes too. Each route still
+// enforces its own protectRoute/restrictTo regardless of which prefix
+// reached it, so this was never a bypass - just unnecessary extra surface
+// area, and confusing: userRoutes' own comment already says the real
+// Google-auth path is /api/users/auth/google/auth (this mount), and no
+// frontend code (checked directly) calls anything through the other two.
 app.use('/api/users', userRoutes);
-app.use('/auth/google', userRoutes);
 // Routes
 app.use('/api/blogs', blogRoutes);
 app.use('/api/members', memberRoutes); // Mount member routes
 app.use('/api/projects', projectRoutes); // Mount project routes
 app.use('/api/resources', resourceRoutes); // Mount resource routes
 app.use('/api/events', eventRoutes); // Mount event routes
-app.use('/users', userRoutes);
 app.use('/api/hub', hubRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/notifications', notificationRoutes);

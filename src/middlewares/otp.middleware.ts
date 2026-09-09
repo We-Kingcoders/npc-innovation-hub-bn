@@ -16,6 +16,20 @@ function generateOTP(): string {
   return crypto.randomInt(100000, 999999).toString().padStart(6, "0");
 }
 
+// Entries are only ever removed on a successful verifyOTP - anyone who
+// requests an OTP and never completes verification (closes the tab, typos
+// the wrong email, etc.) left their entry in memory for the lifetime of the
+// process. Sweeps out anything past its expiry every 5 minutes instead.
+const OTP_CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
+setInterval(() => {
+  const now = Date.now();
+  for (const email of Object.keys(otpStore)) {
+    if (otpStore[email].expiry < now) {
+      delete otpStore[email];
+    }
+  }
+}, OTP_CLEANUP_INTERVAL_MS);
+
 export const sendOTP = async (
   req: Request,
   res: Response,
