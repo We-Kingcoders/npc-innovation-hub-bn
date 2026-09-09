@@ -148,7 +148,11 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
       return;
     }
     
-    // Handle image upload if provided and valid
+    // Handle the event image: an uploaded file takes priority (goes to
+    // Cloudinary), but the admin form actually collects a plain image URL
+    // typed/pasted by the admin, not a file - so that's accepted too when no
+    // file was uploaded. Rejects anything that isn't a real http(s) URL
+    // rather than silently storing garbage.
     let imageUrl = undefined;
     if (req.file) {
       // Upload image to cloudinary
@@ -157,8 +161,10 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
         resource_type: 'auto',
       });
       imageUrl = result.secure_url;
+    } else if (typeof req.body.imageUrl === 'string' && /^https?:\/\//.test(req.body.imageUrl)) {
+      imageUrl = req.body.imageUrl;
     }
-    
+
     // Create the event
     const event = await Event.create({
       title,
@@ -267,8 +273,12 @@ export const updateEvent = async (req: Request, res: Response): Promise<void> =>
         resource_type: 'auto',
       });
       updateData.imageUrl = result.secure_url;
+    } else if (typeof req.body.imageUrl === 'string' && /^https?:\/\//.test(req.body.imageUrl)) {
+      // Same admin-typed-URL fallback as createEvent - only applies when no
+      // file was uploaded, so it never overrides a real Cloudinary upload.
+      updateData.imageUrl = req.body.imageUrl;
     }
-    
+
     // Always update the updatedAt field
     updateData.updatedAt = new Date();
     
