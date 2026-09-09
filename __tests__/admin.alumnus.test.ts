@@ -116,6 +116,15 @@ describe('POST /api/admin/alumni', () => {
         createdBy: 'a1111111-1111-4111-8111-111111111111',
       })
     );
+    // Regression check: the frontend's createAlumni() reads
+    // response.data.data.alumni (not `.alumnus`) and immediately accesses
+    // `.fullName` on it to normalize the record - sending `alumnus` here
+    // once made that undefined and crashed with "Cannot read properties of
+    // undefined (reading 'fullName')" even though creation succeeded.
+    expect(res.body.data.alumni).toEqual(
+      expect.objectContaining({ id: 'new-id', fullName: 'Jane Doe', role: 'Backend Developer' })
+    );
+    expect(res.body.data.alumnus).toBeUndefined();
   });
 
   it('creates an alumnus without a photo (imageUrl/cloudinaryPublicId null)', async () => {
@@ -195,6 +204,9 @@ describe('PATCH /api/admin/alumni/:id', () => {
     expect((existing as { update: jest.Mock }).update).toHaveBeenCalledWith(
       expect.objectContaining({ fullName: 'Jane Updated' })
     );
+    // Same key regression check as the create test above.
+    expect(res.body.data.alumni).toBeDefined();
+    expect(res.body.data.alumnus).toBeUndefined();
   });
 
   it('replaces the photo: deletes the old Cloudinary asset and stores the new one', async () => {

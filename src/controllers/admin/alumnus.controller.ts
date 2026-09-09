@@ -39,7 +39,13 @@ export const createAlumnus = async (req: Request, res: Response): Promise<void> 
     res.status(201).json({
       status: 'success',
       message: 'Alumnus registered',
-      data: { alumnus },
+      // Frontend's AlumniResponse type (and createAlumni's normalizeAlumni
+      // call) expects the single created record under `alumni`, not
+      // `alumnus` - sending `alumnus` here made response.data.data.alumni
+      // undefined client-side, which crashed on `.fullName` with "Cannot
+      // read properties of undefined" even though the record was created
+      // successfully.
+      data: { alumni: alumnus },
     });
   } catch (error) {
     console.error('Error creating alumnus:', error);
@@ -114,7 +120,8 @@ export const updateAlumnus = async (req: Request, res: Response): Promise<void> 
     res.status(200).json({
       status: 'success',
       message: 'Alumnus updated',
-      data: { alumnus },
+      // Same key as createAlumnus above - the frontend reads `alumni`.
+      data: { alumni: alumnus },
     });
   } catch (error) {
     console.error('Error updating alumnus:', error);
