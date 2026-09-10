@@ -192,7 +192,7 @@ passwordEventEmitter.on(PASSWORD_EVENTS.LOCKED, async (userId: string, ipAddress
         EmailTemplate.ACCOUNT_DEACTIVATION,
         {
           firstName: user.firstName || 'User',
-          message: 'Your account has been temporarily locked due to multiple failed login attempts. Please reset your password or contact support to unlock your account.'
+          message: 'Your account has been temporarily locked due to multiple failed sign-in attempts. Please reset your password or contact support to unlock your account.'
         }
       );
       
