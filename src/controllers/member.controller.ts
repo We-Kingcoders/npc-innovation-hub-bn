@@ -16,6 +16,25 @@ function toPublicContacts(contacts: Member['contacts']) {
   return { linkedin, github, twitter, instagram, portfolio };
 }
 
+// Every profile-mutation endpoint below (member profile, contacts, education,
+// skills, delete) takes :userId as a path param with only `protectRoute`
+// (any authenticated user) in front of it in member.route.ts - without this
+// check, any logged-in member could edit or even delete any OTHER member's
+// entire profile just by putting a different userId in the URL. Mirrors the
+// ownership check already used in project.controller.ts's updateProject/
+// deleteProject.
+function assertOwnerOrAdmin(req: Request, res: Response, userId: string): boolean {
+  const currentUser = req.user as { id: string; role: string };
+  if (currentUser.role !== 'Admin' && currentUser.id !== userId) {
+    res.status(403).json({
+      status: 'fail',
+      message: 'You are not authorized to modify this profile.',
+    });
+    return false;
+  }
+  return true;
+}
+
 const SKILL_CATEGORY_ORDER = [
   'Frontend Development',
   'Backend Development',
@@ -231,6 +250,7 @@ export const createOrUpdateMember = async (req: Request, res: Response): Promise
       res.status(400).json({ status: 'fail', message: 'userId is required in params.' });
       return;
     }
+    if (!assertOwnerOrAdmin(req, res, userId)) return;
 
     const updateData: any = {};
     if ('name' in req.body) updateData.name = req.body.name;
@@ -363,6 +383,7 @@ export const createOrUpdateContacts = async (req: Request, res: Response): Promi
       res.status(400).json({ status: 'fail', message: 'userId is required in params.' });
       return;
     }
+    if (!assertOwnerOrAdmin(req, res, userId)) return;
     let member = await Member.findOne({ where: { userId } });
     const contacts: any = member?.contacts || {};
 
@@ -417,6 +438,7 @@ export const createOrUpdateEducation = async (req: Request, res: Response): Prom
       res.status(400).json({ status: 'fail', message: 'userId is required in params.' });
       return;
     }
+    if (!assertOwnerOrAdmin(req, res, userId)) return;
     let member = await Member.findOne({ where: { userId } });
     const education: any = member?.education || {};
 
@@ -493,6 +515,7 @@ export const createOrUpdateSkills = async (req: Request, res: Response): Promise
       res.status(400).json({ status: 'fail', message: 'userId is required in params.' });
       return;
     }
+    if (!assertOwnerOrAdmin(req, res, userId)) return;
     const { skillDetails } = req.body;
     if (!skillDetails || !Array.isArray(skillDetails)) {
       res.status(400).json({
@@ -557,6 +580,7 @@ export const deleteMember = async (req: Request, res: Response): Promise<void> =
       res.status(400).json({ status: 'fail', message: 'userId is required in params.' });
       return;
     }
+    if (!assertOwnerOrAdmin(req, res, userId)) return;
     const member = await Member.findOne({ where: { userId } });
     if (!member) {
       res.status(404).json({
