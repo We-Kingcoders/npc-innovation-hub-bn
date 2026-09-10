@@ -60,6 +60,10 @@ describe('GET /api/members (public list)', () => {
 
   it('returns 200 without an Authorization header', async () => {
     jest.spyOn(User, 'findAndCountAll').mockResolvedValue({ count: 0, rows: [] } as never);
+    // getAllMembers batches every Member row for the page in one
+    // Member.findAll() call (see member.controller.ts), even when the page
+    // of users is empty.
+    (Member.findAll as jest.Mock).mockResolvedValue([]);
 
     const res = await request(buildApp()).get('/api/members');
 
@@ -71,7 +75,7 @@ describe('GET /api/members (public list)', () => {
       count: 1,
       rows: [{ id: USER_ID, firstName: 'Jane', lastName: 'Doe' }],
     } as never);
-    (Member.findOne as jest.Mock).mockResolvedValue(mockMemberRow(false));
+    (Member.findAll as jest.Mock).mockResolvedValue([mockMemberRow(false)]);
 
     const res = await request(buildApp()).get('/api/members');
 
@@ -83,6 +87,7 @@ describe('GET /api/members (public list)', () => {
 
   it('rejects a non-numeric page query with 400', async () => {
     jest.spyOn(User, 'findAndCountAll').mockResolvedValue({ count: 0, rows: [] } as never);
+    (Member.findAll as jest.Mock).mockResolvedValue([]);
 
     const res = await request(buildApp()).get('/api/members?page=abc');
 
