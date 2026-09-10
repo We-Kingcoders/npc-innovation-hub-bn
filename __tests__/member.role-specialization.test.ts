@@ -103,7 +103,11 @@ describe('GET /api/members (public list) - role default for profile-less users',
       count: 1,
       rows: [{ id: USER_ID, firstName: 'New', lastName: 'User' }],
     } as never);
-    (Member.findOne as jest.Mock).mockResolvedValue(null);
+    // getAllMembers batches every Member row for the page in one
+    // Member.findAll() call (see member.controller.ts) rather than one
+    // Member.findOne() per user - no row for this user means an empty
+    // result, not null.
+    (Member.findAll as jest.Mock).mockResolvedValue([]);
 
     const res = await request(buildApp()).get('/api/members');
 

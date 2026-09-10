@@ -23,7 +23,7 @@ import {
   validateUserLogin,
   validateUserUpdatePassword,
 } from '../validations/user.validation';
-import { sendOTP, verifyOTP } from '../middlewares/otp.middleware';
+import { resendOTP, verifyOTP } from '../middlewares/otp.middleware';
 import { loginWithGoogleToken } from '../controllers/user.controller';
 import {
   authGuessLimiter,
@@ -53,7 +53,7 @@ userRoutes.post('/reset-password', authGuessLimiter, resetPassword);
 userRoutes.get('/verify-email', verifyTokenMiddleware, verifyEmail);
 
 // OTP routes for all users (Member, Admin, etc.)
-userRoutes.post('/send-otp', emailSendLimiter, sendOTP); // <---- Route to send OTP
+userRoutes.post('/send-otp', emailSendLimiter, resendOTP); // <---- Route to send OTP
 // A 6-digit OTP is only ~900,000 combinations - the strict guess limiter is
 // what actually makes that safe against brute force, since nothing else
 // throttles repeated guesses.

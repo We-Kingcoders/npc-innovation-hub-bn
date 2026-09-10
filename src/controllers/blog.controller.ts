@@ -20,18 +20,21 @@ const createNotificationsForMembers = async (
       }
     });
 
-    // Create notification for each member
-    for (const member of members) {
-      await Notification.create({
+    // One bulk insert instead of one Notification.create() await per
+    // member, in sequence - on a hub with a few hundred members, publishing
+    // a single blog post used to mean a few hundred sequential round-trips
+    // to the database before the admin's request could even respond.
+    await Notification.bulkCreate(
+      members.map((member) => ({
         userId: member.id,
         message: message,
         type: notificationType,
         isRead: false,
         createdAt: new Date(),
         updatedAt: new Date()
-      });
-    }
-    
+      }))
+    );
+
     console.log(`Notifications created for ${members.length} members`);
   } catch (error) {
     console.error('Error creating notifications for members:', error);

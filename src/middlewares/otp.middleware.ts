@@ -94,6 +94,29 @@ Best regards,
   next();
 };
 
+// sendOTP calls next() on success rather than sending a response itself,
+// expecting whatever comes after it to do that - user.controller.ts's login
+// flow already relies on this, calling sendOTP directly with its own inline
+// callback as `next`. The standalone POST /api/users/send-otp route (used
+// to resend an OTP without a full login, e.g. the "Resend OTP" button on
+// the verification page) had no such callback: it registered sendOTP as
+// its last piece of middleware, so on the success path next() ran with
+// nothing left in the chain and the request just hung until the client's
+// own timeout - it never actually sent a response. This wraps sendOTP with
+// the same "respond after next()" callback login already uses, so the
+// route behaves the same way.
+export const resendOTP = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  await sendOTP(req, res, () => {
+    res.status(200).json({
+      status: "success",
+      message: "OTP sent to your email.",
+    });
+  });
+};
+
 export const verifyOTP = (
   req: Request,
   res: Response,

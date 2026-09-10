@@ -136,11 +136,19 @@ export const getAllMembers = async (req: Request, res: Response): Promise<void> 
       order: [['firstName', 'ASC']]
     });
 
-    const memberPromises = users.map(async (user) => {
-      const member = await Member.findOne({
-        where: { userId: user.id },
-        attributes: ['id', 'userId', 'name', 'role', 'imageUrl']
-      });
+    // One query for every Member row this page of users could have,
+    // instead of one Member.findOne() per user (N+1 - on the default page
+    // size that was 12 separate round-trips to the database on every visit
+    // to the public /members page, run concurrently via Promise.all but
+    // still 12 queries where 1 does the same job).
+    const memberRows = await Member.findAll({
+      where: { userId: users.map((user) => user.id) },
+      attributes: ['id', 'userId', 'name', 'role', 'imageUrl']
+    });
+    const memberByUserId = new Map(memberRows.map((member) => [member.userId, member]));
+
+    const members = users.map((user) => {
+      const member = memberByUserId.get(user.id);
 
       if (member) {
         return {
@@ -160,8 +168,6 @@ export const getAllMembers = async (req: Request, res: Response): Promise<void> 
         };
       }
     });
-
-    const members = await Promise.all(memberPromises);
     const totalPages = Math.ceil(count / limit);
 
     res.status(200).json({
