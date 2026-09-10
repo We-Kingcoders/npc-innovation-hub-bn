@@ -242,7 +242,7 @@ export async function sendTemplateEmail(
 Dear ${data.firstName},
 
 Welcome to Innovation Hub! We're excited to have you join our community of innovators and creators.
-Your account has been created successfully. You can now log in and start exploring our platform.
+Your account has been created successfully. You can now sign in and start exploring our platform.
 
 Best regards,
 The Innovation Hub Team
@@ -252,7 +252,7 @@ The Innovation Hub Team
   <h2 style="color: #2c3e50;">Welcome to Innovation Hub!</h2>
   <p>Dear ${data.firstName},</p>
   <p>We're excited to have you join our community of innovators and creators.</p>
-  <p>Your account has been created successfully. You can now log in and start exploring our platform.</p>
+  <p>Your account has been created successfully. You can now sign in and start exploring our platform.</p>
   <p>Best regards,<br>The Innovation Hub Team</p>
 </div>
       `;
@@ -384,14 +384,14 @@ Dear ${data.firstName},
 
 Congratulations! Your membership application to Innovation Hub has been accepted.
 
-We've created your account. Here are your temporary login details:
+We've created your account. Here are your temporary sign-in details:
 
 Email: ${data.email}
 Temporary Password: ${data.tempPassword}
 
-Log in here: ${data.loginLink}
+Sign in here: ${data.loginLink}
 
-This temporary password expires in ${data.expiresInDays} days. Please log in and change your password before then. If it expires first, use the Forgot Password option to set a new one.
+This temporary password expires in ${data.expiresInDays} days. Please sign in and change your password before then. If it expires first, use the Forgot Password option to set a new one.
 
 Welcome aboard!
 
@@ -409,10 +409,10 @@ The Innovation Hub Team
   </div>
   <p>
     <a href="${data.loginLink}" style="display: inline-block; padding: 10px 20px; background-color: #2ecc71; color: #ffffff; text-decoration: none; border-radius: 4px;">
-      Log In
+      Sign In
     </a>
   </p>
-  <p>This temporary password expires in <strong>${data.expiresInDays} days</strong>. Please log in and change your password before then. If it expires first, use the Forgot Password option to set a new one.</p>
+  <p>This temporary password expires in <strong>${data.expiresInDays} days</strong>. Please sign in and change your password before then. If it expires first, use the Forgot Password option to set a new one.</p>
   <p>Welcome aboard!</p>
   <p>Best regards,<br>The Innovation Hub Team</p>
 </div>

@@ -332,14 +332,14 @@ Innovation Hub Team
 
           res.status(200).json({
             status: "pending",
-            message: "OTP sent to your email. Please verify to complete login.",
+            message: "OTP sent to your email. Please verify to complete sign in.",
             token: tempLoginToken, // This should now be a string, not {}
             data: { user: userWithoutPassword },
           });
         })().catch((err) => {
           console.error("Error completing OTP login flow:", err);
           if (!res.headersSent) {
-            res.status(500).json({ status: "error", message: "Could not complete login." });
+            res.status(500).json({ status: "error", message: "Could not complete sign in." });
           }
         });
       });
@@ -350,7 +350,7 @@ Innovation Hub Team
     console.error("Error during login:", error);
     res.status(500).json({
       status: "error",
-      message: "An error occurred during login",
+      message: "An error occurred during sign in",
     });
   }
 };
@@ -589,14 +589,14 @@ export const loginWithGoogleToken = async (req: Request, res: Response): Promise
 
         res.status(200).json({
           status: "pending",
-          message: "OTP sent to your email. Please verify to complete login.",
+          message: "OTP sent to your email. Please verify to complete sign in.",
           token: tempLoginToken,
           data: { user: userWithoutPassword },
         });
       })().catch((err) => {
         console.error("Error completing Google OTP login flow:", err);
         if (!res.headersSent) {
-          res.status(500).json({ status: "error", message: "Could not complete login." });
+          res.status(500).json({ status: "error", message: "Could not complete sign in." });
         }
       });
     });

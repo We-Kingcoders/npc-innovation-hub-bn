@@ -53,7 +53,7 @@ export const sendReasonEmail = async (
   
   // Login link
   const loginLink = options.includeLoginLink && isActive
-    ? `<p style="font-size: 16px; margin-top: 20px;"><a href="https://innovationhub.com/login" style="background-color: #007bff; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px;">Login to your account</a></p>`
+    ? `<p style="font-size: 16px; margin-top: 20px;"><a href="https://innovationhub.com/login" style="background-color: #007bff; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px;">Sign In to your account</a></p>`
     : '';
   
   // Signature
@@ -106,7 +106,7 @@ Your Innovation Hub account associated with the email ${user.email} has been ${s
 Reason: ${statusReason}
 
 ${options.includeSupportInfo ? 'If you have any questions or need further assistance, please contact our support team at support@innovationhub.com.' : ''}
-${options.includeLoginLink && isActive ? 'You can login to your account at: https://innovationhub.com/login' : ''}
+${options.includeLoginLink && isActive ? 'You can sign in to your account at: https://innovationhub.com/login' : ''}
 
 Best regards,
 ${signature}

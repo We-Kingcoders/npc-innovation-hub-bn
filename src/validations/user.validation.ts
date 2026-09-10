@@ -92,7 +92,7 @@ export const validateUser = async (
     if (user) {
       res.status(409).json({
         status: 'fail',
-        message: 'User already exists. Please login instead',
+        message: 'User already exists. Please sign in instead',
       })
       return
     }
