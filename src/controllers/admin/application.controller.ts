@@ -24,6 +24,11 @@ export const getApplications = async (req: Request, res: Response): Promise<void
 
     const applications = await Application.findAll({
       where: whereClause,
+      // The reviewer association already existed on the model
+      // (Application.belongsTo(User, { as: 'reviewer' })) but was never
+      // actually included here - the admin UI only ever had the raw
+      // reviewedBy user id (a UUID) to show, never a name.
+      include: [{ model: User, as: 'reviewer', attributes: ['id', 'firstName', 'lastName'] }],
       order: [['createdAt', 'DESC']],
     });
 
@@ -46,7 +51,9 @@ export const getApplication = async (req: Request, res: Response): Promise<void>
   try {
     const { id } = req.params;
 
-    const application = await Application.findByPk(id);
+    const application = await Application.findByPk(id, {
+      include: [{ model: User, as: 'reviewer', attributes: ['id', 'firstName', 'lastName'] }],
+    });
     if (!application) {
       res.status(404).json({
         status: 'fail',
@@ -110,6 +117,13 @@ export const rejectApplication = async (req: Request, res: Response): Promise<vo
       status: 'Rejected',
       reviewedBy: currentUser.id,
       reviewedAt: new Date(),
+    });
+    // The admin UI shows this response's application directly, not a
+    // fresh fetch - without reloading the reviewer in, "Reviewed By"
+    // would show blank until the page was reopened even though the
+    // reviewedBy id was saved correctly.
+    await application.reload({
+      include: [{ model: User, as: 'reviewer', attributes: ['id', 'firstName', 'lastName'] }],
     });
 
     res.status(200).json({
@@ -204,6 +218,13 @@ export const acceptApplication = async (req: Request, res: Response): Promise<vo
         );
 
         return { user, member };
+      });
+
+      // Same reasoning as rejectApplication: the admin UI shows this
+      // response's application directly, so the reviewer needs to be
+      // loaded in before responding, not just present in the DB row.
+      await application.reload({
+        include: [{ model: User, as: 'reviewer', attributes: ['id', 'firstName', 'lastName'] }],
       });
 
       res.status(200).json({
