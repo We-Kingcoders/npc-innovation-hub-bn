@@ -63,14 +63,42 @@ describe('PATCH /api/members/:userId - role specialization validation', () => {
     expect(member.update).toHaveBeenCalledWith(expect.objectContaining({ role: 'Frontend Developer' }));
   });
 
-  it('rejects a role value outside the specialization list with 400', async () => {
+  it('accepts a custom role that is not one of the preset specializations', async () => {
+    // MemberForm.tsx's Role/Position field is a plain text input, never a
+    // dropdown built from MEMBER_SPECIALIZATIONS - a member can legitimately
+    // type any title, including one not on that preset list.
     const member = mockMemberInstance();
     (Member.findOne as jest.Mock).mockResolvedValue(member);
 
     const res = await request(buildApp())
       .patch(`/api/members/${USER_ID}`)
       .set('Authorization', `Bearer ${authToken()}`)
-      .field('role', 'Not A Real Specialization');
+      .field('role', 'IoT Developer');
+
+    expect(res.status).toBe(200);
+    expect(member.update).toHaveBeenCalledWith(expect.objectContaining({ role: 'IoT Developer' }));
+  });
+
+  it('rejects an empty role with 400', async () => {
+    const member = mockMemberInstance();
+    (Member.findOne as jest.Mock).mockResolvedValue(member);
+
+    const res = await request(buildApp())
+      .patch(`/api/members/${USER_ID}`)
+      .set('Authorization', `Bearer ${authToken()}`)
+      .field('role', '');
+
+    expect(res.status).toBe(400);
+  });
+
+  it('rejects a role longer than 100 characters with 400', async () => {
+    const member = mockMemberInstance();
+    (Member.findOne as jest.Mock).mockResolvedValue(member);
+
+    const res = await request(buildApp())
+      .patch(`/api/members/${USER_ID}`)
+      .set('Authorization', `Bearer ${authToken()}`)
+      .field('role', 'x'.repeat(101));
 
     expect(res.status).toBe(400);
   });

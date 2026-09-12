@@ -161,8 +161,17 @@ const hashtagSchema = Joi.string().trim().min(1).max(30).messages({
 
 const memberUpdateBodySchema = Joi.object({
   name: Joi.string().optional(),
-  role: Joi.string().valid(...MEMBER_SPECIALIZATIONS).optional().messages({
-    'any.only': `role must be one of: ${MEMBER_SPECIALIZATIONS.join(', ')}`,
+  // Free text, not restricted to MEMBER_SPECIALIZATIONS - the member-facing
+  // profile form (MemberForm.tsx) has always been a plain text input here,
+  // never a dropdown built from that list, so any member typing their own
+  // title (or even the exact wording from that field's own placeholder,
+  // "Full Stack Developer" - one word short of the enum's hyphenated
+  // "Full-Stack Developer") got a 400 on every save. MEMBER_SPECIALIZATIONS
+  // itself is unaffected - it's still used elsewhere (e.g. the "Other"
+  // default for a profile-less user, and the stale-role report script).
+  role: Joi.string().trim().min(1).max(100).optional().messages({
+    'string.empty': 'role cannot be empty',
+    'string.max': 'role must be at most 100 characters',
   }),
   bio: Joi.string().allow('').optional(),
   tagline: Joi.string().trim().max(160).allow('', null).optional().messages({
