@@ -1,10 +1,13 @@
 import Joi from 'joi'
 import { NextFunction, Request, Response } from 'express'
 
+// Keyed by User id, not Member id - the picker offers every user in the
+// system (see getMembersPicker), most of whom don't have a Member profile
+// yet. addHeroMember creates one on the fly if needed.
 const addHeroMemberSchema = Joi.object({
-  memberId: Joi.string().guid({ version: ['uuidv4'] }).required().messages({
-    'string.guid': 'memberId must be a valid UUID',
-    'any.required': 'memberId is required',
+  userId: Joi.string().guid({ version: ['uuidv4'] }).required().messages({
+    'string.guid': 'userId must be a valid UUID',
+    'any.required': 'userId is required',
   }),
 })
 
