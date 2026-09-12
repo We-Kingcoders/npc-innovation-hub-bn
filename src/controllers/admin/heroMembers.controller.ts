@@ -1,35 +1,83 @@
 import { Request, Response } from 'express';
+import { Op, WhereOptions } from 'sequelize';
 import HeroFeaturedMember from '../../models/heroFeaturedMember.model';
 import Member from '../../models/member.model';
+import User from '../../models/user.model';
 
 // Every response in this feature is deliberately projected to only these
-// three display fields (plus whichever id is relevant) - never bio, skills,
+// display fields (plus whichever id is relevant) - never bio, skills,
 // contacts, education, tagline, or anything else from the full profile.
+// userId is included alongside memberId so the admin UI can tell which
+// already-featured entries correspond to which picker candidates (the
+// picker is keyed by User id now, not Member id - see getMembersPicker).
 function toHeroMemberSummary(heroRecord: HeroFeaturedMember) {
-  const member = (heroRecord as unknown as { Member?: { name: string; imageUrl: string; role: string } }).Member;
+  const member = (heroRecord as unknown as {
+    Member?: { name: string; imageUrl: string; role: string; userId: string };
+  }).Member;
   return {
     id: heroRecord.id,
+    userId: member?.userId,
     name: member?.name,
     imageUrl: member?.imageUrl,
     role: member?.role,
   };
 }
 
-// GET /api/admin/members/picker - powers the admin's member-picker dropdown.
-// Returns every member; the caller is expected to cross-reference against
-// GET /api/admin/hero-members to exclude already-featured ones if desired -
-// no server-side exclusion query param, kept deliberately simple.
+// GET /api/admin/members/picker?search= - powers the admin's member-picker
+// dropdown. Every active user in the system is a candidate - Members and
+// Admins alike, not just those who already have a Member profile. Most
+// Admin accounts never get one: only accepting a membership application
+// creates a Member row automatically (see acceptApplication), and an
+// Admin account is never the product of that flow. A user without a
+// Member profile yet still shows up here, with their account name/role
+// as a fallback - same pattern as the public /members listing
+// (member.controller.ts's getAllMembers). Adding one of these candidates
+// to the hero section (addHeroMember below) is what actually creates
+// their Member row, if they don't already have one.
 export const getMembersPicker = async (req: Request, res: Response): Promise<void> => {
   try {
-    const members = await Member.findAll({
-      attributes: ['id', 'name', 'imageUrl', 'role'],
-      order: [['name', 'ASC']],
+    const { search } = req.query;
+    const term = typeof search === 'string' ? search.trim() : '';
+
+    const where: WhereOptions = term
+      ? {
+          isActive: true,
+          [Op.or]: [
+            { firstName: { [Op.iLike]: `%${term}%` } },
+            { lastName: { [Op.iLike]: `%${term}%` } },
+            { email: { [Op.iLike]: `%${term}%` } },
+          ],
+        }
+      : { isActive: true };
+
+    const users = await User.findAll({
+      where,
+      attributes: ['id', 'firstName', 'lastName', 'role'],
+      order: [['firstName', 'ASC']],
+    });
+
+    // One query for every Member row this batch of users could have,
+    // instead of one lookup per user - same reasoning as getAllMembers.
+    const memberRows = await Member.findAll({
+      where: { userId: users.map((user) => user.id) },
+      attributes: ['userId', 'name', 'role', 'imageUrl'],
+    });
+    const memberByUserId = new Map(memberRows.map((member) => [member.userId, member]));
+
+    const candidates = users.map((user) => {
+      const member = memberByUserId.get(user.id);
+      return {
+        id: user.id,
+        name: member?.name ?? `${user.firstName} ${user.lastName}`,
+        role: member?.role ?? user.role,
+        imageUrl: member?.imageUrl ?? null,
+      };
     });
 
     res.status(200).json({
       status: 'success',
-      results: members.length,
-      data: { members },
+      results: candidates.length,
+      data: { members: candidates },
     });
   } catch (error) {
     console.error('Error fetching members picker list:', error);
@@ -45,7 +93,7 @@ export const getHeroMembers = async (req: Request, res: Response): Promise<void>
   try {
     const heroMembers = await HeroFeaturedMember.findAll({
       order: [['order', 'ASC']],
-      include: [{ model: Member, attributes: ['name', 'imageUrl', 'role'] }],
+      include: [{ model: Member, attributes: ['name', 'imageUrl', 'role', 'userId'] }],
     });
 
     res.status(200).json({
@@ -62,21 +110,40 @@ export const getHeroMembers = async (req: Request, res: Response): Promise<void>
   }
 };
 
-// POST /api/admin/hero-members - body: { memberId }
+// POST /api/admin/hero-members - body: { userId }. Keyed by User id, not
+// Member id, since the picker now offers every user (see
+// getMembersPicker) - most of whom don't have a Member profile yet.
 export const addHeroMember = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { memberId } = req.body;
+    const { userId } = req.body;
 
-    const member = await Member.findByPk(memberId);
-    if (!member) {
+    const user = await User.findByPk(userId);
+    if (!user) {
       res.status(404).json({
         status: 'fail',
-        message: 'Member not found',
+        message: 'User not found',
       });
       return;
     }
 
-    const existing = await HeroFeaturedMember.findOne({ where: { memberId } });
+    // Being featured on the hero section is itself a reason to have a
+    // Member profile, so create a minimal one here rather than requiring
+    // the admin to separately set one up first through Member management
+    // - same fallback shape acceptApplication uses when it creates one.
+    let member = await Member.findOne({ where: { userId: user.id } });
+    if (!member) {
+      member = await Member.create({
+        userId: user.id,
+        name: `${user.firstName} ${user.lastName}`,
+        role: user.role === 'Admin' ? 'Admin' : 'Other',
+        imageUrl: user.image ?? '/members-images/member-demo.jpg',
+        skills: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    }
+
+    const existing = await HeroFeaturedMember.findOne({ where: { memberId: member.id } });
     if (existing) {
       res.status(409).json({
         status: 'fail',
@@ -88,7 +155,7 @@ export const addHeroMember = async (req: Request, res: Response): Promise<void> 
     const maxOrder = (await HeroFeaturedMember.max('order'));
     const nextOrder = typeof maxOrder === 'number' ? maxOrder + 1 : 0;
 
-    const heroMember = await HeroFeaturedMember.create({ memberId, order: nextOrder });
+    const heroMember = await HeroFeaturedMember.create({ memberId: member.id, order: nextOrder });
 
     res.status(201).json({
       status: 'success',
@@ -167,7 +234,7 @@ export const reorderHeroMembers = async (req: Request, res: Response): Promise<v
 
     const updated = await HeroFeaturedMember.findAll({
       order: [['order', 'ASC']],
-      include: [{ model: Member, attributes: ['name', 'imageUrl', 'role'] }],
+      include: [{ model: Member, attributes: ['name', 'imageUrl', 'role', 'userId'] }],
     });
 
     res.status(200).json({
