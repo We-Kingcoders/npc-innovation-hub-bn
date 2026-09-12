@@ -49,10 +49,17 @@ function mockApplicationRow(overrides: Partial<Record<string, unknown>> = {}) {
     status: 'Pending',
     reviewedBy: null,
     reviewedAt: null,
+    reviewer: null,
     update: jest.fn(),
+    // The controller reloads with the reviewer include after updating,
+    // so the response reflects the reviewer's name immediately instead
+    // of only after the page is reopened - a real Sequelize instance
+    // always has this method, but a plain mock object needs it added.
+    reload: jest.fn(),
     ...overrides,
   };
   fields.update = fields.update ?? jest.fn();
+  fields.reload = fields.reload ?? jest.fn();
   return fields;
 }
 
@@ -185,6 +192,13 @@ describe('PATCH /api/admin/applications/:id/reject', () => {
         status: 'Rejected',
         reviewedBy: 'a1111111-1111-4111-8111-111111111111',
       })
+    );
+    // Reloaded with the reviewer's name so the admin UI has it right away
+    // in this response, instead of only after reopening the page.
+    expect((row as { reload: jest.Mock }).reload).toHaveBeenCalledWith(
+      expect.objectContaining({
+        include: [expect.objectContaining({ as: 'reviewer' })],
+      }),
     );
   });
 
