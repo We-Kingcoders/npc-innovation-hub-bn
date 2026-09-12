@@ -77,13 +77,44 @@ describe('POST /api/admin/alumni', () => {
     expect(res.status).toBe(400);
   });
 
-  it('returns 400 for an invalid role', async () => {
+  it('returns 400 when role is missing', async () => {
+    const res = await request(buildApp())
+      .post('/api/admin/alumni')
+      .set('Authorization', `Bearer ${adminToken()}`)
+      .field('fullName', 'Jane Doe');
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 when role exceeds 100 characters', async () => {
+    const res = await request(buildApp())
+      .post('/api/admin/alumni')
+      .set('Authorization', `Bearer ${adminToken()}`)
+      .field('fullName', 'Jane Doe')
+      .field('role', 'A'.repeat(101));
+    expect(res.status).toBe(400);
+  });
+
+  // Alumni are standalone display-only records - unlike a Member's own
+  // role, an alumnus's role is free text, so the admin's "Other" option
+  // can actually save what's typed instead of being rejected as not one
+  // of the fixed specializations.
+  it('accepts a custom role that is not one of the preset specializations', async () => {
+    (Alumnus.create as jest.Mock).mockResolvedValue({
+      id: 'new-id',
+      fullName: 'Jane Doe',
+      role: 'Astronaut',
+    });
+
     const res = await request(buildApp())
       .post('/api/admin/alumni')
       .set('Authorization', `Bearer ${adminToken()}`)
       .field('fullName', 'Jane Doe')
       .field('role', 'Astronaut');
-    expect(res.status).toBe(400);
+
+    expect(res.status).toBe(201);
+    expect(Alumnus.create).toHaveBeenCalledWith(
+      expect.objectContaining({ role: 'Astronaut' })
+    );
   });
 
   it('creates an alumnus with a photo', async () => {
