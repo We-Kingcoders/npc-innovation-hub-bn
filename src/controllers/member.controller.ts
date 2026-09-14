@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { Op } from 'sequelize';
 import fs from 'fs';
 import Member from '../models/member.model';
 import User from '../models/user.model';
@@ -124,9 +125,15 @@ export const getAllMembers = async (req: Request, res: Response): Promise<void> 
     const limit = parseInt(req.query.limit as string) || 12;
     const offset = (page - 1) * limit;
 
+    // Was role: 'Member' only - an Admin who is also a working developer
+    // (e.g. one who has filled out a full Member profile, skills and all)
+    // was invisible on this public "Meet the Developers" page purely
+    // because of their site permission level, not because they aren't a
+    // real contributor. Same reasoning as the Hero Members picker fix -
+    // "Admin" here means elevated site access, not "not on the team".
     const { count, rows: users } = await User.findAndCountAll({
-      where: { 
-        role: 'Member',
+      where: {
+        role: { [Op.in]: ['Member', 'Admin'] },
         verified: true,
         isActive: true
       },
@@ -141,9 +148,17 @@ export const getAllMembers = async (req: Request, res: Response): Promise<void> 
     // size that was 12 separate round-trips to the database on every visit
     // to the public /members page, run concurrently via Promise.all but
     // still 12 queries where 1 does the same job).
+    //
+    // skills/tagline/availability are included now too - previously this
+    // list only ever selected id/userId/name/role/imageUrl, so every
+    // card's tech stack and tagline came back undefined regardless of what
+    // a member had actually filled in, and the frontend's MemberCard fell
+    // back to the same static placeholder text for every single person -
+    // every card looked identical. This wasn't a rendering bug on the
+    // frontend at all; the real data was simply never being sent.
     const memberRows = await Member.findAll({
       where: { userId: users.map((user) => user.id) },
-      attributes: ['id', 'userId', 'name', 'role', 'imageUrl']
+      attributes: ['id', 'userId', 'name', 'role', 'imageUrl', 'skills', 'tagline', 'availability']
     });
     const memberByUserId = new Map(memberRows.map((member) => [member.userId, member]));
 
@@ -156,7 +171,10 @@ export const getAllMembers = async (req: Request, res: Response): Promise<void> 
           userId: member.userId,
           name: member.name,
           role: member.role,
-          imageUrl: member.imageUrl
+          imageUrl: member.imageUrl,
+          techStack: member.skills,
+          tagline: member.tagline ?? '',
+          available: member.availability
         };
       } else {
         return {
@@ -164,7 +182,10 @@ export const getAllMembers = async (req: Request, res: Response): Promise<void> 
           userId: user.id,
           name: `${user.firstName} ${user.lastName}`,
           role: 'Other',
-          imageUrl: '/members-images/member-demo.jpg'
+          imageUrl: '/members-images/member-demo.jpg',
+          techStack: [],
+          tagline: '',
+          available: undefined
         };
       }
     });

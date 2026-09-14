@@ -47,8 +47,8 @@ function baseMemberFields() {
 
 // Simulates real Sequelize behavior: the joined User row (with email) is only
 // present on the returned instance when the caller actually requests the include.
-function mockMemberRow(includeUser: boolean) {
-  const fields: Record<string, unknown> = baseMemberFields();
+function mockMemberRow(includeUser: boolean, overrides: Record<string, unknown> = {}) {
+  const fields: Record<string, unknown> = { ...baseMemberFields(), ...overrides };
   if (includeUser) {
     fields.User = { email: 'jane.doe@example.com' };
   }
@@ -92,6 +92,62 @@ describe('GET /api/members (public list)', () => {
     const res = await request(buildApp()).get('/api/members?page=abc');
 
     expect(res.status).toBe(400);
+  });
+
+  it('queries both Member and Admin roles, not Member alone', async () => {
+    // A real contributor with a completed Member profile shouldn't vanish
+    // from this page purely because their site role is Admin.
+    const findAndCountAllSpy = jest
+      .spyOn(User, 'findAndCountAll')
+      .mockResolvedValue({ count: 0, rows: [] } as never);
+    (Member.findAll as jest.Mock).mockResolvedValue([]);
+
+    await request(buildApp()).get('/api/members');
+
+    const whereArg = findAndCountAllSpy.mock.calls[0][0]?.where as {
+      role?: { [key: symbol]: string[] };
+    };
+    const roleFilter = whereArg?.role as unknown as Record<symbol, string[]>;
+    const inSymbol = Object.getOwnPropertySymbols(roleFilter)[0];
+    expect(roleFilter[inSymbol]).toEqual(expect.arrayContaining(['Member', 'Admin']));
+  });
+
+  it('includes each member\'s real tech stack, tagline, and availability', async () => {
+    jest.spyOn(User, 'findAndCountAll').mockResolvedValue({
+      count: 1,
+      rows: [{ id: USER_ID, firstName: 'Jane', lastName: 'Doe' }],
+    } as never);
+    (Member.findAll as jest.Mock).mockResolvedValue([
+      mockMemberRow(false, {
+        skills: ['Frontend', 'AI'],
+        tagline: 'Turning ideas into shipped products.',
+        availability: true,
+      }),
+    ]);
+
+    const res = await request(buildApp()).get('/api/members');
+
+    expect(res.body.data.members[0]).toEqual(
+      expect.objectContaining({
+        techStack: ['Frontend', 'AI'],
+        tagline: 'Turning ideas into shipped products.',
+        available: true,
+      }),
+    );
+  });
+
+  it('falls back to an empty tech stack/tagline for a user with no Member profile yet', async () => {
+    jest.spyOn(User, 'findAndCountAll').mockResolvedValue({
+      count: 1,
+      rows: [{ id: USER_ID, firstName: 'New', lastName: 'Admin' }],
+    } as never);
+    (Member.findAll as jest.Mock).mockResolvedValue([]);
+
+    const res = await request(buildApp()).get('/api/members');
+
+    expect(res.body.data.members[0]).toEqual(
+      expect.objectContaining({ techStack: [], tagline: '' }),
+    );
   });
 });
 
