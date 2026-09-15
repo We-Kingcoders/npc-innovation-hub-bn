@@ -59,7 +59,7 @@ describe('GET /api/members (public list)', () => {
   afterEach(() => jest.restoreAllMocks());
 
   it('returns 200 without an Authorization header', async () => {
-    jest.spyOn(User, 'findAndCountAll').mockResolvedValue({ count: 0, rows: [] } as never);
+    jest.spyOn(User, 'findAll').mockResolvedValue([] as never);
     // getAllMembers batches every Member row for the page in one
     // Member.findAll() call (see member.controller.ts), even when the page
     // of users is empty.
@@ -71,10 +71,9 @@ describe('GET /api/members (public list)', () => {
   });
 
   it('never includes email, phone, or whatsapp in the payload', async () => {
-    jest.spyOn(User, 'findAndCountAll').mockResolvedValue({
-      count: 1,
-      rows: [{ id: USER_ID, firstName: 'Jane', lastName: 'Doe' }],
-    } as never);
+    jest
+      .spyOn(User, 'findAll')
+      .mockResolvedValue([{ id: USER_ID, firstName: 'Jane', lastName: 'Doe', role: 'Member' }] as never);
     (Member.findAll as jest.Mock).mockResolvedValue([mockMemberRow(false)]);
 
     const res = await request(buildApp()).get('/api/members');
@@ -86,7 +85,7 @@ describe('GET /api/members (public list)', () => {
   });
 
   it('rejects a non-numeric page query with 400', async () => {
-    jest.spyOn(User, 'findAndCountAll').mockResolvedValue({ count: 0, rows: [] } as never);
+    jest.spyOn(User, 'findAll').mockResolvedValue([] as never);
     (Member.findAll as jest.Mock).mockResolvedValue([]);
 
     const res = await request(buildApp()).get('/api/members?page=abc');
@@ -97,14 +96,12 @@ describe('GET /api/members (public list)', () => {
   it('queries both Member and Admin roles, not Member alone', async () => {
     // A real contributor with a completed Member profile shouldn't vanish
     // from this page purely because their site role is Admin.
-    const findAndCountAllSpy = jest
-      .spyOn(User, 'findAndCountAll')
-      .mockResolvedValue({ count: 0, rows: [] } as never);
+    const findAllSpy = jest.spyOn(User, 'findAll').mockResolvedValue([] as never);
     (Member.findAll as jest.Mock).mockResolvedValue([]);
 
     await request(buildApp()).get('/api/members');
 
-    const whereArg = findAndCountAllSpy.mock.calls[0][0]?.where as {
+    const whereArg = findAllSpy.mock.calls[0][0]?.where as {
       role?: { [key: symbol]: string[] };
     };
     const roleFilter = whereArg?.role as unknown as Record<symbol, string[]>;
@@ -113,10 +110,9 @@ describe('GET /api/members (public list)', () => {
   });
 
   it('includes each member\'s real tech stack, tagline, and availability', async () => {
-    jest.spyOn(User, 'findAndCountAll').mockResolvedValue({
-      count: 1,
-      rows: [{ id: USER_ID, firstName: 'Jane', lastName: 'Doe' }],
-    } as never);
+    jest
+      .spyOn(User, 'findAll')
+      .mockResolvedValue([{ id: USER_ID, firstName: 'Jane', lastName: 'Doe', role: 'Member' }] as never);
     (Member.findAll as jest.Mock).mockResolvedValue([
       mockMemberRow(false, {
         skills: ['Frontend', 'AI'],
@@ -136,11 +132,10 @@ describe('GET /api/members (public list)', () => {
     );
   });
 
-  it('falls back to an empty tech stack/tagline for a user with no Member profile yet', async () => {
-    jest.spyOn(User, 'findAndCountAll').mockResolvedValue({
-      count: 1,
-      rows: [{ id: USER_ID, firstName: 'New', lastName: 'Admin' }],
-    } as never);
+  it('falls back to an empty tech stack/tagline for a Member with no profile yet', async () => {
+    jest
+      .spyOn(User, 'findAll')
+      .mockResolvedValue([{ id: USER_ID, firstName: 'New', lastName: 'Member', role: 'Member' }] as never);
     (Member.findAll as jest.Mock).mockResolvedValue([]);
 
     const res = await request(buildApp()).get('/api/members');
@@ -148,6 +143,43 @@ describe('GET /api/members (public list)', () => {
     expect(res.body.data.members[0]).toEqual(
       expect.objectContaining({ techStack: [], tagline: '' }),
     );
+  });
+
+  it('includes an Admin who has filled out a real profile (non-empty skills)', async () => {
+    jest
+      .spyOn(User, 'findAll')
+      .mockResolvedValue([{ id: USER_ID, firstName: 'David', lastName: 'K', role: 'Admin' }] as never);
+    (Member.findAll as jest.Mock).mockResolvedValue([
+      mockMemberRow(false, { skills: ['Frontend', 'Backend', 'AI'] }),
+    ]);
+
+    const res = await request(buildApp()).get('/api/members');
+
+    expect(res.body.data.members).toHaveLength(1);
+    expect(res.body.data.members[0].techStack).toEqual(['Frontend', 'Backend', 'AI']);
+  });
+
+  it('excludes an Admin whose only Member row has empty skills (an auto-provisioned stub, not a real profile)', async () => {
+    jest
+      .spyOn(User, 'findAll')
+      .mockResolvedValue([{ id: USER_ID, firstName: 'Venus', lastName: 'Dev', role: 'Admin' }] as never);
+    (Member.findAll as jest.Mock).mockResolvedValue([mockMemberRow(false, { skills: [] })]);
+
+    const res = await request(buildApp()).get('/api/members');
+
+    expect(res.body.data.members).toHaveLength(0);
+    expect(res.body.totalItems).toBe(0);
+  });
+
+  it('excludes an Admin with no Member row at all', async () => {
+    jest
+      .spyOn(User, 'findAll')
+      .mockResolvedValue([{ id: USER_ID, firstName: 'Eduard', lastName: 'N', role: 'Admin' }] as never);
+    (Member.findAll as jest.Mock).mockResolvedValue([]);
+
+    const res = await request(buildApp()).get('/api/members');
+
+    expect(res.body.data.members).toHaveLength(0);
   });
 });
 
