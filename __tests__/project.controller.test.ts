@@ -1,7 +1,12 @@
 import { Request, Response } from 'express';
-import { deleteProject, updateProject } from '../src/controllers/project.controller';
+import { createProject, deleteProject, updateProject } from '../src/controllers/project.controller';
 import Project from '../src/models/project.model';
+import User from '../src/models/user.model';
 
+// Only Project is module-mocked; User is left as the real Sequelize Model
+// subclass (its static methods are stubbed per-test with jest.spyOn) - same
+// reasoning as member.public.test.ts: some model in this file's import
+// chain needs to be a genuine Model subclass, not an automock.
 jest.mock('../src/models/project.model');
 jest.mock('../src/utils/cloudinary.utils', () => ({
   uploader: {
@@ -34,6 +39,38 @@ function mockProjectInstance(overrides: Partial<Record<string, unknown>> = {}) {
     ...overrides,
   };
 }
+
+describe('createProject owner name', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  // Regression test: currentUser (req.user, decoded from the JWT) never
+  // carries lastName - the access token payload only ever includes
+  // firstName (see tokenGenerator.utils.ts). owner used to be built from
+  // req.user directly and always came out "SomeName undefined" for every
+  // project ever created. It must come from a real User row instead -
+  // which was already being fetched here anyway, just for the avatar.
+  it('builds the owner name from the real User row, not the JWT payload (which never has lastName)', async () => {
+    (Project.create as jest.Mock).mockResolvedValue(mockProjectInstance());
+    jest
+      .spyOn(User, 'findByPk')
+      .mockResolvedValue({ firstName: 'Jane', lastName: 'Doe', image: null } as never);
+
+    const req = {
+      body: { title: 'New Project', description: 'A new project' },
+      // No lastName here, matching the real JWT payload shape.
+      user: { id: OWNER_ID, role: 'Member', firstName: 'Jane' },
+    } as unknown as Request;
+    const res = mockRes();
+
+    await createProject(req, res);
+
+    expect(Project.create as jest.Mock).toHaveBeenCalledWith(
+      expect.objectContaining({ owner: 'Jane Doe' }),
+    );
+  });
+});
 
 describe('deleteProject authorization', () => {
   afterEach(() => {
@@ -105,12 +142,15 @@ describe('deleteProject authorization', () => {
 
 describe('updateProject authorization', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   it('allows an Admin to update a project owned by someone else', async () => {
     const project = mockProjectInstance();
     (Project.findByPk as jest.Mock).mockResolvedValue(project);
+    jest
+      .spyOn(User, 'findByPk')
+      .mockResolvedValue({ firstName: 'Ad', lastName: 'Min' } as never);
 
     const req = {
       params: { id: PROJECT_ID },
@@ -128,6 +168,9 @@ describe('updateProject authorization', () => {
   it('allows a Member to update their own project', async () => {
     const project = mockProjectInstance({ userId: OWNER_ID });
     (Project.findByPk as jest.Mock).mockResolvedValue(project);
+    jest
+      .spyOn(User, 'findByPk')
+      .mockResolvedValue({ firstName: 'Ow', lastName: 'Ner' } as never);
 
     const req = {
       params: { id: PROJECT_ID },
@@ -172,5 +215,32 @@ describe('updateProject authorization', () => {
     await updateProject(req, res);
 
     expect(res.status).toHaveBeenCalledWith(404);
+  });
+
+  // Regression test: currentUser (req.user, decoded from the JWT) never
+  // carries lastName - the access token payload only ever includes
+  // firstName (see tokenGenerator.utils.ts). Every project's owner field
+  // used to be built from req.user directly and always came out
+  // "SomeName undefined". It must come from a real User row instead.
+  it('builds the owner name from the real User row, not the JWT payload (which never has lastName)', async () => {
+    const project = mockProjectInstance({ userId: OWNER_ID });
+    (Project.findByPk as jest.Mock).mockResolvedValue(project);
+    jest
+      .spyOn(User, 'findByPk')
+      .mockResolvedValue({ firstName: 'Jane', lastName: 'Doe' } as never);
+
+    const req = {
+      params: { id: PROJECT_ID },
+      body: { title: 'Updated title' },
+      // No lastName here, matching the real JWT payload shape.
+      user: { id: OWNER_ID, role: 'Member', firstName: 'Jane' },
+    } as unknown as Request;
+    const res = mockRes();
+
+    await updateProject(req, res);
+
+    expect(project.update).toHaveBeenCalledWith(
+      expect.objectContaining({ owner: 'Jane Doe' }),
+    );
   });
 });
