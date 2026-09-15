@@ -97,9 +97,18 @@ export const createProject = async (req: Request, res: Response): Promise<void> 
       imageUrl = result.secure_url;
     }
     
-    // Get user information for owner details
+    // Get user information for owner details. Name comes from this real
+    // User row, not currentUser (req.user, decoded from the JWT) - the
+    // access token's payload only ever carries firstName, never lastName
+    // (see tokenGenerator.utils.ts), so currentUser.lastName was always
+    // undefined and every project's owner was literally the string
+    // "SomeName undefined". user is already being fetched here anyway
+    // (for the avatar), so this just uses it for the name too instead of
+    // ignoring it.
     const user = await User.findByPk(currentUser.id);
-    const ownerName = `${currentUser.firstName} ${currentUser.lastName}`;
+    const ownerName = user
+      ? `${user.firstName} ${user.lastName}`
+      : currentUser.firstName;
     let ownerAvatar = 'https://randomuser.me/api/portraits/lego/1.jpg';
     
     if (user && user.image) {
@@ -163,10 +172,19 @@ export const updateProject = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
+    // Name comes from the real User row, not currentUser (req.user,
+    // decoded from the JWT) - see the matching comment in createProject.
+    // The access token's payload never carries lastName, so
+    // currentUser.lastName was always undefined here too.
+    const editor = await User.findByPk(currentUser.id);
+    const editorName = editor
+      ? `${editor.firstName} ${editor.lastName}`
+      : currentUser.firstName;
+
     // Create an object to hold only the fields that need updating
     const updateData: any = {
       // Always track who last updated the project
-      owner: `${currentUser.firstName} ${currentUser.lastName}`,
+      owner: editorName,
       ownerRole: currentUser.role || 'Project contributor',
       updatedAt: new Date()
     };
