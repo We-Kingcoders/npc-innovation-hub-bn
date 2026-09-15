@@ -127,10 +127,9 @@ describe('GET /api/members (public list) - role default for profile-less users',
   afterEach(() => jest.clearAllMocks());
 
   it('displays "Other" instead of the generic "Member" for a user without a profile row', async () => {
-    jest.spyOn(User, 'findAndCountAll').mockResolvedValue({
-      count: 1,
-      rows: [{ id: USER_ID, firstName: 'New', lastName: 'User' }],
-    } as never);
+    jest
+      .spyOn(User, 'findAll')
+      .mockResolvedValue([{ id: USER_ID, firstName: 'New', lastName: 'User', role: 'Member' }] as never);
     // getAllMembers batches every Member row for the page in one
     // Member.findAll() call (see member.controller.ts) rather than one
     // Member.findOne() per user - no row for this user means an empty

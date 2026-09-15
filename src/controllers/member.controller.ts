@@ -131,15 +131,20 @@ export const getAllMembers = async (req: Request, res: Response): Promise<void> 
     // because of their site permission level, not because they aren't a
     // real contributor. Same reasoning as the Hero Members picker fix -
     // "Admin" here means elevated site access, not "not on the team".
-    const { count, rows: users } = await User.findAndCountAll({
+    //
+    // Not paginated at the SQL level any more - an Admin's eligibility
+    // depends on whether they turn out to have a real profile (see below),
+    // which isn't knowable until after the Member join, so pagination now
+    // happens in JS after that filter instead of before it. Fine at the
+    // team's current scale; would want a real SQL-level join if this list
+    // ever grew large.
+    const users = await User.findAll({
       where: {
         role: { [Op.in]: ['Member', 'Admin'] },
         verified: true,
         isActive: true
       },
-      attributes: ['id', 'firstName', 'lastName', 'email'],
-      limit,
-      offset,
+      attributes: ['id', 'firstName', 'lastName', 'email', 'role'],
       order: [['firstName', 'ASC']]
     });
 
@@ -162,7 +167,26 @@ export const getAllMembers = async (req: Request, res: Response): Promise<void> 
     });
     const memberByUserId = new Map(memberRows.map((member) => [member.userId, member]));
 
-    const members = users.map((user) => {
+    // An Admin only shows up here if they've actually filled out a
+    // developer profile (non-empty skills) - without this, an Admin whose
+    // only "profile" is the empty stub auto-created when they were added
+    // to Hero Members (see heroMembers.controller.ts's addHeroMember,
+    // which sets skills: []) showed up on "Meet the Developers" with a
+    // blank tech stack and "Admin" as their listed role, which reads as
+    // a broken card, not a real contributor. A Member is unaffected -
+    // that role was always shown unconditionally, profile or not, and
+    // this only tightens the new Admin inclusion, not the original rule.
+    const eligibleUsers = users.filter((user) => {
+      if (user.role !== 'Admin') return true;
+      const member = memberByUserId.get(user.id);
+      return Boolean(member && member.skills && member.skills.length > 0);
+    });
+
+    const count = eligibleUsers.length;
+    const totalPages = Math.ceil(count / limit) || 1;
+    const pageUsers = eligibleUsers.slice(offset, offset + limit);
+
+    const members = pageUsers.map((user) => {
       const member = memberByUserId.get(user.id);
 
       if (member) {
@@ -189,7 +213,6 @@ export const getAllMembers = async (req: Request, res: Response): Promise<void> 
         };
       }
     });
-    const totalPages = Math.ceil(count / limit);
 
     res.status(200).json({
       status: 'success',
