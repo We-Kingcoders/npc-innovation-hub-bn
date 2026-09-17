@@ -2,6 +2,49 @@ import { Request, Response } from 'express'
 import Task from '../models/task.model'
 import User from '../models/user.model'
 import { sendEmail } from '../utils/email.utils'
+import { renderBrandedEmail } from '../utils/emailTemplate.utils'
+
+// The same "you've been assigned a task" notification, sent from three
+// separate places below (creation with an assignee, reassignment on
+// update, and the dedicated assign endpoint) - was three copies of the
+// same hand-rolled HTML, none matching the app's own navy brand.
+function buildTaskAssignedEmail(
+  assigneeFirstName: string,
+  taskTitle: string,
+  taskDescription: string,
+  dueDate: string,
+  priority: string,
+): { subject: string; text: string; html: string } {
+  const subject = 'You have been assigned a new task'
+  const text = `Hello ${assigneeFirstName},
+
+You have been assigned a new task: "${taskTitle}".
+
+Description: ${taskDescription}
+
+Due Date: ${dueDate}
+Priority: ${priority}
+
+Please check your dashboard for more details.
+
+- Innovation Hub Team`
+  const html = renderBrandedEmail({
+    previewText: `You've been assigned: ${taskTitle}`,
+    heading: "You Have a New Task!",
+    bodyHtml: `
+      <p>Hello ${assigneeFirstName},</p>
+      <p>You have been assigned a new task: <strong>${taskTitle}</strong>.</p>
+      <div style="background-color: #f4f7fc; padding: 16px; border-radius: 8px; margin: 20px 0;">
+        <p style="margin: 0 0 8px;"><strong>Description:</strong> ${taskDescription}</p>
+        <p style="margin: 0 0 8px;"><strong>Due Date:</strong> ${dueDate}</p>
+        <p style="margin: 0;"><strong>Priority:</strong> ${priority}</p>
+      </div>
+      <p>Please check your dashboard for more details.</p>
+      <p>&mdash; Innovation Hub Team</p>
+    `,
+  })
+  return { subject, text, html }
+}
 
 /**
  * Create a new task (Admin only)
@@ -54,31 +97,13 @@ export async function createTask(req: Request, res: Response): Promise<void> {
 
     // Notify if assigned on creation
     if (assigneeUser) {
-      const subject = 'You have been assigned a new task'
-      const text = `Hello ${assigneeUser.firstName},
-
-You have been assigned a new task: "${title}".
-
-Description: ${description}
-
-Due Date: ${dueDate}
-Priority: ${priority}
-
-Please check your dashboard for more details.
-
-- Innovation Hub Team`
-      const html = `
-<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-  <h2 style="color: #2c3e50;">You have been assigned a new task!</h2>
-  <p>Hello ${assigneeUser.firstName},</p>
-  <p>You have been assigned a new task: <strong>${title}</strong>.</p>
-  <p><strong>Description:</strong> ${description}</p>
-  <p><strong>Due Date:</strong> ${dueDate}</p>
-  <p><strong>Priority:</strong> ${priority}</p>
-  <p>Please check your dashboard for more details.</p>
-  <p>— Innovation Hub Team</p>
-</div>
-      `
+      const { subject, text, html } = buildTaskAssignedEmail(
+        assigneeUser.firstName,
+        title,
+        description,
+        dueDate,
+        priority,
+      )
       await sendEmail(assigneeUser.email, subject, text, html)
     }
 
@@ -201,31 +226,13 @@ export async function updateTask(req: Request, res: Response): Promise<void> {
 
     // Notify if reassigned
     if (assigneeUser) {
-      const subject = 'You have been assigned a new task'
-      const text = `Hello ${assigneeUser.firstName},
-
-You have been assigned a new task: "${task.title}".
-
-Description: ${task.description}
-
-Due Date: ${task.dueDate}
-Priority: ${task.priority}
-
-Please check your dashboard for more details.
-
-- Innovation Hub Team`
-      const html = `
-<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-  <h2 style="color: #2c3e50;">You have been assigned a new task!</h2>
-  <p>Hello ${assigneeUser.firstName},</p>
-  <p>You have been assigned a new task: <strong>${task.title}</strong>.</p>
-  <p><strong>Description:</strong> ${task.description}</p>
-  <p><strong>Due Date:</strong> ${task.dueDate}</p>
-  <p><strong>Priority:</strong> ${task.priority}</p>
-  <p>Please check your dashboard for more details.</p>
-  <p>— Innovation Hub Team</p>
-</div>
-      `
+      const { subject, text, html } = buildTaskAssignedEmail(
+        assigneeUser.firstName,
+        task.title,
+        task.description,
+        String(task.dueDate),
+        task.priority,
+      )
       await sendEmail(assigneeUser.email, subject, text, html)
     }
 
@@ -280,31 +287,13 @@ export async function assignTask(req: Request, res: Response): Promise<void> {
     await task.save()
 
     // Notify user via email
-    const subject = 'You have been assigned a new task'
-    const text = `Hello ${user.firstName},
-
-You have been assigned a new task: "${task.title}".
-
-Description: ${task.description}
-
-Due Date: ${task.dueDate}
-Priority: ${task.priority}
-
-Please check your dashboard for more details.
-
-- Innovation Hub Team`
-    const html = `
-<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-  <h2 style="color: #2c3e50;">You have been assigned a new task!</h2>
-  <p>Hello ${user.firstName},</p>
-  <p>You have been assigned a new task: <strong>${task.title}</strong>.</p>
-  <p><strong>Description:</strong> ${task.description}</p>
-  <p><strong>Due Date:</strong> ${task.dueDate}</p>
-  <p><strong>Priority:</strong> ${task.priority}</p>
-  <p>Please check your dashboard for more details.</p>
-  <p>— Innovation Hub Team</p>
-</div>
-    `
+    const { subject, text, html } = buildTaskAssignedEmail(
+      user.firstName,
+      task.title,
+      task.description,
+      String(task.dueDate),
+      task.priority,
+    )
 
     await sendEmail(user.email, subject, text, html)
 

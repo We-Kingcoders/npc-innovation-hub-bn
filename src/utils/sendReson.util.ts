@@ -8,6 +8,7 @@
 
 import { UserAttributes } from "../types/user.type";
 import { sendEmail } from "./email.utils";
+import { renderBrandedEmail } from "./emailTemplate.utils";
 import { AccountStatusMessages } from "./variable.utils";
 
 /**
@@ -42,60 +43,45 @@ export const sendReasonEmail = async (
     ? `${user.firstName} ${user.lastName}`
     : user.firstName || user.email;
   
-  // Set status text and colors
+  // Status word is colored semantically (green/red for a positive/negative
+  // outcome, same convention the app's own admin UI uses for active/inactive
+  // badges) - everything else (header, reason box, CTA, links) uses the
+  // brand navy uniformly, via renderBrandedEmail.
   const statusText = isActive ? "activated" : "deactivated";
-  const statusColor = isActive ? "#28a745" : "#dc3545"; // Green for active, red for inactive
-  
+  const statusColor = isActive ? "#1d7a50" : "#dc2626";
+
   // Support information
-  const supportInfo = options.includeSupportInfo 
-    ? `<p style="font-size: 16px; color: #444;">If you have any questions or need further assistance, please contact our support team at <a href="mailto:support@innovationhub.com" style="color: #007bff;">support@innovationhub.com</a>.</p>`
+  const supportInfo = options.includeSupportInfo
+    ? `<p>If you have any questions or need further assistance, please contact our support team at <a href="mailto:support@innovationhub.com" style="color: #002B56;">support@innovationhub.com</a>.</p>`
     : '';
-  
-  // Login link
-  const loginLink = options.includeLoginLink && isActive
-    ? `<p style="font-size: 16px; margin-top: 20px;"><a href="https://innovationhub.com/login" style="background-color: #007bff; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px;">Sign In to your account</a></p>`
-    : '';
-  
+
   // Signature
   const signature = options.customSignature || 'Innovation Hub Team';
-  
+
   // Generate HTML email body
-  const htmlBody = `
-    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <div style="text-align: center; margin-bottom: 20px;">
-        <h2 style="color: #007bff;">Account Status Update</h2>
-      </div>
-      
-      <p style="font-size: 16px; color: #444;">Dear ${userName},</p>
-      
-      <p style="font-size: 16px; color: #444;">
-        Your Innovation Hub account associated with the email 
-        <strong style="color: #000;">${user.email}</strong> 
-        has been 
-        <strong style="color: ${statusColor};">
-          ${statusText}
-        </strong>.
+  const htmlBody = renderBrandedEmail({
+    previewText: `Your account has been ${statusText}.`,
+    heading: "Account Status Update",
+    bodyHtml: `
+      <p>Dear ${userName},</p>
+      <p>
+        Your Innovation Hub account associated with the email
+        <strong>${user.email}</strong>
+        has been
+        <strong style="color: ${statusColor};">${statusText}</strong>.
       </p>
-      
-      <div style="background-color: #f8f9fa; border-left: 4px solid #007bff; padding: 15px; margin: 20px 0;">
-        <p style="font-size: 16px; color: #444; margin: 0;">
-          <strong>Reason:</strong> 
-          <span style="color: #007bff;">${statusReason}</span>
+      <div style="background-color: #f4f7fc; border-left: 4px solid #002B56; padding: 16px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+        <p style="margin: 0;">
+          <strong>Reason:</strong>
+          <span>${statusReason}</span>
         </p>
       </div>
-      
-      ${loginLink}
       ${supportInfo}
-      
-      <p style="font-size: 16px; color: #444; margin-top: 30px;">Best regards,</p>
-      <p style="font-size: 16px; color: #444;">${signature}</p>
-      
-      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #777; text-align: center;">
-        <p>This is an automated message. Please do not reply to this email.</p>
-        <p>© ${new Date().getFullYear()} Innovation Hub. All rights reserved.</p>
-      </div>
-    </div>
-  `;
+      <p style="margin-top: 24px;">Best regards,<br>${signature}</p>
+    `,
+    ctaText: options.includeLoginLink && isActive ? "Sign In to Your Account" : undefined,
+    ctaLink: options.includeLoginLink && isActive ? "https://innovationhub.com/login" : undefined,
+  });
 
   // Generate plain text version for email clients that don't support HTML
   const textBody = `
