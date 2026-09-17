@@ -5,6 +5,7 @@ import { UserService } from '../services/user.services';
 import { generateToken, decodeToken } from '../utils/tokenGenerator.utils'
 import { hashPassword, comparePassword } from '../utils/password.utils'
 import { sendEmail } from '../utils/email.utils';
+import { renderBrandedEmail } from '../utils/emailTemplate.utils';
 import { sendReasonEmail } from '../utils/sendReson.util'
 import { addToBlacklist } from '../utils/tokenBlacklist'
 import { passwordEventEmitter } from '../events/password.event'
@@ -92,20 +93,18 @@ Best regards,
 Innovation Hub Team
     `
 
-    const html = `
-<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-  <h2 style="color: #2c3e50;">Innovation Hub - Email Verification</h2>
-  <p>Dear ${user.firstName},</p>
-  <p>Thank you for joining the Innovation Hub! To complete your signup, please verify your email address by clicking the button below:</p>
-  <p>
-    <a href="${verificationLink}" style="display: inline-block; padding: 10px 20px; background-color: #3498db; color: #ffffff; text-decoration: none; border-radius: 4px;">
-      Verify Email
-    </a>
-  </p>
-  <p>If you did not create an account with us, please disregard this message and Report.</p>
-  <p>Best regards,<br>Innovation Hub Team</p>
-</div>
-    `
+    const html = renderBrandedEmail({
+      previewText: "Please verify your email address.",
+      heading: "Email Verification",
+      bodyHtml: `
+        <p>Dear ${user.firstName},</p>
+        <p>Thank you for joining the Innovation Hub! To complete your signup, please verify your email address by clicking the button below:</p>
+        <p>If you did not create an account with us, please disregard this message and report it.</p>
+        <p>Best regards,<br>Innovation Hub Team</p>
+      `,
+      ctaText: "Verify Email",
+      ctaLink: verificationLink,
+    })
 
     if (user.email) {
       console.log(`Sending email to: ${user.email}`);
@@ -190,15 +189,16 @@ Best regards,
 Innovation Hub Team
     `
 
-    const html = `
-<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-  <h2 style="color: #2c3e50;">Innovation Hub - Role Update</h2>
-  <p>Dear ${user.firstName},</p>
-  <p>Your role in the Innovation Hub has been updated to <strong>${role}</strong>.</p>
-  <p>If you have any questions about your new role, please contact our support team.</p>
-  <p>Best regards,<br>Innovation Hub Team</p>
-</div>
-    `
+    const html = renderBrandedEmail({
+      previewText: `Your role has been updated to ${role}.`,
+      heading: "Role Update",
+      bodyHtml: `
+        <p>Dear ${user.firstName},</p>
+        <p>Your role in the Innovation Hub has been updated to <strong>${role}</strong>.</p>
+        <p>If you have any questions about your new role, please contact our support team.</p>
+        <p>Best regards,<br>Innovation Hub Team</p>
+      `,
+    })
 
     await sendEmail(user.email, subject, text, html)
     
@@ -270,20 +270,18 @@ If you did not create an account with us, please ignore this message and Report.
 Sincerely,
 Innovation Hub Team
       `;
-      const html = `
-<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-  <h2 style="color: #2c3e50;">Innovation Hub - Email Verification Required</h2>
-  <p>Dear ${user.firstName},</p>
-  <p>We noticed that your email address is not yet verified. To secure your account and ensure full access to the Innovation Hub, please verify your email by clicking the button below:</p>
-  <p>
-    <a href="${verificationLink}" style="display: inline-block; padding: 10px 20px; background-color: #3498db; color: #ffffff; text-decoration: none; border-radius: 4px;">
-      Verify Email
-    </a>
-  </p>
-  <p>If you did not create an account with us, please ignore this message and Report.</p>
-  <p>Sincerely,<br>Innovation Hub Team</p>
-</div>
-      `;
+      const html = renderBrandedEmail({
+        previewText: "Please verify your email address.",
+        heading: "Email Verification Required",
+        bodyHtml: `
+          <p>Dear ${user.firstName},</p>
+          <p>We noticed that your email address is not yet verified. To secure your account and ensure full access to the Innovation Hub, please verify your email by clicking the button below:</p>
+          <p>If you did not create an account with us, please ignore this message and report it.</p>
+          <p>Sincerely,<br>Innovation Hub Team</p>
+        `,
+        ctaText: "Verify Email",
+        ctaLink: verificationLink,
+      });
       await sendEmail(user.email, subject, text, html);
       res.status(403).json({
         message: "This user is not verified. Check your email to verify your account.",
@@ -646,21 +644,19 @@ Best regards,
 Innovation Hub Team
     `
 
-    const html = `
-<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-  <h2 style="color: #2c3e50;">Innovation Hub - Password Reset Request</h2>
-  <p>Dear ${user.firstName},</p>
-  <p>We received a request to reset your password for your Innovation Hub account. If you made this request, please click the button below to set a new password:</p>
-  <p>
-    <a href="${resetLink}" style="display: inline-block; padding: 10px 20px; background-color: #e74c3c; color: #ffffff; text-decoration: none; border-radius: 4px;">
-      Reset Password
-    </a>
-  </p>
-  <p>If you did not request a password reset, you can ignore this message. Your account remains secure.</p>
-  <p>For any further assistance, feel free to contact our support team.</p>
-  <p>Best regards,<br>Innovation Hub Team</p>
-</div>
-    `
+    const html = renderBrandedEmail({
+      previewText: "Reset your Innovation Hub password.",
+      heading: "Password Reset Request",
+      bodyHtml: `
+        <p>Dear ${user.firstName},</p>
+        <p>We received a request to reset your password for your Innovation Hub account. If you made this request, please click the button below to set a new password:</p>
+        <p>If you did not request a password reset, you can ignore this message. Your account remains secure.</p>
+        <p>For any further assistance, feel free to contact our support team.</p>
+        <p>Best regards,<br>Innovation Hub Team</p>
+      `,
+      ctaText: "Reset Password",
+      ctaLink: resetLink,
+    })
 
     await sendEmail(email, subject, text, html)
     

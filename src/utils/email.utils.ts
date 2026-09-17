@@ -13,6 +13,7 @@ import fs from "fs";
 import dotenv from "dotenv";
 import { SMTPSentMessageInfo } from "nodemailer/lib/smtp-transport";
 import type { NodemailerError } from "nodemailer";
+import { renderBrandedEmail } from "./emailTemplate.utils";
 
 dotenv.config();
 
@@ -247,15 +248,16 @@ Your account has been created successfully. You can now sign in and start explor
 Best regards,
 The Innovation Hub Team
       `;
-      html = `
-<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-  <h2 style="color: #2c3e50;">Welcome to Innovation Hub!</h2>
-  <p>Dear ${data.firstName},</p>
-  <p>We're excited to have you join our community of innovators and creators.</p>
-  <p>Your account has been created successfully. You can now sign in and start exploring our platform.</p>
-  <p>Best regards,<br>The Innovation Hub Team</p>
-</div>
-      `;
+      html = renderBrandedEmail({
+        previewText: `Welcome to Innovation Hub, ${data.firstName}!`,
+        heading: "Welcome to Innovation Hub!",
+        bodyHtml: `
+          <p>Dear ${data.firstName},</p>
+          <p>We're excited to have you join our community of innovators and creators.</p>
+          <p>Your account has been created successfully. You can now sign in and start exploring our platform.</p>
+          <p>Best regards,<br>The Innovation Hub Team</p>
+        `,
+      });
       break;
 
     case EmailTemplate.VERIFICATION:
@@ -271,20 +273,18 @@ If you did not create an account with us, please disregard this message.
 Best regards,
 The Innovation Hub Team
       `;
-      html = `
-<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-  <h2 style="color: #2c3e50;">Email Verification</h2>
-  <p>Dear ${data.firstName},</p>
-  <p>Please verify your email address by clicking the button below:</p>
-  <p>
-    <a href="${data.verificationLink}" style="display: inline-block; padding: 10px 20px; background-color: #3498db; color: #ffffff; text-decoration: none; border-radius: 4px;">
-      Verify Email
-    </a>
-  </p>
-  <p>If you did not create an account with us, please disregard this message.</p>
-  <p>Best regards,<br>The Innovation Hub Team</p>
-</div>
-      `;
+      html = renderBrandedEmail({
+        previewText: "Please verify your email address.",
+        heading: "Email Verification",
+        bodyHtml: `
+          <p>Dear ${data.firstName},</p>
+          <p>Please verify your email address by clicking the button below:</p>
+          <p>If you did not create an account with us, please disregard this message.</p>
+          <p>Best regards,<br>The Innovation Hub Team</p>
+        `,
+        ctaText: "Verify Email",
+        ctaLink: data.verificationLink,
+      });
       break;
 
     case EmailTemplate.PASSWORD_RESET:
@@ -300,20 +300,75 @@ If you did not request a password reset, please ignore this email.
 Best regards,
 The Innovation Hub Team
       `;
-      html = `
-<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-  <h2 style="color: #2c3e50;">Password Reset Request</h2>
-  <p>Dear ${data.firstName},</p>
-  <p>We received a request to reset your password. Please click the button below to set a new password:</p>
-  <p>
-    <a href="${data.resetLink}" style="display: inline-block; padding: 10px 20px; background-color: #e74c3c; color: #ffffff; text-decoration: none; border-radius: 4px;">
-      Reset Password
-    </a>
-  </p>
-  <p>If you did not request a password reset, please ignore this email.</p>
-  <p>Best regards,<br>The Innovation Hub Team</p>
-</div>
+      html = renderBrandedEmail({
+        previewText: "Reset your Innovation Hub password.",
+        heading: "Password Reset Request",
+        bodyHtml: `
+          <p>Dear ${data.firstName},</p>
+          <p>We received a request to reset your password. Please click the button below to set a new password:</p>
+          <p>If you did not request a password reset, please ignore this email.</p>
+          <p>Best regards,<br>The Innovation Hub Team</p>
+        `,
+        ctaText: "Reset Password",
+        ctaLink: data.resetLink,
+      });
+      break;
+
+    // Declared in the EmailTemplate enum and actively called (see
+    // password.event.ts's PASSWORD_EVENTS.LOCKED handler, which fires
+    // every time a user's account gets auto-locked after too many failed
+    // sign-in attempts) but had no case here at all - every call fell
+    // through to the `default: throw` below, silently failing (caught by
+    // that handler's own try/catch and only logged) rather than actually
+    // notifying the user their account was locked.
+    case EmailTemplate.ACCOUNT_DEACTIVATION:
+      subject = 'Innovation Hub - Your Account Has Been Deactivated';
+      text = `
+Dear ${data.firstName},
+
+${data.message || 'Your account on the Innovation Hub platform has been deactivated.'}
+
+If you believe this is a mistake, please contact our support team.
+
+Best regards,
+The Innovation Hub Team
       `;
+      html = renderBrandedEmail({
+        previewText: "Your Innovation Hub account has been deactivated.",
+        heading: "Account Deactivated",
+        bodyHtml: `
+          <p>Dear ${data.firstName},</p>
+          <p>${data.message || 'Your account on the Innovation Hub platform has been deactivated.'}</p>
+          <p>If you believe this is a mistake, please contact our support team.</p>
+          <p>Best regards,<br>The Innovation Hub Team</p>
+        `,
+      });
+      break;
+
+    // Not currently called anywhere, but declared alongside
+    // ACCOUNT_DEACTIVATION above - added for the same reason and so a
+    // future caller doesn't rediscover the same silent-throw gap.
+    case EmailTemplate.ACCOUNT_ACTIVATION:
+      subject = 'Innovation Hub - Your Account Is Active Again';
+      text = `
+Dear ${data.firstName},
+
+${data.message || 'Your account on the Innovation Hub platform has been reactivated. You can sign in as usual.'}
+
+Best regards,
+The Innovation Hub Team
+      `;
+      html = renderBrandedEmail({
+        previewText: "Your Innovation Hub account is active again.",
+        heading: "Account Reactivated",
+        bodyHtml: `
+          <p>Dear ${data.firstName},</p>
+          <p>${data.message || 'Your account on the Innovation Hub platform has been reactivated. You can sign in as usual.'}</p>
+          <p>Best regards,<br>The Innovation Hub Team</p>
+        `,
+        ctaText: data.loginLink ? "Sign In" : undefined,
+        ctaLink: data.loginLink,
+      });
       break;
 
     case EmailTemplate.ROLE_UPDATE:
@@ -329,16 +384,17 @@ If you have any questions, please contact our support team.
 Best regards,
 The Innovation Hub Team
       `;
-      html = `
-<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-  <h2 style="color: #2c3e50;">Role Update</h2>
-  <p>Dear ${data.firstName},</p>
-  <p>Your role on the Innovation Hub platform has been updated to <strong>${data.newRole}</strong>.</p>
-  ${data.message ? `<p>${data.message}</p>` : ''}
-  <p>If you have any questions, please contact our support team.</p>
-  <p>Best regards,<br>The Innovation Hub Team</p>
-</div>
-      `;
+      html = renderBrandedEmail({
+        previewText: `Your role has been updated to ${data.newRole}.`,
+        heading: "Role Update",
+        bodyHtml: `
+          <p>Dear ${data.firstName},</p>
+          <p>Your role on the Innovation Hub platform has been updated to <strong>${data.newRole}</strong>.</p>
+          ${data.message ? `<p>${data.message}</p>` : ''}
+          <p>If you have any questions, please contact our support team.</p>
+          <p>Best regards,<br>The Innovation Hub Team</p>
+        `,
+      });
       break;
 
     case EmailTemplate.EVENT_INVITATION:
@@ -359,22 +415,23 @@ We hope to see you there!
 Best regards,
 The Innovation Hub Team
       `;
-      html = `
-<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-  <h2 style="color: #2c3e50;">You're Invited!</h2>
-  <p>Dear ${data.firstName},</p>
-  <p>You're invited to join our event: <strong>${data.eventName}</strong></p>
-  <div style="background-color: #f8f9fa; padding: 15px; border-radius: 4px; margin: 15px 0;">
-    <p><strong>Date:</strong> ${data.eventDate}</p>
-    <p><strong>Time:</strong> ${data.eventTime}</p>
-    ${data.eventLocation ? `<p><strong>Location:</strong> ${data.eventLocation}</p>` : ''}
-    ${data.eventLink ? `<p><strong>Link:</strong> <a href="${data.eventLink}">${data.eventLink}</a></p>` : ''}
-  </div>
-  ${data.eventDescription ? `<p>${data.eventDescription}</p>` : ''}
-  <p>We hope to see you there!</p>
-  <p>Best regards,<br>The Innovation Hub Team</p>
-</div>
-      `;
+      html = renderBrandedEmail({
+        previewText: `You're invited: ${data.eventName}`,
+        heading: "You're Invited!",
+        bodyHtml: `
+          <p>Dear ${data.firstName},</p>
+          <p>You're invited to join our event: <strong>${data.eventName}</strong></p>
+          <div style="background-color: #f4f7fc; padding: 16px; border-radius: 8px; margin: 20px 0;">
+            <p style="margin: 0 0 8px;"><strong>Date:</strong> ${data.eventDate}</p>
+            <p style="margin: 0 0 8px;"><strong>Time:</strong> ${data.eventTime}</p>
+            ${data.eventLocation ? `<p style="margin: 0 0 8px;"><strong>Location:</strong> ${data.eventLocation}</p>` : ''}
+            ${data.eventLink ? `<p style="margin: 0;"><strong>Link:</strong> <a href="${data.eventLink}" style="color: #002B56;">${data.eventLink}</a></p>` : ''}
+          </div>
+          ${data.eventDescription ? `<p>${data.eventDescription}</p>` : ''}
+          <p>We hope to see you there!</p>
+          <p>Best regards,<br>The Innovation Hub Team</p>
+        `,
+      });
       break;
 
     case EmailTemplate.APPLICATION_ACCEPTED:
@@ -398,25 +455,23 @@ Welcome aboard!
 Best regards,
 The Innovation Hub Team
       `;
-      html = `
-<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-  <h2 style="color: #2c3e50;">Welcome to Innovation Hub!</h2>
-  <p>Dear ${data.firstName},</p>
-  <p>Congratulations! Your membership application has been accepted.</p>
-  <div style="background-color: #f8f9fa; padding: 15px; border-radius: 4px; margin: 15px 0;">
-    <p><strong>Email:</strong> ${data.email}</p>
-    <p><strong>Temporary Password:</strong> ${data.tempPassword}</p>
-  </div>
-  <p>
-    <a href="${data.loginLink}" style="display: inline-block; padding: 10px 20px; background-color: #2ecc71; color: #ffffff; text-decoration: none; border-radius: 4px;">
-      Sign In
-    </a>
-  </p>
-  <p>This temporary password expires in <strong>${data.expiresInDays} days</strong>. Please sign in and change your password before then. If it expires first, use the Forgot Password option to set a new one.</p>
-  <p>Welcome aboard!</p>
-  <p>Best regards,<br>The Innovation Hub Team</p>
-</div>
-      `;
+      html = renderBrandedEmail({
+        previewText: "Your membership application was accepted!",
+        heading: "Welcome to Innovation Hub!",
+        bodyHtml: `
+          <p>Dear ${data.firstName},</p>
+          <p>Congratulations! Your membership application has been accepted.</p>
+          <div style="background-color: #f4f7fc; padding: 16px; border-radius: 8px; margin: 20px 0;">
+            <p style="margin: 0 0 8px;"><strong>Email:</strong> ${data.email}</p>
+            <p style="margin: 0;"><strong>Temporary Password:</strong> ${data.tempPassword}</p>
+          </div>
+          <p>This temporary password expires in <strong>${data.expiresInDays} days</strong>. Please sign in and change your password before then. If it expires first, use the Forgot Password option to set a new one.</p>
+          <p>Welcome aboard!</p>
+          <p>Best regards,<br>The Innovation Hub Team</p>
+        `,
+        ctaText: "Sign In",
+        ctaLink: data.loginLink,
+      });
       break;
 
     case EmailTemplate.APPLICATION_REJECTED:
@@ -433,17 +488,18 @@ We truly appreciate your interest in our community and encourage you to apply ag
 Best regards,
 The Innovation Hub Team
       `;
-      html = `
-<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-  <h2 style="color: #2c3e50;">Update on Your Membership Application</h2>
-  <p>Dear ${data.firstName},</p>
-  <p>Thank you for taking the time to apply for membership with Innovation Hub and for sharing your background and experience with us.</p>
-  <p>After careful review, we are unable to move forward with your application at this time.</p>
-  ${data.reason ? `<div style="background-color: #f8f9fa; padding: 15px; border-radius: 4px; margin: 15px 0;"><strong>Additional feedback:</strong> ${data.reason}</div>` : ''}
-  <p>We truly appreciate your interest in our community and encourage you to apply again in the future.</p>
-  <p>Best regards,<br>The Innovation Hub Team</p>
-</div>
-      `;
+      html = renderBrandedEmail({
+        previewText: "An update on your membership application.",
+        heading: "Update on Your Membership Application",
+        bodyHtml: `
+          <p>Dear ${data.firstName},</p>
+          <p>Thank you for taking the time to apply for membership with Innovation Hub and for sharing your background and experience with us.</p>
+          <p>After careful review, we are unable to move forward with your application at this time.</p>
+          ${data.reason ? `<div style="background-color: #f4f7fc; padding: 16px; border-radius: 8px; margin: 20px 0;"><strong>Additional feedback:</strong> ${data.reason}</div>` : ''}
+          <p>We truly appreciate your interest in our community and encourage you to apply again in the future.</p>
+          <p>Best regards,<br>The Innovation Hub Team</p>
+        `,
+      });
       break;
 
     default:

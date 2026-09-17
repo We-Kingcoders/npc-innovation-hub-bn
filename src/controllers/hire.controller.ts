@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import HireUsInquiry from '../models/hireUsInquiry.model';
 import { sendEmail } from '../utils/emailService';
+import { renderBrandedEmail } from '../utils/emailTemplate.utils';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
@@ -56,11 +57,14 @@ export const submitHireInquiry = async (req: Request, res: Response): Promise<vo
       await sendEmail({
         to: email,
         subject: 'Thank you for your inquiry',
-        html: `
-          <h1>Thank you for contacting us, ${first_name}!</h1>
-          <p>We have received your inquiry and will get back to you shortly.</p>
-          <p>Your inquiry reference number: ${inquiry.id}</p>
-        `
+        html: renderBrandedEmail({
+          previewText: "We've received your inquiry.",
+          heading: `Thank you for contacting us, ${first_name}!`,
+          bodyHtml: `
+            <p>We have received your inquiry and will get back to you shortly.</p>
+            <p>Your inquiry reference number: <strong>${inquiry.id}</strong></p>
+          `,
+        }),
       });
     } catch (emailError) {
       console.error('Failed to send confirmation email:', emailError);
@@ -72,15 +76,21 @@ export const submitHireInquiry = async (req: Request, res: Response): Promise<vo
       await sendEmail({
         to: process.env.ADMIN_EMAIL || 'admin@example.com',
         subject: 'New Hire Us Inquiry',
-        html: `
-          <h1>New Inquiry Received</h1>
-          <p><strong>From:</strong> ${first_name} ${last_name} (${email})</p>
-          <p><strong>Company:</strong> ${company_name}</p>
-          <p><strong>Job Title:</strong> ${job_title}</p>
-          <p><strong>Country:</strong> ${country}</p>
-          <p><strong>Message:</strong> ${message}</p>
-          <p><a href="${process.env.ADMIN_URL || 'http://localhost:3000'}/admin/hire/${inquiry.id}">View in Admin Panel</a></p>
-        `
+        html: renderBrandedEmail({
+          previewText: `New inquiry from ${first_name} ${last_name}`,
+          heading: 'New Inquiry Received',
+          bodyHtml: `
+            <div style="background-color: #f4f7fc; padding: 16px; border-radius: 8px; margin: 0 0 20px;">
+              <p style="margin: 0 0 8px;"><strong>From:</strong> ${first_name} ${last_name} (${email})</p>
+              <p style="margin: 0 0 8px;"><strong>Company:</strong> ${company_name}</p>
+              <p style="margin: 0 0 8px;"><strong>Job Title:</strong> ${job_title}</p>
+              <p style="margin: 0 0 8px;"><strong>Country:</strong> ${country}</p>
+              <p style="margin: 0;"><strong>Message:</strong> ${message}</p>
+            </div>
+          `,
+          ctaText: 'View in Admin Panel',
+          ctaLink: `${process.env.ADMIN_URL || 'http://localhost:3000'}/admin/hire/${inquiry.id}`,
+        }),
       });
     } catch (emailError) {
       console.error('Failed to send admin notification:', emailError);

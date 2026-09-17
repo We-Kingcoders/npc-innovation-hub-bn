@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import HireUsInquiry from '../../models/hireUsInquiry.model';
 import { sendEmail } from '../../utils/emailService';
+import { renderBrandedEmail } from '../../utils/emailTemplate.utils';
 import { Op } from 'sequelize';
 
 /**
@@ -212,23 +213,22 @@ export const replyToInquiry = async (req: Request, res: Response): Promise<void>
       await sendEmail({
         to: inquiry.email,
         subject: subject,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2>Hello ${inquiry.first_name},</h2>
-            <div style="padding: 20px; border-radius: 5px; background-color: #f9f9f9;">
+        html: renderBrandedEmail({
+          heading: `Hello ${inquiry.first_name},`,
+          bodyHtml: `
+            <div style="background-color: #f4f7fc; padding: 16px; border-radius: 8px; margin: 0 0 20px;">
               ${message}
             </div>
-            <p style="margin-top: 20px;">
+            <p>
               Best regards,<br />
               ${currentUser.firstName} ${currentUser.lastName}<br />
               NPC Innovation Hub Team
             </p>
-            <hr style="border: 1px solid #eee; margin: 20px 0;" />
-            <p style="font-size: 12px; color: #666;">
+            <p style="font-size: 12px; color: #94a3b8; margin-top: 20px;">
               This email is in reference to your inquiry submitted on ${new Date(inquiry.created_at).toLocaleDateString()}.
             </p>
-          </div>
-        `
+          `,
+        }),
       });
     
       // Update inquiry status to Contacted if it was Pending

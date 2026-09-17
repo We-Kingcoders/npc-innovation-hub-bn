@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { sendEmail } from "../utils/email.utils";
+import { renderBrandedEmail } from "../utils/emailTemplate.utils";
 import { Request, Response, NextFunction } from "express";
 import User from "../models/user.model";
 
@@ -68,18 +69,19 @@ Thank you for choosing our services.
 Best regards,
   `;
 
-  const html = `
-<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-  <h2 style="color: #2c3e50;">Verification Code</h2>
-  <p>Dear ${user.firstName || "User"},</p>
-  <p>We have received a request to access your account. Please use the code provided below to complete your verification:</p>
-  <p style="font-size: 24px; font-weight: bold; margin: 20px 0;">${otp}</p>
-  <p><em>Note: This code is valid for the next 5 minutes.</em></p>
-  <p>If you did not request this verification, please ignore this email or contact our support team immediately.</p>
-  <p>Thank you for choosing our services.</p>
-  <p>Best regards,<br/></p>
-</div>
-  `;
+  const html = renderBrandedEmail({
+    previewText: `Your verification code is ${otp}`,
+    heading: "Verification Code",
+    bodyHtml: `
+      <p>Dear ${user.firstName || "User"},</p>
+      <p>We have received a request to access your account. Please use the code provided below to complete your verification:</p>
+      <p style="font-size: 30px; font-weight: bold; letter-spacing: 0.1em; color: #002B56; margin: 24px 0; text-align: center; background-color: #f4f7fc; padding: 16px; border-radius: 8px;">${otp}</p>
+      <p><em>Note: This code is valid for the next 5 minutes.</em></p>
+      <p>If you did not request this verification, please ignore this email or contact our support team immediately.</p>
+      <p>Thank you for choosing our services.</p>
+      <p>Best regards,<br/>The Innovation Hub Team</p>
+    `,
+  });
 
   try {
     await sendEmail(email, subject, text, html);
