@@ -14,7 +14,7 @@ const options = {
     description: 'API documentation for Innovation Hub platform',
     contact: {
       name: 'Alain275',
-      email: 'support@innovationhub.com'
+      email: 'npcinnovationhub2024@gmail.com'
     },
     license: {
       name: 'MIT',
