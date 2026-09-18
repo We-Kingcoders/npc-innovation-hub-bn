@@ -10,10 +10,14 @@ export const submitApplication = async (req: Request, res: Response): Promise<vo
     const letterFile = files?.applicationLetter?.[0];
     const imageFile = files?.image?.[0];
 
-    if (!letterFile) {
+    if (!letterFile || !imageFile) {
+      const missingFiles: string[] = [];
+      if (!letterFile) missingFiles.push('applicationLetter (a PDF)');
+      if (!imageFile) missingFiles.push('image (a profile photo)');
+
       res.status(400).json({
         status: 'fail',
-        message: 'applicationLetter (a PDF) is required',
+        message: `${missingFiles.join(' and ')} ${missingFiles.length > 1 ? 'are' : 'is'} required`,
       });
       return;
     }
@@ -31,15 +35,12 @@ export const submitApplication = async (req: Request, res: Response): Promise<vo
       return;
     }
 
-    let imageUrl: string | null = null;
-    if (imageFile) {
-      const imageResult = await cloudinary.uploader.upload(imageFile.path, {
-        folder: 'innovation-hub/applications',
-        resource_type: 'auto',
-      });
-      imageUrl = imageResult.secure_url;
-      fs.unlinkSync(imageFile.path);
-    }
+    const imageResult = await cloudinary.uploader.upload(imageFile.path, {
+      folder: 'innovation-hub/applications',
+      resource_type: 'auto',
+    });
+    const imageUrl = imageResult.secure_url;
+    fs.unlinkSync(imageFile.path);
 
     const letterResult = await cloudinary.uploader.upload(letterFile.path, {
       folder: 'innovation-hub/applications/letters',
