@@ -33,6 +33,16 @@ function attachLetter(req: request.Test) {
   return req.attach('applicationLetter', Buffer.from('%PDF-1.4 fake letter content'), 'letter.pdf');
 }
 
+function attachImage(req: request.Test) {
+  return req.attach('image', Buffer.from('fake image bytes'), 'photo.jpg');
+}
+
+// Both files are required, so most tests need both attached regardless of
+// which specific field they're exercising.
+function attachFiles(req: request.Test) {
+  return attachImage(attachLetter(req));
+}
+
 describe('POST /api/applications', () => {
   afterEach(() => jest.clearAllMocks());
 
@@ -54,8 +64,7 @@ describe('POST /api/applications', () => {
     for (const [key, value] of Object.entries(baseFields())) {
       req = req.field(key, value);
     }
-    req = req.attach('image', Buffer.from('fake image bytes'), 'photo.jpg');
-    const res = await attachLetter(req);
+    const res = await attachFiles(req);
 
     expect(res.status).toBe(201);
     expect(Application.create).toHaveBeenCalledWith(
@@ -73,24 +82,31 @@ describe('POST /api/applications', () => {
     );
   });
 
-  it('creates a pending application without an image (imageUrl null)', async () => {
-    (Application.findOne as jest.Mock).mockResolvedValue(null);
-    (cloudinary.uploader.upload as jest.Mock).mockResolvedValue({
-      secure_url: 'https://res.cloudinary.com/demo/raw/upload/letter.pdf',
-    });
-    (Application.create as jest.Mock).mockResolvedValue({ id: 'a2', ...baseFields(), status: 'Pending' });
+  it('rejects a submission missing the required application letter PDF', async () => {
+    let req = request(buildApp()).post('/api/applications');
+    for (const [key, value] of Object.entries(baseFields())) {
+      req = req.field(key, value);
+    }
+    const res = await attachImage(req);
 
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/applicationLetter/);
+    expect(Application.create).not.toHaveBeenCalled();
+  });
+
+  it('rejects a submission missing the required profile photo (image)', async () => {
     let req = request(buildApp()).post('/api/applications');
     for (const [key, value] of Object.entries(baseFields())) {
       req = req.field(key, value);
     }
     const res = await attachLetter(req);
 
-    expect(res.status).toBe(201);
-    expect(Application.create).toHaveBeenCalledWith(expect.objectContaining({ imageUrl: null }));
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/image/);
+    expect(Application.create).not.toHaveBeenCalled();
   });
 
-  it('rejects a submission missing the required application letter PDF', async () => {
+  it('rejects a submission missing both required files with a combined message', async () => {
     let req = request(buildApp()).post('/api/applications');
     for (const [key, value] of Object.entries(baseFields())) {
       req = req.field(key, value);
@@ -98,6 +114,8 @@ describe('POST /api/applications', () => {
     const res = await req;
 
     expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/applicationLetter/);
+    expect(res.body.message).toMatch(/image/);
     expect(Application.create).not.toHaveBeenCalled();
   });
 
@@ -106,7 +124,7 @@ describe('POST /api/applications', () => {
     for (const [key, value] of Object.entries({ ...baseFields(), email: 'not-an-email' })) {
       req = req.field(key, value);
     }
-    const res = await attachLetter(req);
+    const res = await attachFiles(req);
 
     expect(res.status).toBe(400);
   });
@@ -116,7 +134,7 @@ describe('POST /api/applications', () => {
     for (const [key, value] of Object.entries({ ...baseFields(), gender: 'Robot' })) {
       req = req.field(key, value);
     }
-    const res = await attachLetter(req);
+    const res = await attachFiles(req);
 
     expect(res.status).toBe(400);
   });
@@ -126,7 +144,7 @@ describe('POST /api/applications', () => {
     for (const [key, value] of Object.entries({ ...baseFields(), githubUrl: 'not-a-url' })) {
       req = req.field(key, value);
     }
-    const res = await attachLetter(req);
+    const res = await attachFiles(req);
 
     expect(res.status).toBe(400);
   });
@@ -136,7 +154,7 @@ describe('POST /api/applications', () => {
     for (const [key, value] of Object.entries({ ...baseFields(), skills: JSON.stringify([]) })) {
       req = req.field(key, value);
     }
-    const res = await attachLetter(req);
+    const res = await attachFiles(req);
 
     expect(res.status).toBe(400);
   });
@@ -148,7 +166,7 @@ describe('POST /api/applications', () => {
     for (const [key, value] of Object.entries(baseFields())) {
       req = req.field(key, value);
     }
-    const res = await attachLetter(req);
+    const res = await attachFiles(req);
 
     expect(res.status).toBe(409);
     expect(Application.create).not.toHaveBeenCalled();
