@@ -93,6 +93,7 @@ const options = {
         scheme: 'bearer',
         bearerFormat: 'JWT'
       }
+      
     },
     schemas: {
       Error: {
