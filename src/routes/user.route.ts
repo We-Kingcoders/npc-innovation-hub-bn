@@ -1,5 +1,5 @@
 import express from 'express';
-import { protectRoute } from '../middlewares/auth.middleware';
+import { protectRoute, restrictTo } from '../middlewares/auth.middleware';
 import { verifyEmail } from '../controllers/user.controller';
 import { verifyTokenMiddleware } from '../middlewares/verifyToken.middleware';
 import upload from '../utils/multerConfig';
@@ -35,8 +35,14 @@ const userRoutes = express.Router();
 
 userRoutes.post('/signup', signupLimiter, validateUser, userSignup);
 
-userRoutes.patch('/:id/role', protectRoute, updateRole);
-userRoutes.patch('/change-account-status/:id', protectRoute, changeAccountStatus);
+// restrictTo('Admin') added declaratively here - both were previously
+// Admin-gated only inside their own controllers (updateRole/
+// changeAccountStatus in user.controller.ts, which keep that check too),
+// not at the route. deleteUserById is intentionally left without
+// restrictTo: unlike these two, it's owner-OR-admin (a user can delete
+// their own account), so an Admin-only route guard would break that.
+userRoutes.patch('/:id/role', protectRoute, restrictTo('Admin'), updateRole);
+userRoutes.patch('/change-account-status/:id', protectRoute, restrictTo('Admin'), changeAccountStatus);
 
 userRoutes.delete('/:id', protectRoute, deleteUserById);
 
