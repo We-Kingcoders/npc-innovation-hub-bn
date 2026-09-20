@@ -10,7 +10,7 @@
 import express from 'express';
 import multer from 'multer';
 import '../utils/ensureUploadsDir';
-import { protectRoute } from '../middlewares/auth.middleware';
+import { protectRoute, restrictTo } from '../middlewares/auth.middleware';
 import * as resourceController from '../controllers/resource.controller';
 
 const router = express.Router();
@@ -57,10 +57,17 @@ router.get('/videos', protectRoute, resourceController.getVideoResources);
 router.post('/resource/:id/upvote', protectRoute, resourceController.upvoteResource);
 router.post('/resource/:id/save', protectRoute, resourceController.saveResource);
 
-// Admin-only routes for CRUD operations
+// Admin-only routes for CRUD operations. restrictTo('Admin') added here
+// declaratively - it was previously enforced only inside each controller
+// (resource.controller.ts's own `currentUser.role !== 'Admin'` checks,
+// which still stay in place), matching this file's own "Admin-only"
+// comment at the route level too, so a future route added here without
+// remembering to copy that in-controller check doesn't silently become
+// open to any authenticated user.
 router.post(
-  '/', 
-  protectRoute, 
+  '/',
+  protectRoute,
+  restrictTo('Admin'),
   upload.fields([
     { name: 'image', maxCount: 1 },
     { name: 'video', maxCount: 1 }
@@ -70,8 +77,9 @@ router.post(
 
 // Full update (PUT)
 router.put(
-  '/:id', 
-  protectRoute, 
+  '/:id',
+  protectRoute,
+  restrictTo('Admin'),
   upload.fields([
     { name: 'image', maxCount: 1 },
     { name: 'video', maxCount: 1 }
@@ -81,8 +89,9 @@ router.put(
 
 // Partial update (PATCH)
 router.patch(
-  '/:id', 
-  protectRoute, 
+  '/:id',
+  protectRoute,
+  restrictTo('Admin'),
   upload.fields([
     { name: 'image', maxCount: 1 },
     { name: 'video', maxCount: 1 }
@@ -91,8 +100,9 @@ router.patch(
 );
 
 router.delete(
-  '/:id', 
+  '/:id',
   protectRoute,
+  restrictTo('Admin'),
   resourceController.deleteResource
 );
 
