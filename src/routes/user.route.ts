@@ -1,4 +1,5 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
+import multer from 'multer';
 import { protectRoute, restrictTo } from '../middlewares/auth.middleware';
 import { verifyEmail } from '../controllers/user.controller';
 import { verifyTokenMiddleware } from '../middlewares/verifyToken.middleware';
@@ -53,7 +54,23 @@ userRoutes.get('/me', protectRoute, getUserById);
 
 userRoutes.patch('/:id/update-password', protectRoute, validateUserUpdatePassword, updatePassword);
 userRoutes.get('/profile', protectRoute, getProfile);
-userRoutes.patch('/update-profile', protectRoute, upload.single('images'), updateProfile);
+// upload.single() now enforces a file-type/size fileFilter (see
+// multerConfig.ts) that previously didn't exist - without this wrapper,
+// a rejected upload (wrong type, too large) would fall through to
+// Express's default error handler (there's no global one in this app)
+// instead of the clean JSON error response every other endpoint returns.
+const uploadProfileImage = (req: Request, res: Response, next: NextFunction) => {
+  void upload.single('images')(req, res, (err: unknown) => {
+    if (err) {
+      const message = err instanceof multer.MulterError ? err.message : (err as Error).message;
+      res.status(400).json({ status: 'fail', message });
+      return;
+    }
+    next();
+  });
+};
+
+userRoutes.patch('/update-profile', protectRoute, uploadProfileImage, updateProfile);
 userRoutes.post('/request-password-reset', emailSendLimiter, requestPasswordReset);
 userRoutes.post('/reset-password', authGuessLimiter, resetPassword);
 userRoutes.get('/verify-email', verifyTokenMiddleware, verifyEmail);
