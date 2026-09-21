@@ -67,7 +67,13 @@ export const userSignup = async (req: Request, res: Response) => {
       password: hashedpassword,
       gender: req.body.gender,
       phone: req.body.phone,
-      role: req.body.role || 'Member',
+      // Never trust a client-supplied role here - public signup is the
+      // only account-creation path with no auth gate in front of it, so
+      // accepting req.body.role let anyone self-register as Admin. The
+      // one legitimate path to an Admin/Member role assignment is
+      // admin/application.controller.ts's acceptApplication, which
+      // hardcodes it server-side the same way.
+      role: 'Member',
       updatedAt: new Date(),
       createdAt: new Date(),
     }
