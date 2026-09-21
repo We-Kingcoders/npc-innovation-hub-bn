@@ -120,11 +120,19 @@ export const updateInquiry = async (req: Request, res: Response): Promise<void> 
       return;
     }
     
-    // Update the inquiry
-    await inquiry.update({
-      ...req.body,
-      updated_at: new Date()
-    });
+    // Explicit allow-list, not ...req.body: this endpoint is Admin-only
+    // already, but spreading the whole request body straight into
+    // .update() still let any field - id, created_at, or anything else
+    // in the request - overwrite the row, whether by a stray typo in an
+    // admin client or a forged request. status is the only field the
+    // real caller ever sends (frontend: updateHireInquiryStatus, payload
+    // shape { status, notes? } - notes isn't even a column on this
+    // model) - a full applicant-info edit was never actually a thing
+    // this endpoint did, despite the old code accepting it. updated_at
+    // is left out too since Sequelize (timestamps: true) already manages
+    // it on .update().
+    const { status } = req.body;
+    await inquiry.update({ status });
     
     // Audit logging
     console.log(`[${new Date().toISOString()}] Inquiry ${id} updated by ${currentUser.firstName} ${currentUser.lastName} (${currentUser.id})`);
