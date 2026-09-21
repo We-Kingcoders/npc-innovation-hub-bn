@@ -32,12 +32,12 @@ const usersValidation = Joi.object({
     'string.max': 'Last name cannot exceed 20 characters',
     'any.required': 'Last name is required',
   }),
-  role: Joi.string()
-    .valid('Admin', 'Member') // Updated to match the model's allowed roles
-    .optional() // Made optional since the model has a default value
-    .messages({
-      'any.only': 'Role must be either Admin or Member',
-    }),
+  // No `role` field here on purpose: this schema only validates
+  // /signup, a public unauthenticated route - the controller hardcodes
+  // role to 'Member' unconditionally now (see user.controller.ts's
+  // userSignup), so there's nothing legitimate for a role field on this
+  // request to do. Previously allowing 'Admin' here let anyone
+  // self-register as a fully privileged Admin.
   gender: Joi.string().valid('male', 'female', 'other').optional().messages({
     'any.only': 'Gender must be male, female, or other',
   }), 
