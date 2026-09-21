@@ -2,12 +2,12 @@ import { Request, Response, NextFunction } from 'express'
 import cloudinary from "../utils/cloudinary.utils";
 import { UserSignupAttributes } from '../types/user.type'
 import { UserService } from '../services/user.services';
-import { generateToken, decodeToken } from '../utils/tokenGenerator.utils'
+import { generateToken, generateResetToken, decodeToken } from '../utils/tokenGenerator.utils'
 import { hashPassword, comparePassword } from '../utils/password.utils'
 import { sendEmail } from '../utils/email.utils';
 import { renderBrandedEmail } from '../utils/emailTemplate.utils';
 import { sendReasonEmail } from '../utils/sendReson.util'
-import { addToBlacklist } from '../utils/tokenBlacklist'
+import { addToBlacklist, isBlacklisted } from '../utils/tokenBlacklist'
 import { passwordEventEmitter } from '../events/password.event'
 import '../utils/cloudinary.utils'
 import User from '../models/user.model'
@@ -630,7 +630,13 @@ export const requestPasswordReset = async (
       return
     }
 
-    const resetToken = await generateToken(user)
+    // generateResetToken, not generateToken: a plain generateToken() call
+    // here produced a normal 7-day access token with no tokenType, which
+    // resetPassword accepted with no check - meaning any token for that
+    // user (even an unrelated login token) could be replayed against
+    // password reset, and a leaked reset link/token stayed valid for a
+    // week instead of the intended 30 minutes.
+    const resetToken = await generateResetToken(user)
     const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`
 
     const subject = 'Innovation Hub - Password Reset Request'
@@ -668,10 +674,14 @@ Innovation Hub Team
     
     console.log(`Password reset requested: ${email} at ${new Date().toISOString()}`);
 
+    // The reset token used to be returned here too, alongside emailing
+    // it - meaning anyone who submitted any victim's email address got a
+    // working reset token back immediately in the API response, with no
+    // need to ever touch the victim's inbox. The email is the only
+    // legitimate channel for this token now.
     res.status(200).json({
       status: 'success',
       message: 'Password reset email sent',
-      data: { token: resetToken },
     })
   } catch (error) {
     console.error('Error requesting password reset:', error)
@@ -692,7 +702,30 @@ export const resetPassword = async (
   try {
     const newPassword = req.body.newPassword
     const token = req.query.token as string
+
+    // A used-up reset token must never work a second time - without
+    // this check, blacklisting it below on success would be pointless.
+    if (isBlacklisted(token)) {
+      res.status(400).json({
+        status: 'fail',
+        message: 'Invalid or expired token',
+      })
+      return
+    }
+
     const decoded: any = decodeToken(token)
+
+    // decodeToken only checks the JWT signature/expiry, not what the
+    // token was actually issued for - without this, any valid token for
+    // a user (a normal login/access token, an email-verification token,
+    // etc.) could be replayed here to reset that user's password.
+    if (decoded.tokenType !== 'reset') {
+      res.status(400).json({
+        status: 'fail',
+        message: 'Invalid or expired token',
+      })
+      return
+    }
 
     const user = await UserService.getUserByid(decoded.id)
 
@@ -709,6 +742,12 @@ export const resetPassword = async (
     user.isTemporaryPassword = false
     user.passwordExpiresAt = null
     await user.save()
+
+    // Single-use: this token has now done its job. TOKEN_DURATIONS.RESET
+    // is 30 minutes (1800s) - matching that here means it never lingers
+    // in the blacklist any longer than it would have remained valid
+    // anyway.
+    addToBlacklist(token, 30 * 60)
 
     await createNotification(
       user.id, 
