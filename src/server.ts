@@ -1,4 +1,4 @@
-import express, { Express, Request, Response } from 'express';
+import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import path from 'path';
@@ -149,6 +149,39 @@ app.use((req: Request, res: Response) => {
     message: `Cannot ${req.method} ${req.originalUrl}`
   });
 });
+
+// Global error handler - must be the last app.use(). This app had none
+// before, so any error reaching Express's error pipeline fell through to
+// Express's own default handler (a bare, unstyled response, and a leaked
+// stack trace outside production) instead of this app's usual JSON error
+// shape. This matters more than it looks: Express 5 automatically
+// forwards a rejected/thrown promise from an async route handler to
+// next(err) - i.e. here - so most controllers that don't have their own
+// try/catch no longer surface as unhandled promise rejections at the
+// process level (see index.ts's process.on('unhandledRejection', ...),
+// which used to be the only thing standing between one bad request and
+// process.exit(1) taking the whole server down for every connected
+// user). That handler stays in place as a last-resort safety net for
+// genuinely non-request-scoped errors - this one is what actually
+// prevents most request-scoped errors from ever reaching it.
+// Exported (not just used inline) so it can be unit-tested directly,
+// the same way this app's other middleware is.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- Express only recognizes a 4-arg function as error-handling middleware; `next` must stay in the signature even though the happy path never calls it.
+export const globalErrorHandler = (err: Error, req: Request, res: Response, next: NextFunction): void => {
+  console.error('Unhandled error:', err);
+
+  if (res.headersSent) {
+    next(err);
+    return;
+  }
+
+  res.status(500).json({
+    status: 'error',
+    message: 'Something went wrong. Please try again later.',
+  });
+};
+
+app.use(globalErrorHandler);
 
 // Export app for testing purposes
 export { app };
