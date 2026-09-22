@@ -28,7 +28,18 @@ export const verifyTokenMiddleware = (
 
   if (!token) {
     errorResponse(res, 400, USER_MESSAGES.INVALID_TOKEN)
-    return 
+    return
+  }
+
+  // JWT_CONSTANTS.SECRET_KEY falls back to "" when JWT_SECRET is unset -
+  // jwt.verify(token, "") would then accept any token forged with an
+  // empty-string secret (trivially guessable), instead of failing
+  // outright. auth.middleware.ts's protectRoute already fails closed the
+  // same way for every other authenticated route; this one verified
+  // tokens for /verify-email without the same guard.
+  if (!JWT_CONSTANTS.SECRET_KEY) {
+    errorResponse(res, 500, USER_MESSAGES.INTERNAL_SERVER_ERROR)
+    return
   }
 
   try {
