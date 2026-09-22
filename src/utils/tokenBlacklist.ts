@@ -12,7 +12,21 @@ interface BlacklistEntry {
   expiresAt: number; // Unix timestamp in milliseconds
 }
 
-// In-memory storage for blacklisted tokens
+// In-memory storage for blacklisted tokens.
+//
+// Known, deliberately accepted limitation (flagged by a full-platform
+// security review, 2026-09): this doesn't survive a process restart and
+// isn't shared across multiple server instances - a blacklisted token
+// (logout, a used-up password-reset token) can become valid again after
+// a redeploy or on a different instance behind a load balancer. Fixing
+// this properly means moving to shared storage (Redis is the standard
+// choice) - a real infrastructure change (provisioning, connection
+// config, an extra service to run and monitor), not just a code change,
+// and one this platform's current single-instance deployment doesn't
+// yet need. Revisit if/when this deploys across multiple instances, or
+// if the consequence of a stale blacklist entry becomes more severe than
+// "a logged-out session or an already-used reset link works again for
+// up to its own token lifetime after a restart."
 const blacklistStore: Map<string, BlacklistEntry> = new Map();
 
 // Cleanup interval in milliseconds (every 1 hour)
