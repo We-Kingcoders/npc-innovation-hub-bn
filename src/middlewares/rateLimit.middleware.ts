@@ -1,4 +1,5 @@
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
+import { AI_CONFIG } from '../config/ai.config';
 
 // Nothing in this app throttled requests at all before this - login,
 // signup, and especially the 6-digit OTP (900,000 possible values, valid
@@ -50,4 +51,32 @@ export const signupLimiter = rateLimit({
   legacyHeaders: false,
   skip: () => isTestEnv(),
   message: { status: 'fail', message: 'Too many signup attempts. Please try again later.' },
+});
+
+// NPC AI Assistant chat - keyed by authenticated user id when present,
+// falling back to IP (via ipKeyGenerator, which normalizes IPv6 addresses
+// safely) for anonymous callers, so a logged-in user isn't sharing a
+// bucket with everyone else on the same NAT'd network. This is the first
+// limiter in this file that reads req.user, which is why
+// attachUserIfPresent MUST run before this middleware in the route
+// (the reverse of every other limiter here, which all precede
+// authentication by definition - login/signup have no user yet).
+export const assistantChatLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: AI_CONFIG.rateLimitPerMinute,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => isTestEnv(),
+  keyGenerator: (req) => req.user?.id || ipKeyGenerator(req.ip || ''),
+  message: { status: 'fail', message: "You've reached the current chat request limit. Please try again later." },
+});
+
+export const assistantDailyLimiter = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000,
+  limit: AI_CONFIG.dailyLimit,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => isTestEnv(),
+  keyGenerator: (req) => req.user?.id || ipKeyGenerator(req.ip || ''),
+  message: { status: 'fail', message: "You've reached today's chat request limit. Please try again tomorrow." },
 });
