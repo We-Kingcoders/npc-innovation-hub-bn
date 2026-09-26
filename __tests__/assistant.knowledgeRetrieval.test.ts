@@ -60,8 +60,8 @@ describe('retrieveKnowledge - real DB, RBAC-gated', () => {
       verified: true,
       isActive: true,
     } as any);
-    userA = { id: createdUserA.get('id') as string };
-    userB = { id: createdUserB.get('id') as string };
+    userA = { id: createdUserA.get('id') };
+    userB = { id: createdUserB.get('id') };
 
     const memberA = await Member.create({
       userId: userA.id,
@@ -77,7 +77,7 @@ describe('retrieveKnowledge - real DB, RBAC-gated', () => {
       skills: [],
     } as any);
 
-    await HeroFeaturedMember.create({ memberId: memberA.get('id') as string, order: 1 } as any);
+    await HeroFeaturedMember.create({ memberId: memberA.get('id'), order: 1 } as any);
 
     await Project.create({
       userId: userA.id,
@@ -134,7 +134,7 @@ describe('retrieveKnowledge - real DB, RBAC-gated', () => {
       authorId: userA.id,
       isPublished: false,
     } as any);
-    unpublishedBlogId = unpublished.get('id') as string;
+    unpublishedBlogId = unpublished.get('id');
 
     await Alumnus.create({
       fullName: 'Grace Graduate',

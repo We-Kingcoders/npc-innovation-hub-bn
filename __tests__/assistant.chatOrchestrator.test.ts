@@ -5,7 +5,7 @@
 // injection/secret-scan gating, provider error mapping, and the explicit
 // language directive (see language.service.ts for why it has to be
 // explicit rather than inferred).
-import { handleChatMessage } from '../src/services/assistant/chatOrchestrator.service';
+import { handleChatMessage, type ChatTurn } from '../src/services/assistant/chatOrchestrator.service';
 import { getCompletion, AIProviderError } from '../src/providers/ai/EjoChatProvider';
 import { retrieveKnowledge } from '../src/services/assistant/knowledgeRetrieval.service';
 import { AI_CONFIG } from '../src/config/ai.config';
@@ -141,8 +141,8 @@ describe('handleChatMessage', () => {
   });
 
   it('truncates history server-side to AI_CONFIG.maxHistoryMessages regardless of how much the client sends', async () => {
-    const longHistory = Array.from({ length: AI_CONFIG.maxHistoryMessages + 10 }, (_, i) => ({
-      role: (i % 2 === 0 ? 'user' : 'assistant') as 'user' | 'assistant',
+    const longHistory: ChatTurn[] = Array.from({ length: AI_CONFIG.maxHistoryMessages + 10 }, (_, i) => ({
+      role: i % 2 === 0 ? 'user' : 'assistant',
       content: `turn ${i}`,
     }));
 
