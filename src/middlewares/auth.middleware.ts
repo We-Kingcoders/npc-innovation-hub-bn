@@ -65,6 +65,57 @@ export const protectRoute = (
   }
 }
 
+// For routes that must work for BOTH anonymous and authenticated callers
+// (the NPC AI Assistant) - attaches req.user when a valid, non-
+// blacklisted token is present, but NEVER rejects the request otherwise.
+//
+// This must never call res.status(401) on any path, full stop - unlike
+// every other auth middleware in this app. The frontend's shared axios
+// client (src/api/client.ts) treats ANY 401 from ANY endpoint as "clear
+// the token and hard-redirect to /login" - if this middleware ever 401'd
+// on a stale/malformed token, a real logged-in user would be silently
+// logged out of their whole session just for typing into the chat
+// widget. Every failure path here - missing header, missing JWT_SECRET,
+// blacklisted token, invalid/expired token - falls through to next()
+// with req.user left undefined, i.e. treated as anonymous.
+export const attachUserIfPresent = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void => {
+  try {
+    const authHeader = req.headers.authorization
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      next()
+      return
+    }
+
+    const token = authHeader.split(' ')[1]
+    const jwt_secret: string | undefined = process.env.JWT_SECRET
+    if (!token || !jwt_secret) {
+      next()
+      return
+    }
+
+    if (isBlacklisted(token)) {
+      next()
+      return
+    }
+
+    jwt.verify(token, jwt_secret, (err, decoded) => {
+      if (err || !decoded) {
+        next()
+        return
+      }
+      req.user = decoded as UserAttributes
+      next()
+    })
+  } catch (err) {
+    console.error('attachUserIfPresent error (proceeding as anonymous):', err)
+    next()
+  }
+}
+
 // Use the standard Request type, as it has been extended in the global namespace
 export const restrictTo = (...roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction): void => {

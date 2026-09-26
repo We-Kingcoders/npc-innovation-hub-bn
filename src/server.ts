@@ -13,6 +13,7 @@ import eventRoutes from './routes/event.routes';
 import hubRoutes from './routes/hub.routes';
 // import chatRoutes from './chat.routes';
 import chatRoutes from './routes/chat.routes';
+import assistantRoutes from './routes/assistant.routes';
 // import notificationRoutes from './notification.routes';
 import notificationRoutes from './routes/notification.routes';
 import hireRoutes from './routes/hire.route';
@@ -110,6 +111,10 @@ app.use('/api/resources', resourceRoutes); // Mount resource routes
 app.use('/api/events', eventRoutes); // Mount event routes
 app.use('/api/hub', hubRoutes);
 app.use('/api/chat', chatRoutes);
+// NPC AI Assistant - distinct from /api/chat above (that's the existing,
+// fully auth-gated real-time member-DM feature). This one works for both
+// anonymous and authenticated callers - see assistant.routes.ts.
+app.use('/api/assistant', assistantRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/tasks', taskRoutes)   
 // Public route
