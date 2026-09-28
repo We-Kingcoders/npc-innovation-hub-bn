@@ -18,6 +18,8 @@ import assistantRoutes from './routes/assistant.routes';
 import notificationRoutes from './routes/notification.routes';
 import hireRoutes from './routes/hire.route';
 import adminHireRoutes from './routes/admin/hire.routes';
+import contactRoutes from './routes/contact.routes';
+import adminContactRoutes from './routes/admin/contact.routes';
 import adminHeroMembersRoutes from './routes/admin/heroMembers.routes';
 import heroMembersRoutes from './routes/heroMembers.routes';
 import applicationRoutes from './routes/application.routes';
@@ -121,6 +123,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/tasks', taskRoutes)   
 // Public route
 app.use('/api/hire-us', hireRoutes);
+app.use('/api/contact', contactRoutes);
 app.use('/api/hero-members', heroMembersRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/hub-video', hubVideoRoutes);
@@ -129,6 +132,7 @@ app.use('/api/alumni', alumniRoutes);
 
 // Admin routes - already protected by middleware in the router
 app.use('/api/admin/hire-inquiries', adminHireRoutes);
+app.use('/api/admin/contact-messages', adminContactRoutes);
 app.use('/api/admin/applications', adminApplicationRoutes);
 app.use('/api/admin/hub-video', adminHubVideoRoutes);
 app.use('/api/admin/hero-media', adminHeroMediaRoutes);
