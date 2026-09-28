@@ -21,6 +21,7 @@ import '../src/models/alumnus.model';
 import '../src/models/application.model';
 import '../src/models/attendance.model';
 import '../src/models/blog.model';
+import '../src/models/contactMessage.model';
 import '../src/models/directMessage.model';
 import '../src/models/event.model';
 import '../src/models/heroFeaturedMember.model';
