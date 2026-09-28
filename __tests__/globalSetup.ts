@@ -24,6 +24,7 @@ import '../src/models/blog.model';
 import '../src/models/directMessage.model';
 import '../src/models/event.model';
 import '../src/models/heroFeaturedMember.model';
+import '../src/models/heroMedia.model';
 import '../src/models/hireUsInquiry.model';
 import '../src/models/hubIntroVideo.model';
 import '../src/models/member.model';
